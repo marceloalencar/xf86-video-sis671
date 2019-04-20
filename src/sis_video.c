@@ -105,9 +105,6 @@
 #define XVDEBUG
 */
 #include "sis.h"
-#ifdef SIS_USE_XAA
-#include "xf86fbman.h"
-#endif
 #include "regionstr.h"
 
 #include "xf86xv.h"
@@ -1040,14 +1037,6 @@ SISSetupImageVideo(ScreenPtr pScreen)
     SISPtr pSiS = SISPTR(pScrn);
     XF86VideoAdaptorPtr adapt;
     SISPortPrivPtr pPriv;
-
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-    XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-
-    if(!pXAA || !pXAA->FillSolidRects) {
-       return NULL;
-    }
-#endif
 
     if(!(adapt = calloc(1, sizeof(XF86VideoAdaptorRec) +
                             sizeof(SISPortPrivRec) +
@@ -3747,52 +3736,6 @@ SISAllocateFBMemory(
    SISPtr pSiS = SISPTR(pScrn);
    ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
 
-#ifdef SIS_USE_XAA
-   if(!pSiS->useEXA) {
-      FBLinearPtr linear = (FBLinearPtr)(*handle);
-      FBLinearPtr new_linear;
-      int depth = pSiS->CurrentLayout.bitsPerPixel >> 3;
-      int size = ((bytesize + depth - 1) / depth);
-
-      if(linear) {
-         if(linear->size >= size) {
-	    return (unsigned int)(linear->offset * depth);
-	 }
-
-         if(xf86ResizeOffscreenLinear(linear, size)) {
-	    return (unsigned int)(linear->offset * depth);
-	 }
-
-         xf86FreeOffscreenLinear(linear);
-	 *handle = NULL;
-      }
-
-      new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8, NULL, NULL, NULL);
-
-      if(!new_linear) {
-         int max_size;
-
-         xf86QueryLargestOffscreenLinear(pScreen, &max_size, 8, PRIORITY_EXTREME);
-
-         if(max_size < size) {
-            xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	           "Failed to allocate %d pixels of linear video memory\n", size);
-	    return 0;
-	 }
-
-         xf86PurgeUnlockedOffscreenAreas(pScreen);
-         new_linear = xf86AllocateOffscreenLinear(pScreen, size, 8, NULL, NULL, NULL);
-      }
-      if(!new_linear) {
-         xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	           "Failed to allocate %d pixels of linear video memory\n", size);
-	 return 0;
-      } else {
-         *handle = (void *)new_linear;
-	 return (unsigned int)(new_linear->offset * depth);
-      }
-   }
-#endif
 #ifdef SIS_USE_EXA
    if(pSiS->useEXA && !pSiS->NoAccel) {
       ExaOffscreenArea *area = (ExaOffscreenArea *)(*handle);
@@ -3827,13 +3770,6 @@ SISFreeFBMemory(ScrnInfoPtr pScrn, void **handle)
     ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
 #endif
 
-#ifdef SIS_USE_XAA
-    if(!pSiS->useEXA) {
-       if(*handle) {
-          xf86FreeOffscreenLinear((FBLinearPtr)(*handle));
-       }
-    }
-#endif
 #ifdef SIS_USE_EXA
    if(pSiS->useEXA && !pSiS->NoAccel) {
       if(*handle) {
@@ -3889,11 +3825,6 @@ static void
 SiSHandleClipListColorkey(ScrnInfoPtr pScrn, SISPortPrivPtr pPriv, RegionPtr clipBoxes)
 {
    SISPtr pSiS = SISPTR(pScrn);
-#ifdef SIS_USE_XAA
-   XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-   int depth = pSiS->CurrentLayout.bitsPerPixel >> 3;
-   int myreds[] = { 0x000000ff, 0x0000f800, 0, 0x00ff0000 };
-#endif
 
    if( pPriv->forceColorkey ||
        (pPriv->autopaintColorKey &&
@@ -3913,27 +3844,9 @@ SiSHandleClipListColorkey(ScrnInfoPtr pScrn, SISPortPrivPtr pPriv, RegionPtr cli
       /* draw these */
       pPriv->PrevOverlay = pPriv->NoOverlay;
       pPriv->forceColorkey = 0;
-#ifdef SIS_USE_XAA
-      if((pPriv->NoOverlay) && pXAA && pXAA->FillMono8x8PatternRects) {
-         (*pXAA->FillMono8x8PatternRects)(pScrn, myreds[depth-1],
-			0x000000, GXcopy, ~0,
-			REGION_NUM_RECTS(clipBoxes),
-			REGION_RECTS(clipBoxes),
-			0x00422418, 0x18244200, 0, 0);
-      } else {
-#endif
          if(!pSiS->disablecolorkeycurrent) {
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-            (*pXAA->FillSolidRects)(pScrn, pPriv->colorKey, GXcopy, ~0,
-                           REGION_NUM_RECTS(clipBoxes),
-                           REGION_RECTS(clipBoxes));
-#else
 	    xf86XVFillKeyHelper(pScrn->pScreen, (pPriv->NoOverlay) ? 0x00ff0000 : pPriv->colorKey, clipBoxes);
-#endif
 	 }
-#ifdef SIS_USE_XAA
-      }
-#endif
 
    }
 }
@@ -4346,10 +4259,6 @@ SISDisplaySurface (
    SISPortPrivPtr pPriv = (SISPortPrivPtr)(surface->devPrivate.ptr);
    SISOverlayRec overlay;
    int result;
-#ifdef SIS_USE_XAA
-   SISPtr pSiS = SISPTR(pScrn);
-   int myreds[] = { 0x000000ff, 0x0000f800, 0, 0x00ff0000 };
-#endif
 
    if(!pPriv->grabbedByV4L)
       return Success;
@@ -4383,29 +4292,7 @@ SISDisplaySurface (
    }
 
    if(pPriv->autopaintColorKey) {
-#ifdef SIS_USE_XAA
-      XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-
-      if((pPriv->NoOverlay) && pXAA && pXAA->FillMono8x8PatternRects) {
-         (*pXAA->FillMono8x8PatternRects)(pScrn,
-	  		myreds[(pSiS->CurrentLayout.bitsPerPixel >> 3) - 1],
-	 		0x000000, GXcopy, ~0,
-			REGION_NUM_RECTS(clipBoxes),
-			REGION_RECTS(clipBoxes),
-			0x00422418, 0x18244200, 0, 0);
-
-      } else {
-#endif
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-   	 (*pXAA->FillSolidRects)(pScrn, pPriv->colorKey, GXcopy, ~0,
-                        REGION_NUM_RECTS(clipBoxes),
-                        REGION_RECTS(clipBoxes));
-#else
          xf86XVFillKeyHelper(pScrn->pScreen, (pPriv->NoOverlay) ? 0x00ff0000 : pPriv->colorKey, clipBoxes);
-#endif
-#ifdef SIS_USE_XAA
-      }
-#endif
    }
 
    pPriv->videoStatus = CLIENT_VIDEO_ON;
@@ -4540,11 +4427,6 @@ SISSetupBlitVideo(ScreenPtr pScreen)
    SISBPortPrivPtr pPriv;
    int i;
 
-#ifdef SIS_USE_XAA
-   if(!pSiS->useEXA) {
-      if(!pSiS->AccelInfoPtr) return NULL;
-   }
-#endif
 
    if(!(adapt = calloc(1, sizeof(XF86VideoAdaptorRec) +
     			   (sizeof(DevUnion) * NUM_BLIT_PORTS) +
@@ -4699,9 +4581,6 @@ SISPutImageBlit_671(
    UChar  *ybased, *uvbased, packed;
    CARD16 *myuvbased;
    SiS_Packet12_YUV MyPacket;
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-   XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-#endif
    int	  xoffset = 0, yoffset = 0;
    Bool   first;
 
@@ -4755,13 +4634,7 @@ SISPutImageBlit_671(
 #else
       if(!REGION_EQUAL(pScrn->pScreen, &pPriv->blitClip[index], clipBoxes)) {
 #endif
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-         (*pXAA->FillSolidRects)(pScrn, 0x00000000, GXcopy, ~0,
-                              REGION_NUM_RECTS(clipBoxes),
-                              REGION_RECTS(clipBoxes));
-#else
          xf86XVFillKeyHelper(pScrn->pScreen, 0x00000000, clipBoxes);
-#endif
          REGION_COPY(pScrn->pScreen, &pPriv->blitClip[index], clipBoxes);
       }
    }
@@ -4962,9 +4835,6 @@ SISPutImageBlit(
    UChar  *ybased, *uvbased, packed;
    CARD16 *myuvbased;
    SiS_Packet12_YUV MyPacket;
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-   XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-#endif
    int	  xoffset = 0, yoffset = 0;
    Bool   first;
 

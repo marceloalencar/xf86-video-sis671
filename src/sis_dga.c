@@ -496,11 +496,6 @@ SIS_FillRect(
 
     if(pSiS->FillRect) {
        (*pSiS->FillRect)(pScrn, x, y, w, h, (int)color);
-#ifdef SIS_USE_XAA
-       if(!pSiS->useEXA && pSiS->AccelInfoPtr) {
-          SET_SYNC_FLAG(pSiS->AccelInfoPtr);
-       }
-#endif
     }
 }
 
@@ -515,11 +510,6 @@ SIS_BlitRect(
 
     if(pSiS->BlitRect) {
        (*pSiS->BlitRect)(pScrn, srcx, srcy, dstx, dsty, w, h, -1);
-#ifdef SIS_USE_XAA
-       if(!pSiS->useEXA && pSiS->AccelInfoPtr) {
-          SET_SYNC_FLAG(pSiS->AccelInfoPtr);
-       }
-#endif
     }
 }
 
@@ -535,11 +525,6 @@ SIS_BlitTransRect(
 
     if(pSiS->BlitRect) {
        (*pSiS->BlitRect)(pScrn, srcx, srcy, dstx, dsty, w, h, (int)color);
-#ifdef SIS_USE_XAA
-       if(!pSiS->useEXA && pSiS->AccelInfoPtr) {
-          SET_SYNC_FLAG(pSiS->AccelInfoPtr);
-       }
-#endif
     }
 }
 

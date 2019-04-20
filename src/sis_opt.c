@@ -172,9 +172,6 @@ static const OptionInfoRec SISOptions[] = {
 #endif
     { OPTION_MAXXFBMEM,			"MaxXFBMem",			OPTV_INTEGER,	{0}, FALSE },
     { OPTION_ACCEL,			"Accel",			OPTV_BOOLEAN,	{0}, FALSE },
-#if defined(SIS_USE_XAA) && defined(SIS_USE_EXA)
-    { OPTION_ACCELMETHOD,		"AccelMethod",			OPTV_STRING,	{0}, FALSE },
-#endif
     { OPTION_TURBOQUEUE,		"TurboQueue",			OPTV_BOOLEAN,	{0}, FALSE },
     { OPTION_RENDER,			"RenderAcceleration",		OPTV_BOOLEAN,	{0}, FALSE },
     { OPTION_DRI,			"DRI",				OPTV_BOOLEAN,	{0}, FALSE },
@@ -486,11 +483,7 @@ SiSOptions(ScrnInfoPtr pScrn)
     pSiS->Rotate = 0;
     pSiS->Reflect = 0;
     pSiS->NoAccel = FALSE;
-#if (defined(SIS_USE_EXA) && defined(SIS_USE_XAA)) || !defined(SIS_USE_EXA)
-    pSiS->useEXA = FALSE;
-#else
     pSiS->useEXA = TRUE;
-#endif
     pSiS->ShadowFB = FALSE;
     pSiS->loadDRI = FALSE;
     pSiS->DRIEnabled = FALSE;
@@ -750,43 +743,10 @@ SiSOptions(ScrnInfoPtr pScrn)
 #endif
     }
 
-    /* AccelMethod
-     * Chooses between XAA and EXA
-     */
-#if defined(SIS_USE_XAA) && defined(SIS_USE_EXA)
-    if(!pSiS->NoAccel) {
-       from = X_DEFAULT;
-       if((strptr = (char *)xf86GetOptValString(pSiS->Options, OPTION_ACCELMETHOD))) {
-	  if(!xf86NameCmp(strptr,"XAA")) {
-	     from = X_CONFIG;
-	     pSiS->useEXA = FALSE;
-	  } else if(!xf86NameCmp(strptr,"EXA")) {
-	     from = X_CONFIG;
-	     pSiS->useEXA = TRUE;
-	  }
-       }
-       xf86DrvMsg(pScrn->scrnIndex, from, "Using %s acceleration architecture\n",
-		pSiS->useEXA ? "EXA" : "XAA");
-    }
-#endif
-
     /* RenderAcceleration (for XAA only)
      * En/Disables RENDER acceleration (315 and later only, not 550, not XGI Z7)
      */
-#ifdef SIS_USE_XAA
-    if((pSiS->VGAEngine == SIS_315_VGA)   &&
-       (pSiS->Chipset != PCI_CHIP_SIS550) &&
-       (pSiS->Chipset != PCI_CHIP_XGIXG20) &&
-       (!pSiS->NoAccel)) {
-       if(xf86GetOptValBool(pSiS->Options, OPTION_RENDER, &pSiS->doRender)) {
-	  if(!pSiS->doRender) {
-	     xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "RENDER Acceleration disabled\n");
-	  }
-       }
-    }
-#else
     pSiS->doRender = FALSE;
-#endif
 
 
     /* SWCursor, HWCursor
@@ -1084,9 +1044,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 		OPTION_SISTVCOLCALIBFINE, OPTION_TVXPOSOFFSET, OPTION_TVYPOSOFFSET,
 		OPTION_TVXSCALE, OPTION_TVYSCALE, OPTION_TVBLUE, OPTION_CRT2GAMMA, OPTION_XVONCRT2,
 		OPTION_XVDEFAULTADAPTOR, OPTION_XVBENCHCPY, OPTION_FORCE2ASPECT,
-#if defined(SIS_USE_XAA) && defined(SIS_USE_EXA)
-		OPTION_ACCELMETHOD,
-#endif
 #ifndef SISCHECKOSSSE
 		OPTION_XVSSECOPY,
 #endif

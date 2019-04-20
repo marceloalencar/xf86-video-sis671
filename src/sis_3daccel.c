@@ -51,28 +51,6 @@
 
 #undef SIS_NEED_ARRAY
 
-/* For XAA */
-
-#ifdef SIS_USE_XAA
-
-#define INCL_RENDER	/* Use/Don't use RENDER extension acceleration */
-
-#ifdef INCL_RENDER
-# ifdef RENDER
-#  include "mipict.h"
-#  include "dixstruct.h"
-#  define SIS_NEED_ARRAY
-#  undef SISNEWRENDER
-#  ifdef XORG_VERSION_CURRENT
-//#   if XORG_VERSION_CURRENT > XORG_VERSION_NUMERIC(6,7,0,0,0)
-#    define SISNEWRENDER
-//#   endif
-#  endif
-# endif
-#endif
-
-#endif /* XAA */
-
 /* For EXA */
 
 #ifdef SIS_USE_EXA

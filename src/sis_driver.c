@@ -76,6 +76,7 @@
 #include "config.h"
 #endif
 
+#include <unistd.h>
 #include "sis.h"
 
 #if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
@@ -161,23 +162,15 @@ DriverRec SIS = {
     SIS_CURRENT_VERSION,
     SIS_DRIVER_NAME,
     SISIdentify,
-#ifndef XSERVER_LIBPCIACCESS
-    SISProbe,
-#else
     NULL,
-#endif
     SISAvailableOptions,
     NULL,
-    0
+    0,
 #ifdef SIS_HAVE_DRIVER_FUNC
-     ,
-    SISDriverFunc
+    SISDriverFunc,
 #endif
-#ifdef XSERVER_LIBPCIACCESS
-    ,
     SIS_device_match,
     SIS_pci_probe
-#endif
 };
 
 static SymTabRec SISChipsets[] = {
@@ -3568,9 +3561,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
     pSiS->SiSFastVidCopyFrom = SiSVidCopyGetDefault();
     pSiS->SiSFastMemCopyFrom = SiSVidCopyGetDefault();
     pSiS->SiSFastVidCopyDone = FALSE;
-#ifdef SIS_USE_XAA
-    pSiS->RenderCallback = NULL;
-#endif
 #ifdef SIS_USE_EXA
     pSiS->ExaRenderCallback = NULL;
 #endif
@@ -5750,11 +5740,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
     /* Load XAA/EXA (if needed) */
     if(!pSiS->NoAccel) {
        char *modName = NULL;
-#ifdef SIS_USE_XAA
-       if(!pSiS->useEXA) {
-	  modName = "xaa";
-       }
-#endif
 #ifdef SIS_USE_EXA
        if(pSiS->useEXA) {
 	  modName = "exa";
@@ -8796,12 +8781,6 @@ SISBlockHandler(ScreenPtr pScreen, pointer pTimeout)
        (*pSiS->VideoTimerCallback)(pScrn, currentTime.milliseconds);
     }
 
-#ifdef SIS_USE_XAA
-    if(pSiS->RenderCallback) {
-       (*pSiS->RenderCallback)(pScrn);
-    }
-#endif
-
 #ifdef SIS_USE_EXA
     if(pSiS->ExaRenderCallback) {
        (*pSiS->ExaRenderCallback)(pScrn);
@@ -10822,19 +10801,6 @@ SISCloseScreen(ScreenPtr pScreen)
        xf86FreeInt10(pSiS->pInt);
        pSiS->pInt = NULL;
     }
-
-#ifdef SIS_USE_XAA
-    if(!pSiS->useEXA) {
-       if(pSiS->AccelLinearScratch) {
-          xf86FreeOffscreenLinear(pSiS->AccelLinearScratch);
-          pSiS->AccelLinearScratch = NULL;
-       }
-       if(pSiS->AccelInfoPtr) {
-          XAADestroyInfoRec(pSiS->AccelInfoPtr);
-          pSiS->AccelInfoPtr = NULL;
-       }
-    }
-#endif
 
 #ifdef SIS_USE_EXA
     if(pSiS->useEXA) {

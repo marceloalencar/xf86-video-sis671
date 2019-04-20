@@ -35,6 +35,7 @@
 #include "config.h"
 #endif
 
+#include <unistd.h>
 #include "sis.h"
 #define SIS_NEED_inSISREG
 #define SIS_NEED_inSISIDXREG

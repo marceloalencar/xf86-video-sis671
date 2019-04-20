@@ -79,6 +79,7 @@
 #define SIS_NEED_orSISIDXREG
 #define SIS_NEED_andSISIDXREG
 #define SIS_NEED_MYMMIO
+#include <unistd.h>
 #include "sis_regs.h"
 #include "sis_dac.h"
 

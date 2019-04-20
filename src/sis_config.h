@@ -37,7 +37,6 @@
 #undef SIS_ARGB_CURSOR
 #undef SISVRAMQ
 #undef INCL_YUV_BLIT_ADAPTOR
-#undef SIS_USE_XAA
 #undef SIS_USE_EXA
 
 /* Configurable stuff: ------------------------------------- */
@@ -64,10 +63,6 @@
 #if 1
 #define INCL_YUV_BLIT_ADAPTOR	/* Include support for YUV->RGB blit adaptors (VRAM queue mode only) */
 #endif
-#endif
-
-#if 1
-#undef SIS_USE_XAA		/* Don't include support for XAA, current xorg servers don't support it */
 #endif
 
 #ifdef SISVRAMQ

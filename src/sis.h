@@ -250,13 +250,10 @@
 #define SIS_MAX_SURFACES 6
 #define SIS_MAX_SUBPICTURES 2
 
-#if !defined(SIS_USE_XAA) && !defined(SIS_USE_EXA)
+#if !defined(SIS_USE_EXA)
 #define SIS_USE_EXA
 #endif
 
-#ifdef SIS_USE_XAA
-#include "xaa.h"
-#endif
 #ifdef SIS_USE_EXA
 #include "exa.h"
 #endif
@@ -1217,16 +1214,6 @@ typedef struct {
     CARD32		CmdQueLenFix;           /* Fix value to subtract from QueLen (530/620) */
     CARD32		CmdQueMaxLen;           /* (6326/5597/5598) Amount of cmds the queue can hold */
     CARD32		TurboQueueLen;		/* For future use */
-#ifdef SIS_USE_XAA
-    XAAInfoRecPtr	AccelInfoPtr;
-    UChar 		*XAAScanlineColorExpandBuffers[2];
-    Bool		DoColorExpand;
-    Bool		ColorExpandBusy;
-    int			xcurrent;		/* for temp use in accel */
-    int			ycurrent;		/* for temp use in accel */
-    int			sisPatternReg[4];
-    int			ROPReg;
-#endif
 #ifdef SIS_USE_EXA
     ExaDriverPtr	EXADriverPtr;
     int			fillPitch, fillBpp;
@@ -1283,10 +1270,6 @@ typedef struct {
     unsigned int	DRIheapstart, DRIheapend;
     Bool		NeedFlush;	/* Need to flush cmd buf mem (760) */
 
-#ifdef SIS_USE_XAA
-    void		(*RenderCallback)(ScrnInfoPtr);
-    Time		RenderTime;
-#endif
     FBLinearPtr		AccelLinearScratch;
 #ifdef SIS_USE_EXA
     void		(*ExaRenderCallback)(ScrnInfoPtr);
@@ -1718,6 +1701,7 @@ extern int   SiS_GetTVyscale(ScrnInfoPtr pScrn);
 extern int   SiS_GetSISCRT1SaturationGain(ScrnInfoPtr pScrn);
 extern void  SiS_SetSISCRT1SaturationGain(ScrnInfoPtr pScrn, int val);
 
+extern unsigned int sis_pci_read_host_bridge_u32(int offset);
 
 #endif  /* _SIS_H_ */
 
