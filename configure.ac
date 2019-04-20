@@ -103,7 +103,7 @@ if test "$DRI" = yes; then
 fi
 
 # technically this should be a configure flag.  meh.
-AC_DEFINE(XF86EXA, 1, [Build support for Exa])
+AC_DEFINE(USE_EXA, 1, [Build support for EXA])
 
 SAVE_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $XORG_CFLAGS"

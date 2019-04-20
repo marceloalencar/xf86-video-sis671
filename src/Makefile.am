@@ -34,13 +34,14 @@ sis671_drv_la_SOURCES = \
 	init301.c \
 	init301.h \
 	init.c \
+	init.h \
 	initdef.h \
 	initextx.c \
 	initextx.h \
-	init.h \
 	oem300.h \
 	oem310.h \
 	osdef.h \
+	sis.h \
 	sis300_accel.c \
 	sis300_accel.h \
 	sis310_accel.c \
@@ -59,7 +60,6 @@ sis671_drv_la_SOURCES = \
 	sis_dga.c \
 	sis_driver.c \
 	sis_driver.h \
-	sis.h \
 	sis_hwmc.c \
 	sis_memcpy.c \
 	sis_mergedfb.c \
