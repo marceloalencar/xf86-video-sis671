@@ -729,7 +729,7 @@ SISFreeRec(ScrnInfoPtr pScrn)
 	        if(pScrn->currentMode->Private)
 	 	   free(pScrn->currentMode->Private);
 	 	if(pScrn->currentMode->name)
-	 	   free(pScrn->currentMode->name);
+	 	   free((void *)pScrn->currentMode->name);
 	        free(pScrn->currentMode);
 	        pScrn->currentMode = p;
 	     } while(pScrn->currentMode != pScrn->modes);
@@ -2818,11 +2818,14 @@ SiSDuplicateMode(DisplayModePtr source)
 	  memcpy(dest, source, sizeof(DisplayModeRec));
 	  dest->name = NULL;
 	  dest->next = dest->prev = NULL;
-	  if(!(dest->name = malloc(strlen(source->name) + 1))) {
+     char *tmp = NULL;
+	  if(!(tmp = (char *) malloc(strlen(source->name) + 1))) {
 	     free(dest);
 	     dest = NULL;
 	  } else {
-	     strcpy(dest->name, source->name);
+        free((void *) dest->name);
+	     strcpy(tmp, source->name);
+        dest->name = tmp;
 	  }
        }
     }

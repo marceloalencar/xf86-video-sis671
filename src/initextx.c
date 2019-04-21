@@ -297,8 +297,13 @@ SiSBuildBuiltInModeList(ScrnInfoPtr pScrn, BOOLEAN includelcdmodes, BOOLEAN isfo
       }
 
       current = new;
-      sprintf(current->name, "%dx%d", pSiS->SiS_Pr->SiS_RefIndex[i].XRes,
+
+		char *tmp = NULL;
+		tmp = (char *) malloc(10);
+		free((void *) current->name);
+      sprintf(tmp, "%dx%d", pSiS->SiS_Pr->SiS_RefIndex[i].XRes,
 				      pSiS->SiS_Pr->SiS_RefIndex[i].YRes);
+		current->name = tmp;
 
       current->status = MODE_OK;
 
@@ -453,7 +458,11 @@ SiSBuildBuiltInModeList(ScrnInfoPtr pScrn, BOOLEAN includelcdmodes, BOOLEAN isfo
 
 		  pSiS->AddedPlasmaModes = TRUE;
 
-		  strcpy(current->name, SiS_PlasmaMode[l].name);
+		  char *tmp = NULL;
+		  tmp = (char *) malloc(12);
+		  free((void *) current->name);
+		  strcpy(tmp, SiS_PlasmaMode[l].name);
+		  current->name = tmp;
 
 		  current->status = MODE_OK;
 
@@ -536,8 +545,12 @@ SiSBuildBuiltInModeList(ScrnInfoPtr pScrn, BOOLEAN includelcdmodes, BOOLEAN isfo
 
 	    current = new;
 
-	    sprintf(current->name, "%dx%d", pSiS->SiS_Pr->CP_HDisplay[i],
+		 char *tmp = NULL;
+		 tmp = (char *) malloc(10);
+		 free((void *) current->name);
+	    sprintf(tmp, "%dx%d", pSiS->SiS_Pr->CP_HDisplay[i],
 				pSiS->SiS_Pr->CP_VDisplay[i]);
+		 current->name = tmp;
 
 	    current->status = MODE_OK;
 

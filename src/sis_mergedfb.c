@@ -330,8 +330,11 @@ SiSCopyModeNLink(ScrnInfoPtr pScrn, DisplayModePtr dest,
 
     /* Generate a mode name */
     sprintf(namebuffer, "%dx%d", mode->HDisplay, mode->VDisplay);
-    if((mode->name = malloc(strlen(namebuffer) + 1))) {
-       strcpy(mode->name, namebuffer);
+    char *tmp = NULL;
+    if((tmp = malloc(strlen(namebuffer) + 1)))
+    {
+       strcpy(tmp, namebuffer);
+       mode->name = tmp;
     }
 
     if(!quiet) {
