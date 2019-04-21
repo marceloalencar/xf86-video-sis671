@@ -848,9 +848,7 @@ static char *SiS_GetCPUFreq(ScrnInfoPtr pScrn, char *buf, double *cpuFreq)
 #include <setjmp.h>
 #endif
 
-#ifdef XSERVER_LIBPCIACCESS
 #include <setjmp.h>
-#endif
 
 static jmp_buf sigill_return;
 

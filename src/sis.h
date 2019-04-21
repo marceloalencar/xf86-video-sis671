@@ -68,9 +68,10 @@
 #include "xf86Pci.h"
 #include "xf86Priv.h"
 #include "xf86_OSproc.h"
-#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 6
-#include "xf86Resources.h"
-#endif
+
+#include "sis_setup.h"
+#include "sis_pci_rw.h"
+
 #include "xf86.h"
 #include "sis_pci.h"
 #include "xf86Cursor.h"
@@ -81,11 +82,7 @@
 /*I.L. modified*/
 #include "sispcirename.h" 
 
-#ifdef XSERVER_LIBPCIACCESS
 #include <pciaccess.h>
-#else
-#include "xf86_ansic.h"
-#endif
 
 
 #define SIS_HaveDriverFuncs 0
@@ -147,12 +144,10 @@
 //#define NEC_CASE  /*It used the old Xorg_Version with new PCI structure.*/
 
 #if 0
-#ifdef XSERVER_LIBPCIACCESS
 #ifdef NEC_CASE
 #define XORG_VERSION_CURRENT (((7) * 10000000) + ((1) * 100000) + ((0) * 1000) + 0)
 #else
 #define XORG_VERSION_CURRENT (((7) * 10000000) + ((4) * 100000) + ((0) * 1000) + 0)
-#endif
 #endif
 #endif
 
@@ -997,12 +992,7 @@ typedef struct {
     ScrnInfoPtr		pScrn;
     struct SiS_Private	*SiS_Pr;	/* For mode switching code */
 /*I.L. modified PciInfo struct*/
-#ifdef XSERVER_LIBPCIACCESS
     struct pci_device *PciInfo;
-#else
-    pciVideoPtr		PciInfo;
-    CARD32              PciTag;
-#endif
 
     int			PciBus, PciDevice, PciFunc;
     EntityInfoPtr	pEnt;
@@ -1242,7 +1232,7 @@ typedef struct {
     unsigned int	cmdQueueSizeMask;
     unsigned int	cmdQ_SharedWritePort_2D;
     volatile unsigned int	*cmdQ_SharedWritePort;
-    unsigned int	*cmdQ_SharedWritePortBackup;
+    volatile unsigned int	*cmdQ_SharedWritePortBackup;
     unsigned int	cmdQueueSize_div2;
     unsigned int	cmdQueueSize_div4;
     unsigned int	cmdQueueSize_4_3;

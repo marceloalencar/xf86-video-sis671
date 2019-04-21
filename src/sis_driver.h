@@ -768,7 +768,6 @@ struct _SISFB_INFO {
 
 /* Mandatory functions */
 static void SISIdentify(int flags);
-static Bool SISProbe(DriverPtr drv, int flags);
 static Bool SISPreInit(ScrnInfoPtr pScrn, int flags);
 static Bool SISScreenInit(ScreenPtr pScreen, int argc, char **argv);
 static Bool SISEnterVT(ScrnInfoPtr pScrn);
@@ -779,13 +778,10 @@ static Bool SISSwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 static void SISNewAdjustFrame(ScrnInfoPtr pScrn, int x, int y);
 static Bool SISPMEvent(ScrnInfoPtr pScrn, pmEvent event, Bool undo);/*APM-ACPI, adding by Ivans.*/
 
-#ifdef XSERVER_LIBPCIACCESS
 static Bool SIS_pci_probe(DriverPtr driver, int entity_num, struct pci_device *device, intptr_t match_data);
-#endif
 /* ACPI Device Switch functions */
 static Bool SISHotkeySwitchCRT1Status(ScrnInfoPtr pScrn,int onoff);/*hotkey pressing: switch CRT1 on/off*/
 static Bool SISHotkeySwitchCRT2Status(ScrnInfoPtr pScrn,ULong newvbflags ,ULong newvbflags3);/*LCD on/off*/
-static Bool SISHotkeySwitchMode(ScrnInfoPtr pScrn, Bool adjust);/*Resolution optimal function*/
 
 /* Optional functions */
 #ifdef SISDUALHEAD

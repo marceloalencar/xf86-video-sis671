@@ -51,26 +51,6 @@
 #include <inputstr.h> /* for inputInfo */
 #endif
 
-/*
- * LookupWindow was removed with video abi 11.
- */
-#if (GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 4)
-#ifndef DixGetAttrAccess
-#define DixGetAttrAccess (1<<4)
-#endif
-#endif
-
-#if (GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) < 2)
-static inline int
-dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
-{
-       *pWin = LookupWindow(id, client);
-       if (!*pWin)
-       return BadWindow;
-       return Success;
-}
-#endif
-
 void		SiSMFBInitMergedFB(ScrnInfoPtr pScrn);
 void		SiSMFBHandleModesCRT2(ScrnInfoPtr pScrn, ClockRangePtr clockRanges);
 void		SiSMFBMakeModeList(ScrnInfoPtr pScrn);
@@ -1527,7 +1507,13 @@ SISMFBPointerMoved(int scrnIndex, int x, int y)
        if(doit) {
 	  UpdateCurrentTime();
 	  sigstate = xf86BlockSIGIO();
-	  miPointerAbsoluteCursor(x, y, currentTime.milliseconds);
+	  {
+        double dx = x, dy = y;
+        int nevent = 0;
+        miPointerSetPosition(inputInfo.pointer, Absolute, &dx, &dy, &nevent, NULL);
+        x = (int)dx;
+        y = (int)dy;
+     }
 	  xf86UnblockSIGIO(sigstate);
 	  return;
        }
