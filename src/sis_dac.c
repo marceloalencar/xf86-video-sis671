@@ -1332,19 +1332,6 @@ SiSMclk(SISPtr pSiS)
 	UChar Num, Denum, Base;
 
 	switch (pSiS->Chipset) {
-
-	case PCI_CHIP_SIS300:
-	case PCI_CHIP_SIS540:
-	case PCI_CHIP_SIS630:
-	case PCI_CHIP_SIS315:
-	case PCI_CHIP_SIS315H:
-	case PCI_CHIP_SIS315PRO:
-	case PCI_CHIP_SIS550:
-	case PCI_CHIP_SIS650:
-	case PCI_CHIP_SIS330:
-	case PCI_CHIP_SIS660:
-	case PCI_CHIP_SIS340:
-	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
 
 		/* Numerator */
@@ -1367,9 +1354,6 @@ SiSMclk(SISPtr pSiS)
 		}
 		break;
 
-	case PCI_CHIP_SIS5597:
-	case PCI_CHIP_SIS6326:
-	case PCI_CHIP_SIS530:
 	default:
 		/* Numerator */
 		inSISIDXREG(SISSR, 0x28, Num);
@@ -1518,78 +1502,8 @@ SiSMemBandWidth(ScrnInfoPtr pScrn, Bool IsForCRT2, Bool quiet)
 	static const char* maxpixstr = "Maximum pixel clock at %d bpp is %g MHz\n";
 
 	switch (pSiS->Chipset) {
-
-	case PCI_CHIP_SIS5597:
-		total = ((mclk * (bus / 8)) * 0.7) / bytesperpixel;
-		if (total > 135000) total = 135000;
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED, maxpixstr, bpp, total / 1000);
-		return(int)(total);
-
-	case PCI_CHIP_SIS6326:
-		total = ((mclk * (bus / 8)) * 0.7) / bytesperpixel;
-		if (total > 175500) total = 175500;
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED, maxpixstr, bpp, total / 1000);
-		return(int)(total);
-
-	case PCI_CHIP_SIS530:
-		total = ((mclk * (bus / 8)) * 0.7) / bytesperpixel;
-		if (total > 230000) total = 230000;
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED, maxpixstr, bpp, total / 1000);
-		return(int)(total);
-
-	case PCI_CHIP_SIS300:
-	case PCI_CHIP_SIS540:
-	case PCI_CHIP_SIS630:
-	case PCI_CHIP_SIS315:
-	case PCI_CHIP_SIS315H:
-	case PCI_CHIP_SIS315PRO:
-	case PCI_CHIP_SIS550:
-	case PCI_CHIP_SIS650:
-	case PCI_CHIP_SIS330:
-	case PCI_CHIP_SIS660:
-	case PCI_CHIP_SIS340:
-	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
 		switch (pSiS->Chipset) {
-		case PCI_CHIP_SIS300:
-			magic = magicDED[bus / 64];
-			max = 540000;
-			break;
-		case PCI_CHIP_SIS540:
-		case PCI_CHIP_SIS630:
-			magic = magicINT[bus / 64];
-			max = 540000;
-			break;
-		case PCI_CHIP_SIS315:
-		case PCI_CHIP_SIS315H:
-		case PCI_CHIP_SIS315PRO:
-		case PCI_CHIP_SIS330:
-			magic = magicDED[bus / 64];
-			max = 780000;
-			break;
-		case PCI_CHIP_SIS550:
-			magic = magicINT[bus / 64];
-			max = 610000;
-			break;
-		case PCI_CHIP_SIS650:
-			magic = magicINT[bus / 64];
-			max = 680000;
-			break;
-		case PCI_CHIP_SIS660:
-			if ((pSiS->ChipType >= SIS_660) &&
-				(pSiS->ChipFlags & SiSCF_760LFB)) {
-				magic = magicDED[bus / 64];
-			}
-			else {
-				magic = magicINT[bus / 64];
-			}
-			max = 680000;
-			break;
-		case PCI_CHIP_SIS340:
-			magic = magicDED[bus / 64];
-			max = 800000;
-			break;
-		case PCI_CHIP_SIS670:
 		case PCI_CHIP_SIS671:
 			magic = magicINT[bus / 64];
 			max = 680000; /* ? */

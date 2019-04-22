@@ -960,10 +960,7 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 			}
 			biosflag = pSiS->BIOS[0xfe];
 		}
-		else if ((pSiS->Chipset == PCI_CHIP_SIS660) ||
-			(pSiS->Chipset == PCI_CHIP_SIS340) ||
-			(pSiS->Chipset == PCI_CHIP_SIS670) ||
-			(pSiS->Chipset == PCI_CHIP_SIS671)) {
+		else if (pSiS->Chipset == PCI_CHIP_SIS671) {
 			if (pSiS->ROM661New) {
 				biosflag = 2;
 				if (pSiS->ChipType >= SIS_761) {

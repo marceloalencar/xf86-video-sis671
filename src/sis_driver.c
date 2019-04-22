@@ -145,7 +145,6 @@ static int pix24bpp = 0;
     {PCI_VENDOR_SIS, (d), PCI_MATCH_ANY, PCI_MATCH_ANY, 0, 0, (i) }
 
 static const struct pci_id_match SIS_device_match[] = {
-	SIS_DEVICE_MATCH(PCI_CHIP_SIS670, 0),
 	SIS_DEVICE_MATCH(PCI_CHIP_SIS671, 0),
 	{0, 0, 0 },
 };
@@ -171,41 +170,11 @@ DriverRec SIS = {
 };
 
 static SymTabRec SISChipsets[] = {
-	{ PCI_CHIP_SIS5597,     "SIS5597/5598" },
-	{ PCI_CHIP_SIS530,      "SIS530/620" },
-	{ PCI_CHIP_SIS6326,     "SIS6326/AGP/DVD" },
-	{ PCI_CHIP_SIS300,      "SIS300/305" },
-	{ PCI_CHIP_SIS630,      "SIS630/730" },
-	{ PCI_CHIP_SIS540,      "SIS540" },
-	{ PCI_CHIP_SIS315,      "SIS315" },
-	{ PCI_CHIP_SIS315H,     "SIS315H" },
-	{ PCI_CHIP_SIS315PRO,   "SIS315PRO/E" },
-	{ PCI_CHIP_SIS550,	    "SIS550" },
-	{ PCI_CHIP_SIS650,      "SIS650/M650/651/740" },
-	{ PCI_CHIP_SIS330,      "SIS330(Xabre)" },
-	{ PCI_CHIP_SIS660,      "SIS[M]661[F|M]X/[M]741[GX]/[M]760[GX]/[M]761[GX]/662" },
-	{ PCI_CHIP_SIS340,      "SIS340" },
-	{ PCI_CHIP_SIS670,      "[M]670/[M]770[GX]" },
 	{ PCI_CHIP_SIS671,      "[M]671/[M]771[GX]" },
 	{ -1,                   NULL }
 };
 
 static PciChipsets SISPciChipsets[] = {
-	{ PCI_CHIP_SIS5597,     PCI_CHIP_SIS5597,   RES_SHARED_VGA },
-	{ PCI_CHIP_SIS530,      PCI_CHIP_SIS530,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS6326,     PCI_CHIP_SIS6326,   RES_SHARED_VGA },
-	{ PCI_CHIP_SIS300,      PCI_CHIP_SIS300,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS630,      PCI_CHIP_SIS630,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS540,      PCI_CHIP_SIS540,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS550,      PCI_CHIP_SIS550,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS315,      PCI_CHIP_SIS315,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS315H,     PCI_CHIP_SIS315H,   RES_SHARED_VGA },
-	{ PCI_CHIP_SIS315PRO,   PCI_CHIP_SIS315PRO, RES_SHARED_VGA },
-	{ PCI_CHIP_SIS650,      PCI_CHIP_SIS650,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS330,      PCI_CHIP_SIS330,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS660,      PCI_CHIP_SIS660,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS340,      PCI_CHIP_SIS340,    RES_SHARED_VGA },
-	{ PCI_CHIP_SIS670,      PCI_CHIP_SIS670,    RES_SHARED_VGA },
 	{ PCI_CHIP_SIS671,      PCI_CHIP_SIS671,    RES_SHARED_VGA },
 	{ -1,                   -1,                 RES_UNDEFINED }
 };
@@ -359,18 +328,6 @@ static Bool SIS_pci_probe(DriverPtr driver, int entity_num, struct pci_device* d
 	pEnt = xf86GetEntityInfo(entity_num);
 	xf86DrvMsg(0, X_INFO, "SIS_pci_probe - GetEntityInfo chipset is 0x%x\n", pEnt->chipset);
 	switch (pEnt->chipset) {
-	case PCI_CHIP_SIS300:
-	case PCI_CHIP_SIS540:
-	case PCI_CHIP_SIS630:
-	case PCI_CHIP_SIS550:
-	case PCI_CHIP_SIS315:
-	case PCI_CHIP_SIS315H:
-	case PCI_CHIP_SIS315PRO:
-	case PCI_CHIP_SIS650:
-	case PCI_CHIP_SIS330:
-	case PCI_CHIP_SIS660:
-	case PCI_CHIP_SIS340:
-	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
 	{
 		SISEntPtr pSiSEnt = NULL;
@@ -3153,47 +3110,9 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 
 	/* Determine VGA engine generation */
 	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS300:
-	case PCI_CHIP_SIS540:
-	case PCI_CHIP_SIS630: /* 630 + 730 */
-		pSiS->VGAEngine = SIS_300_VGA;
-		break;
-	case PCI_CHIP_SIS315H:
-	case PCI_CHIP_SIS315:
-	case PCI_CHIP_SIS315PRO:
-	case PCI_CHIP_SIS550:
-	case PCI_CHIP_SIS650: /* 650 + 740 */
-	case PCI_CHIP_SIS330:
-	case PCI_CHIP_SIS660: /* 660, 661, 741, 760, 761 */
-	case PCI_CHIP_SIS340:
-	case PCI_CHIP_SIS670: /* 670, 770 */
 	case PCI_CHIP_SIS671: /* 670, 770 */
 		pSiS->VGAEngine = SIS_315_VGA;
 		break;
-	case PCI_CHIP_SIS530:
-		pSiS->VGAEngine = SIS_530_VGA;
-		break;
-	case PCI_CHIP_SIS6326:
-		/* Determine SiS6326 revision. According to SiS the differences are:
-	 * Chip name     Chip type      TV-Out       MPEG II decoder
-	 * 6326 AGP      Rev. G0/H0     no           no
-	 * 6326 DVD      Rev. D2        yes          yes
-	 * 6326          Rev. Cx        yes          yes
-	 */
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"Chipset is SiS6326 %s (revision 0x%02x)\n",
-			(pSiS->ChipRev == 0xaf) ? "(Ax)" :
-			((pSiS->ChipRev == 0x0a) ? "AGP (G0)" :
-			((pSiS->ChipRev == 0x0b) ? "AGP (H0)" :
-				(((pSiS->ChipRev & 0xf0) == 0xd0) ? "DVD (Dx/H0)" :
-				(((pSiS->ChipRev & 0xf0) == 0x90) ? "(9x)" :
-					(((pSiS->ChipRev & 0xf0) == 0xc0) ? "(Cx)" :
-						"(unknown)"))))),
-			pSiS->ChipRev);
-		if ((pSiS->ChipRev != 0x0a) && (pSiS->ChipRev != 0x0b)) {
-			pSiS->SiS6326Flags |= SIS6326_HASTV;
-		}
-		/* fall through */
 	default:
 		pSiS->VGAEngine = SIS_OLD_VGA;
 	}
@@ -3401,177 +3320,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	pSiS->mmioSize = 64;
 
 	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS530:
-		pSiS->ChipType = SIS_530;
-		break;
-	case PCI_CHIP_SIS300:
-		pSiS->ChipType = SIS_300;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS300SERIES;
-		pSiS->ChipFlags |= SiSCF_NoCurHide;
-		break;
-	case PCI_CHIP_SIS540:
-		pSiS->ChipType = SIS_540;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS300SERIES;
-		break;
-	case PCI_CHIP_SIS630: /* 630 + 730 */
-		pSiS->ChipType = SIS_630;
-		if (sis_pci_read_host_bridge_u32(0x00) == 0x07301039) {
-			pSiS->ChipType = SIS_730;
-		}
-		pSiS->SiS_SD_Flags |= SiS_SD_IS300SERIES;
-		pSiS->ChipFlags |= SiSCF_NoCurHide;
-		break;
-	case PCI_CHIP_SIS315H:
-		pSiS->ChipType = SIS_315H;
-		pSiS->ChipFlags |= SiSCF_MMIOPalette;
-		pSiS->EngineType3D |= SiS3D_315Core;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS315SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->myCR63 = 0x63;
-		break;
-	case PCI_CHIP_SIS315:
-		/* Override for simplicity */
-		pSiS->Chipset = PCI_CHIP_SIS315H;
-		pSiS->ChipType = SIS_315;
-		pSiS->ChipFlags |= SiSCF_MMIOPalette;
-		pSiS->EngineType3D |= SiS3D_315Core;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS315SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->myCR63 = 0x63;
-		break;
-	case PCI_CHIP_SIS315PRO:
-		/* Override for simplicity */
-		pSiS->Chipset = PCI_CHIP_SIS315H;
-		pSiS->ChipType = SIS_315PRO;
-		pSiS->ChipFlags |= (SiSCF_MMIOPalette |
-			SiSCF_NoCurHide);
-		pSiS->EngineType3D |= SiS3D_315Core;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS315SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->myCR63 = 0x63;
-		break;
-	case PCI_CHIP_SIS550:
-		pSiS->ChipType = SIS_550;
-		pSiS->ChipFlags |= (SiSCF_Integrated | SiSCF_MMIOPalette);
-		pSiS->SiS_SD_Flags |= SiS_SD_IS315SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->myCR63 = 0x63;
-		break;
-	case PCI_CHIP_SIS650: /* 650 + 740 */
-		pSiS->ChipType = SIS_650;
-		if (sis_pci_read_host_bridge_u32(0x00) == 0x07401039) {
-			pSiS->ChipType = SIS_740;
-		}
-		pSiS->ChipFlags |= (SiSCF_Integrated |
-			SiSCF_MMIOPalette |
-			SiSCF_NoCurHide);
-		pSiS->EngineType3D |= SiS3D_Real256ECore;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS315SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->myCR63 = 0x63;
-		break;
-	case PCI_CHIP_SIS330:
-		pSiS->ChipType = SIS_330;
-		pSiS->ChipFlags |= (SiSCF_MMIOPalette |
-			SiSCF_HaveStrBB |
-			SiSCF_NoCurHide |
-			SiSCF_CRT2HWCKaputt);
-		pSiS->EngineType3D |= SiS3D_XabreCore;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS330SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->SiS_SD3_Flags |= SiS_SD3_CRT1SATGAIN; /* FIXME ? */
-		pSiS->myCR63 = 0x53; /* sic! */
-		break;
-	case PCI_CHIP_SIS660: /* 660, 661, 741, 760, 761, 662*/
-	{
-		ULong hpciid = sis_pci_read_host_bridge_u32(0x00);
-		switch (hpciid) {
-		case 0x06601039:
-			pSiS->ChipType = SIS_660;
-			pSiS->EngineType3D |= SiS3D_Ultra256Core;
-			break;
-		case 0x07601039:
-			pSiS->ChipType = SIS_760;
-			pSiS->EngineType3D |= SiS3D_Ultra256Core;
-			pSiS->NeedFlush = TRUE;
-			break;
-		case 0x07611039:
-			pSiS->ChipType = SIS_761;
-			pSiS->EngineType3D |= SiS3D_Mirage1;
-			pSiS->NeedFlush = TRUE;
-			pSiS->ChipFlags |= SiSCF_DualPipe; /* ? */
-			break;
-		case 0x07411039:
-			pSiS->ChipType = SIS_741;
-			pSiS->EngineType3D |= SiS3D_Real256ECore;
-			break;
-		case 0x06621039:
-			pSiS->ChipType = SIS_662;
-			pSiS->EngineType3D |= SiS3D_Real256ECore;
-			break;
-		case 0x06611039:
-		default:
-			pSiS->ChipType = SIS_661;
-			pSiS->EngineType3D |= SiS3D_Real256ECore;
-			break;
-
-		}
-		/* Detection could also be done by CR5C & 0xf8:
-		 * 0x10 = 661 (CR5F & 0xc0: 0x00 both A0 and A1)
-		 * 0x80 = 760 (CR5F & 0xc0: 0x00 A0, 0x40 A1)
-		 * 0x90 = 741 (CR5F & 0xc0: 0x00 A0,A1 0x40 A2)
-		 * other: 660 (CR5F & 0xc0: 0x00 A0 0x40 A1) (DOA?)
-		 */
-		pSiS->ChipFlags |= (SiSCF_Integrated |
-			SiSCF_MMIOPalette |
-			SiSCF_HaveStrBB |
-			SiSCF_NoCurHide);
-		pSiS->SiS_SD_Flags |= SiS_SD_IS330SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->SiS_SD3_Flags |= SiS_SD3_CRT1SATGAIN;
-		pSiS->myCR63 = 0x53; /* sic! */
-		pSiS->NewCRLayout = TRUE;
-	}
-	break;
-	case PCI_CHIP_SIS340:
-		pSiS->ChipType = SIS_340;
-		pSiS->ChipFlags |= (SiSCF_MMIOPalette |
-			SiSCF_HaveStrBB |
-			SiSCF_NoCurHide |
-			SiSCF_DualPipe);
-		pSiS->EngineType3D |= SiS3D_Mirage1;
-		pSiS->SiS_SD_Flags |= SiS_SD_IS340SERIES;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->SiS_SD3_Flags |= SiS_SD3_CRT1SATGAIN;
-		pSiS->myCR63 = 0x53;
-		pSiS->NewCRLayout = TRUE;
-		break;
-	case PCI_CHIP_SIS670: /* 670, 770 */
-	{
-		ULong hpciid = sis_pci_read_host_bridge_u32(0x00);
-		switch (hpciid) {
-		case 0x06701039:
-			pSiS->ChipType = SIS_670;
-			break;
-		case 0x07701039:
-		default:
-			pSiS->ChipType = SIS_770;
-			/* TODO: 772? */
-			/* if() pSiS->ChipType = SIS_772; */
-			pSiS->NeedFlush = TRUE;
-			break;
-		}
-		pSiS->ChipFlags |= (SiSCF_Integrated |
-			SiSCF_MMIOPalette |
-			SiSCF_HaveStrBB |
-			SiSCF_NoCurHide);
-		pSiS->EngineType3D |= SiS3D_Mirage3;
-		pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORTXVHUESAT;
-		pSiS->SiS_SD3_Flags |= (SiS_SD3_IS350SERIES | SiS_SD3_CRT1SATGAIN);
-		pSiS->myCR63 = 0x53; /* sic! */
-		pSiS->NewCRLayout = TRUE;
-	}
-	break;
 	case PCI_CHIP_SIS671:
 	{
 		pSiS->ChipType = SIS_671;
@@ -3599,34 +3347,8 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	 */
 	if (pSiS->VGAEngine == SIS_OLD_VGA || pSiS->VGAEngine == SIS_530_VGA) {
 		switch (pSiS->Chipset) {
-		case PCI_CHIP_SG86C201:
-			pSiS->oldChipset = OC_SIS86201; break;
-		case PCI_CHIP_SG86C202:
-			pSiS->oldChipset = OC_SIS86202; break;
-		case PCI_CHIP_SG86C205:
-			inSISIDXREG(SISSR, 0x10, tempreg);
-			if (tempreg & 0x80) pSiS->oldChipset = OC_SIS6205B;
-			else pSiS->oldChipset = (pSiS->ChipRev == 0x11) ?
-				OC_SIS6205C : OC_SIS6205A;
-			break;
-		case PCI_CHIP_SIS82C204:
-			pSiS->oldChipset = OC_SIS82204; break;
 		case 0x6225:
 			pSiS->oldChipset = OC_SIS6225; break;
-		case PCI_CHIP_SIS5597:
-			pSiS->oldChipset = OC_SIS5597; break;
-		case PCI_CHIP_SIS6326:
-			pSiS->oldChipset = OC_SIS6326; break;
-		case PCI_CHIP_SIS530:
-			if (sis_pci_read_host_bridge_u32(0x00) == 0x06201039) {
-				pSiS->oldChipset = OC_SIS620;
-			}
-			else {
-				if ((pSiS->ChipRev & 0x0f) < 0x0a)
-					pSiS->oldChipset = OC_SIS530A;
-				else  pSiS->oldChipset = OC_SIS530B;
-			}
-			break;
 		default:
 			pSiS->oldChipset = OC_UNKNOWN;
 		}
@@ -3638,118 +3360,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	 */
 	pSiS->hasTwoOverlays = FALSE;
 	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS300:
-	case PCI_CHIP_SIS540:  /* ? (If not, need to add the SwitchCRT Xv attribute!) */
-	case PCI_CHIP_SIS630:
-	case PCI_CHIP_SIS550:
-		pSiS->hasTwoOverlays = TRUE;
-		pSiS->SiS_SD_Flags |= SiS_SD_SUPPORT2OVL;
-		break;
-	case PCI_CHIP_SIS315PRO:
-	case PCI_CHIP_SIS330:
-	case PCI_CHIP_SIS340:
-		break;
-	case PCI_CHIP_SIS650:
-	{
-		UChar tempreg1, tempreg2;
-		static const char* id650str[] = {
-	   "650",       "650",       "650",       "650",
-	   "650 A0 AA", "650 A2 CA", "650",       "650",
-	   "M650 A0",   "M650 A1 AA","651 A0 AA", "651 A1 AA",
-	   "M650",      "65?",       "651",       "65?"
-		};
-		if (pSiS->ChipType == SIS_650) {
-			inSISIDXREG(SISCR, 0x5f, CR5F);
-			CR5F &= 0xf0;
-			andSISIDXREG(SISCR, 0x5c, 0x07);
-			inSISIDXREG(SISCR, 0x5c, tempreg1);
-			tempreg1 &= 0xf8;
-			orSISIDXREG(SISCR, 0x5c, 0xf8);
-			inSISIDXREG(SISCR, 0x5c, tempreg2);
-			tempreg2 &= 0xf8;
-			if ((!tempreg1) || (tempreg2)) {
-				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-					"SiS650 revision ID %x (%s)\n", CR5F, id650str[CR5F >> 4]);
-				if (CR5F & 0x80) {
-					pSiS->hasTwoOverlays = TRUE;  /* M650 or 651 */
-					pSiS->SiS_SD_Flags |= SiS_SD_SUPPORT2OVL;
-				}
-				switch (CR5F) {
-				case 0xa0:
-				case 0xb0:
-				case 0xe0:
-					pSiS->ChipFlags |= SiSCF_Is651;
-					break;
-				case 0x80:
-				case 0x90:
-				case 0xc0:
-					pSiS->ChipFlags |= SiSCF_IsM650;
-					break;
-				}
-			}
-			else {
-				pSiS->hasTwoOverlays = TRUE;
-				pSiS->SiS_SD_Flags |= SiS_SD_SUPPORT2OVL;
-				switch (CR5F) {
-				case 0x90:
-					inSISIDXREG(SISCR, 0x5c, tempreg1);
-					tempreg1 &= 0xf8;
-					switch (tempreg1) {
-					case 0x00:
-						pSiS->ChipFlags |= SiSCF_IsM652;
-						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-							"SiSM652 revision ID %x\n", CR5F);
-						break;
-					case 0x40:
-						pSiS->ChipFlags |= SiSCF_IsM653;
-						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-							"SiSM653 revision ID %x\n", CR5F);
-						break;
-					default:
-						pSiS->ChipFlags |= SiSCF_IsM650;
-						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-							"SiSM650 revision ID %x\n", CR5F);
-						break;
-					}
-					break;
-				case 0xb0:
-					pSiS->ChipFlags |= SiSCF_Is652;
-					xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-						"SiS652 revision ID %x\n", CR5F);
-					break;
-				default:
-					pSiS->ChipFlags |= SiSCF_IsM650;
-					xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-						"SiSM650 revision ID %x\n", CR5F);
-					break;
-				}
-			}
-
-			if (pSiS->ChipFlags & SiSCF_Is65x) {
-				pSiS->ChipFlags |= SiSCF_HaveStrBB;
-			}
-		}
-	}
-	break;
-	case PCI_CHIP_SIS660:
-	{
-		/* TODO: Find out about 761/A0, 761/A1 */
-		/* if() pSiS->ChipFlags |= SiSCF_761A0; */
-		if (pSiS->ChipType != SIS_761 && pSiS->ChipType != SIS_662) {
-			pSiS->hasTwoOverlays = TRUE;
-			pSiS->SiS_SD_Flags |= SiS_SD_SUPPORT2OVL;
-		}
-		/* 760:      - UMA only: one/two overlays - dotclock dependent
-			 - UMA+LFB:  two overlays if video data in LFB
-			 - LFB only: two overlays
-	   If UMA only: Must switch between one/two overlays on the fly (done
-				in PostSetMode())
-	   If LFB+UMA:  We use LFB memory only and leave UMA to an eventually
-				written DRI driver.
-		 */
-	}
-	break;
-	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
 		if (pSiS->ChipType != SIS_770) {
 			/* ? - 770 2D is 342 based... (670, 772 are 350 based) */
