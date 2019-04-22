@@ -85,7 +85,7 @@ extern Bool drmSiSAgpInit(int driSubFD, int offset, int size);
   while((SIS_MMIO_IN16(pSiS->IOBase, BR(16)+2) & 0xE000) != 0xE000){}; \
   SIS_MMIO_IN16(pSiS->IOBase, 0x8240);
 
-/* Idle function for 315/330/340 series and XGI */
+/* Idle function for 315/330/340 series */
 #define Q_STATUS 0x85CC
 #define SiS315Idle \
   { \
@@ -108,7 +108,6 @@ static char SISKernelDriverName[] = "sis";
 static char SISClientDriverNameSiS300[] = "sis";	/* 300, 540, 630, 730 */
 static char SISClientDriverNameSiS315[] = "sis315";	/* All of 315/330 series */
 static char SISClientDriverNameSiS671[] = "sis671";	/* for sis671 */
-static char SISClientDriverNameXGI[] = "xgi";	/* XGI V3, V5, V8 */
 
 static Bool SISInitVisualConfigs(ScreenPtr pScreen);
 static Bool SISCreateContext(ScreenPtr pScreen, VisualPtr visual,
@@ -315,9 +314,6 @@ SISDRIScreenInit(ScreenPtr pScreen)
 	pDRIInfo->drmDriverName = SISKernelDriverName;
 	if (pSIS->VGAEngine == SIS_300_VGA) {
 		pDRIInfo->clientDriverName = SISClientDriverNameSiS300;
-	}
-	else if (pSIS->ChipFlags & SiSCF_IsXGI) {
-		pDRIInfo->clientDriverName = SISClientDriverNameXGI;
 	}
 	else {
 		if (pSIS->Chipset == PCI_CHIP_SIS671)

@@ -1,4 +1,4 @@
-  Information for SiS and XGI Users
+  Information for SiS Users
   Thomas Winischhofer  (thomas@winischhofer.net)
   6 July 2005
   ____________________________________________________________
@@ -35,7 +35,7 @@
 
   o  330 series: SiS 330 ("Xabre"), [M]760[GX], [M]761[GX]
 
-  o  340 series: SiS 34x, XGI Volari Z7, V3XT, V5, V8
+  o  340 series: SiS 34x
 
   Among other features, the driver supports
 
@@ -114,8 +114,8 @@
         is disabled.
 
      Option
-        Disables the XVideo (Xv) support. Apart from the XGI Volari Z7,
-        all chipsets support Xv. By default, XVideo support is enabled.
+        Disables the XVideo (Xv) support. All chipsets support Xv.
+        By default, XVideo support is enabled.
 
      Option
         Enables or disables gamma correction. Default: gamma correction
@@ -302,7 +302,7 @@
         only supported for XAA, not EXA.
 
      Option
-        (For 315, 650, 740, 330, 340 and XGI chips only) This option
+        (For 315, 650, 740, 330 and 340 chips only) This option
         selects whether the XVideo (Xv) overlay should be displayed on
         CRT1 or CRT2. Setting this option means CRT2. The other CRT will
         only display the (by default: blue) color key or a black/red

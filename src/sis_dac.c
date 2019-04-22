@@ -754,7 +754,7 @@ SiS315Save(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	/* Save CR registers */
 	/*max = 0x7c;  //Chaoyu Modified: Register number is wrong.*/
 	max = 0x7f;
-	if (pSiS->ChipType >= XGI_20) max = 0xff;
+	if (pSiS->ChipType > SIS_671) max = 0xff;
 	for (i = 0x00; i <= max; i++) {
 		inSISIDXREG(SISCR, i, sisReg->sisRegs3D4[i]);
 #ifdef TWDEBUG
@@ -1346,8 +1346,6 @@ SiSMclk(SISPtr pSiS)
 	case PCI_CHIP_SIS340:
 	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
-	case PCI_CHIP_XGIXG20:
-	case PCI_CHIP_XGIXG40:
 
 		/* Numerator */
 		inSISIDXREG(SISSR, 0x28, Num);
@@ -1552,8 +1550,6 @@ SiSMemBandWidth(ScrnInfoPtr pScrn, Bool IsForCRT2, Bool quiet)
 	case PCI_CHIP_SIS340:
 	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
-	case PCI_CHIP_XGIXG20:
-	case PCI_CHIP_XGIXG40:
 		switch (pSiS->Chipset) {
 		case PCI_CHIP_SIS300:
 			magic = magicDED[bus / 64];
@@ -1590,13 +1586,8 @@ SiSMemBandWidth(ScrnInfoPtr pScrn, Bool IsForCRT2, Bool quiet)
 			max = 680000;
 			break;
 		case PCI_CHIP_SIS340:
-		case PCI_CHIP_XGIXG40:
 			magic = magicDED[bus / 64];
 			max = 800000;
-			break;
-		case PCI_CHIP_XGIXG20:
-			magic = 1.0; /* magicDED[bus/64]; */
-			max = 332000;
 			break;
 		case PCI_CHIP_SIS670:
 		case PCI_CHIP_SIS671:

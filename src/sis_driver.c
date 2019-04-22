@@ -210,18 +210,6 @@ static PciChipsets SISPciChipsets[] = {
 	{ -1,                   -1,                 RES_UNDEFINED }
 };
 
-static SymTabRec XGIChipsets[] = {
-	{ PCI_CHIP_XGIXG20,     "Volari Z7 (XG20)" },
-	{ PCI_CHIP_XGIXG40,     "Volari V3XT/V5/V8/Duo (XG40/XG42)" },
-	{ -1,                   NULL }
-};
-
-static PciChipsets XGIPciChipsets[] = {
-	{ PCI_CHIP_XGIXG20,     PCI_CHIP_XGIXG20,   RES_SHARED_VGA },
-	{ PCI_CHIP_XGIXG40,     PCI_CHIP_XGIXG40,   RES_SHARED_VGA },
-	{ -1,                   -1,                 RES_UNDEFINED }
-};
-
 #ifdef XFree86LOADER
 
 static MODULESETUPPROTO(sisSetup);
@@ -271,7 +259,6 @@ static void
 SISIdentify(int flags)
 {
 	xf86PrintChipsets(SIS_NAME, "driver for SiS chipsets", SISChipsets);
-	xf86PrintChipsets(SIS_NAME, "driver for XGI chipsets", XGIChipsets);
 }
 
 /****************************************************/
@@ -385,7 +372,6 @@ static Bool SIS_pci_probe(DriverPtr driver, int entity_num, struct pci_device* d
 	case PCI_CHIP_SIS340:
 	case PCI_CHIP_SIS670:
 	case PCI_CHIP_SIS671:
-	case PCI_CHIP_XGIXG40:
 	{
 		SISEntPtr pSiSEnt = NULL;
 		DevUnion* pPriv;
@@ -1064,7 +1050,6 @@ SiSReadROM(ScrnInfoPtr pScrn)
 	pSiS->ROMPCIENew = FALSE;
 	pSiS->SiS_Pr->UseROM = FALSE;
 	pSiS->ROM661New = FALSE;
-	pSiS->HaveXGIBIOS = FALSE;
 
 	if ((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA)) {
 #ifdef SISDUALHEAD
@@ -1073,7 +1058,6 @@ SiSReadROM(ScrnInfoPtr pScrn)
 				pSiS->BIOS = pSiSEnt->BIOS;
 				pSiS->SiS_Pr->VirtualRomBase = pSiS->BIOS;
 				pSiS->ROM661New = pSiSEnt->ROM661New;
-				pSiS->HaveXGIBIOS = pSiSEnt->HaveXGIBIOS;
 			}
 		}
 #endif
@@ -1084,7 +1068,7 @@ SiSReadROM(ScrnInfoPtr pScrn)
 			}
 			else {
 				UShort mypciid = pSiS->Chipset;
-				UShort mypcivendor = (pSiS->ChipFlags & SiSCF_IsXGI) ? PCI_VENDOR_XGI : PCI_VENDOR_SIS;
+				UShort mypcivendor = PCI_VENDOR_SIS;
 				Bool   found = FALSE, readpci = FALSE;
 				int    biossize = BIOS_SIZE;
 
@@ -1101,10 +1085,7 @@ SiSReadROM(ScrnInfoPtr pScrn)
 				case SIS_340:
 				case SIS_341:
 				case SIS_342:
-				case XGI_40:     readpci = TRUE;
-					break;
-				case XGI_20:     readpci = TRUE;
-					biossize = 0x8000;
+					readpci = TRUE;
 					break;
 				}
 
@@ -1132,29 +1113,17 @@ SiSReadROM(ScrnInfoPtr pScrn)
 				if (found) {
 					UShort romptr = pSiS->BIOS[0x16] | (pSiS->BIOS[0x17] << 8);
 					pSiS->SiS_Pr->VirtualRomBase = pSiS->BIOS;
-					if (pSiS->ChipFlags & SiSCF_IsXGI) {
-						pSiS->HaveXGIBIOS = pSiS->SiS_Pr->SiS_XGIROM = TRUE;
-						pSiS->SiS_Pr->UseROM = FALSE;
-						if (pSiS->ChipFlags & SiSCF_IsXGIV3) {
-							if (!(pSiS->BIOS[0x1d1] & 0x01)) {
-								pSiS->SiS_Pr->DDCPortMixup = TRUE;
-							}
-						}
-					}
-					else {
-						pSiS->ROM661New = SiSDetermineROMLayout661(pSiS->SiS_Pr);
-						if (pSiS->ROM661New) {
-							/* The version number begin with 2 support AGP interface, and the version number begin with 3 support PCIE interface. */
-							if (pSiS->BIOS[romptr] == '3') {
-								pSiS->ROMPCIENew = TRUE;
-								pSiS->BIOSVersion = atoi((char*)(&pSiS->BIOS[romptr + 2]));
-							}
+					pSiS->ROM661New = SiSDetermineROMLayout661(pSiS->SiS_Pr);
+					if (pSiS->ROM661New) {
+						/* The version number begin with 2 support AGP interface, and the version number begin with 3 support PCIE interface. */
+						if (pSiS->BIOS[romptr] == '3') {
+							pSiS->ROMPCIENew = TRUE;
+							pSiS->BIOSVersion = atoi((char*)(&pSiS->BIOS[romptr + 2]));
 						}
 					}
 					xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
 						"Video BIOS version \"%7s\" found (%s data layout)\n",
-						&pSiS->BIOS[romptr], pSiS->ROM661New ? "new SiS" :
-						(pSiS->HaveXGIBIOS ? "XGI" : "old SiS"));
+						&pSiS->BIOS[romptr], pSiS->ROM661New ? "new SiS" : "old SiS");
 					if (pSiS->SiS_Pr->DDCPortMixup) {
 						xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 							"*** Buggy XGI V3XT card detected: If VGA and DVI are connected at the\n");
@@ -1165,7 +1134,6 @@ SiSReadROM(ScrnInfoPtr pScrn)
 					if (pSiSEnt) {
 						pSiSEnt->BIOS = pSiS->BIOS;
 						pSiSEnt->ROM661New = pSiS->ROM661New;
-						pSiSEnt->HaveXGIBIOS = pSiS->HaveXGIBIOS;
 					}
 #endif
 				}
@@ -1178,10 +1146,8 @@ SiSReadROM(ScrnInfoPtr pScrn)
 			}
 		}
 
-		if (!(pSiS->ChipFlags & SiSCF_IsXGI)) {
-			pSiS->SiS_Pr->UseROM = (pSiS->BIOS) ? TRUE : FALSE;
-			if (pSiS->SiS_Pr->UseROM == TRUE) pSiS->SiS_Pr->BIOSVersion = pSiS->BIOSVersion;
-		}
+		pSiS->SiS_Pr->UseROM = (pSiS->BIOS) ? TRUE : FALSE;
+		if (pSiS->SiS_Pr->UseROM == TRUE) pSiS->SiS_Pr->BIOSVersion = pSiS->BIOSVersion;
 	}
 }
 
@@ -2956,7 +2922,6 @@ Bool SISDetermineLCDACap(ScrnInfoPtr pScrn)
 	if (((pSiS->ChipType == SIS_315PRO) ||
 		(pSiS->ChipType == SIS_650) ||
 		(pSiS->ChipType >= SIS_330)) &&
-		(pSiS->ChipType != XGI_20) &&
 		(pSiS->VBFlags2 & VB2_SISLCDABRIDGE) &&
 		(pSiS->VESA != 1)) {
 		return TRUE;
@@ -3137,10 +3102,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	{
 		SymTabRec* myChipsets = SISChipsets;
 
-		if (PCI_DEV_VENDOR_ID(pSiS->PciInfo) == PCI_VENDOR_XGI) {
-			myChipsets = XGIChipsets;
-		}
-
 		if (pSiS->pEnt->device->chipset && *pSiS->pEnt->device->chipset) {
 
 			pScrn->chipset = pSiS->pEnt->device->chipset;
@@ -3205,8 +3166,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	case PCI_CHIP_SIS330:
 	case PCI_CHIP_SIS660: /* 660, 661, 741, 760, 761 */
 	case PCI_CHIP_SIS340:
-	case PCI_CHIP_XGIXG20:
-	case PCI_CHIP_XGIXG40:
 	case PCI_CHIP_SIS670: /* 670, 770 */
 	case PCI_CHIP_SIS671: /* 670, 770 */
 		pSiS->VGAEngine = SIS_315_VGA;
@@ -3298,7 +3257,7 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	 *       the card has been POSTed once before. POSTing cards
 	 *       on every server start is pretty ugly, especially
 	 *       if a framebuffer driver is already handling it.
-	 * SiS/XGI cards POSTed by sisfb can coexist well with other
+	 * SiS cards POSTed by sisfb can coexist well with other
 	 * active adapters. So we trust sisfb's information more
 	 * than X's (especially as we only use this information for
 	 * console font restoring and eventual POSTing.)
@@ -3627,34 +3586,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 		pSiS->NewCRLayout = TRUE;
 	}
 	break;
-
-	case PCI_CHIP_XGIXG20:
-		pSiS->ChipType = XGI_20;
-		pSiS->ChipFlags |= (SiSCF_MMIOPalette |
-			SiSCF_IsXGI |
-			SiSCF_NoCurHide);
-		pSiS->SiS_SD2_Flags |= (SiS_SD2_NOOVERLAY | SiS_SD2_ISXGI);
-		pSiS->myCR63 = 0x53;
-		pSiS->NewCRLayout = TRUE;
-		break;
-	case PCI_CHIP_XGIXG40:
-		pSiS->ChipType = XGI_40;
-		pSiS->ChipFlags |= (SiSCF_MMIOPalette |
-			SiSCF_IsXGI |
-			SiSCF_HaveStrBB |
-			SiSCF_NoCurHide |
-			SiSCF_DualPipe);
-		pSiS->SiS_SD2_Flags |= (SiS_SD2_SUPPORTXVHUESAT | SiS_SD2_ISXGI);
-		pSiS->SiS_SD3_Flags |= SiS_SD3_CRT1SATGAIN;
-		pSiS->myCR63 = 0x53;
-		pSiS->NewCRLayout = TRUE;
-		if (pSiS->ChipRev == 2) {
-			pSiS->ChipFlags |= SiSCF_IsXGIV3;
-			pSiS->EngineType3D |= SiS3D_XG42Core;
-		}
-		else
-			pSiS->EngineType3D |= SiS3D_XG40Core;
-		break;
 	default:
 		pSiS->ChipType = SIS_OLD;
 		break;
@@ -3717,7 +3648,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 	case PCI_CHIP_SIS315PRO:
 	case PCI_CHIP_SIS330:
 	case PCI_CHIP_SIS340:
-	case PCI_CHIP_XGIXG40:
 		break;
 	case PCI_CHIP_SIS650:
 	{
@@ -3847,7 +3777,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 				pSiSEnt->DisableDual = FALSE;
 				pSiSEnt->BIOS = NULL;
 				pSiSEnt->ROM661New = FALSE;
-				pSiSEnt->HaveXGIBIOS = FALSE;
 				pSiSEnt->SiS_Pr = NULL;
 				pSiSEnt->RenderAccelArray = NULL;
 				pSiSEnt->SiSFastVidCopy = pSiSEnt->SiSFastMemCopy = NULL;
@@ -4754,7 +4683,7 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 					 (BIOS's fault?)
 					 Therefore we do not set CRT1 as LCDA if new chips.
 			   */
-				if (pSiS->ChipType < SIS_662 || pSiS->ChipType >= XGI_20)	pSiS->ForceCRT1Type = CRT1_LCDA;
+				if (pSiS->ChipType < SIS_662)	pSiS->ForceCRT1Type = CRT1_LCDA;
 				pSiS->ForceCRT2Type = CRT2_TV;
 			}
 			else if (pSiS->LCDwidth > 1600) {
@@ -6339,19 +6268,13 @@ static void
 			outSISIDXREG(SISSR, 0x26, 0x01);
 			SIS_MMIO_OUT32(pSiS->IOBase, 0x85c4, 0);
 			/* Enable VRAM Command Queue mode */
-			if (pSiS->ChipType == XGI_20) {
-				/* On XGI_20, always 128K */
-				SR26 = 0x40 | 0x04 | 0x01;
-			}
-			else {
-				switch (pSiS->cmdQueueSize) {
+			switch (pSiS->cmdQueueSize) {
 				case 1 * 1024 * 1024: SR26 = (0x40 | 0x04 | 0x01); break;
 				case 2 * 1024 * 1024: SR26 = (0x40 | 0x08 | 0x01); break;
 				case 4 * 1024 * 1024: SR26 = (0x40 | 0x0C | 0x01); break;
 				default:
 					pSiS->cmdQueueSize = 512 * 1024;
 				case    512 * 1024: SR26 = (0x40 | 0x00 | 0x01);
-				}
 			}
 			outSISIDXREG(SISSR, 0x26, SR26);
 			SR26 &= 0xfe;
@@ -6907,9 +6830,9 @@ static void
 				int mymode = pSiS->OldMode;
 
 				if ((pSiS->VGAEngine == SIS_315_VGA) &&
-					((pSiS->ROM661New) || (pSiS->ChipFlags & SiSCF_IsXGI)) &&
+					(pSiS->ROM661New) &&
 					(!pSiS->sisfbfound)) {
-					/* New SiS BIOS or XGI BIOS has set mode, therefore eventually translate number */
+					/* New SiS BIOS has set mode, therefore eventually translate number */
 					mymode = SiSTranslateToOldMode(mymode);
 				}
 
@@ -7918,7 +7841,6 @@ static void
 		case SIS_340:
 		case SIS_341:
 		case SIS_342:
-		case XGI_40:
 			clklimit1 = clklimit2 = 200;  /* ? */
 			clklimitg = 200;		  /* ? */
 			break;

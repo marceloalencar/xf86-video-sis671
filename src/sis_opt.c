@@ -475,10 +475,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 	/* TODO: Option (315 series VRAM command queue) */
 	/* But beware: sisfb does not know about this!!! */
 	pSiS->cmdQueueSize = 512 * 1024;
-	if (pSiS->ChipType == XGI_20) {
-		/* Hardware maximum on Z7: 128k */
-		pSiS->cmdQueueSize = 128 * 1024;
-	}
 #endif
 	pSiS->doRender = TRUE;
 	pSiS->HWCursor = TRUE;
@@ -640,15 +636,9 @@ SiSOptions(ScrnInfoPtr pScrn)
 		pSiS->HWCursor = FALSE;
 	}
 
-	if ((pSiS->Chipset == PCI_CHIP_SIS550) ||
-		(pSiS->Chipset == PCI_CHIP_XGIXG20)) {
+	if (pSiS->Chipset == PCI_CHIP_SIS550) {
 		/* Alpha blending not supported */
 		pSiS->doRender = FALSE;
-	}
-
-	if (pSiS->Chipset == PCI_CHIP_XGIXG20) {
-		/* No video overlay, no video blitter */
-		pSiS->NoXvideo = TRUE;
 	}
 
 	/* DRI only supported on 300 series,
@@ -668,13 +658,7 @@ SiSOptions(ScrnInfoPtr pScrn)
 		pSiS->OptColorCursorBlendThreshold = 0x37000000;
 	}
 	else if (pSiS->VGAEngine == SIS_315_VGA) {
-		if (pSiS->Chipset == PCI_CHIP_XGIXG20) {
-			/* No color HW cursor on Z7 */
-			pSiS->OptUseColorCursor = 0;
-		}
-		else {
-			pSiS->OptUseColorCursor = 1;
-		}
+		pSiS->OptUseColorCursor = 1;
 	}
 #endif
 
@@ -750,7 +734,7 @@ SiSOptions(ScrnInfoPtr pScrn)
 	}
 
 	/* RenderAcceleration (for XAA only)
-	 * En/Disables RENDER acceleration (315 and later only, not 550, not XGI Z7)
+	 * En/Disables RENDER acceleration (315 and later only, not 550)
 	 */
 	pSiS->doRender = FALSE;
 
@@ -784,8 +768,7 @@ SiSOptions(ScrnInfoPtr pScrn)
 #ifdef ARGB_CURSOR
 #ifdef SIS_ARGB_CURSOR
 	if ((pSiS->HWCursor) &&
-		((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA)) &&
-		(pSiS->Chipset != PCI_CHIP_XGIXG20)) {
+		((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA))) {
 
 		from = X_DEFAULT;
 		if (xf86GetOptValBool(pSiS->Options, OPTION_USERGBCURSOR, &pSiS->OptUseColorCursor)) {

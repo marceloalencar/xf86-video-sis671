@@ -522,41 +522,24 @@ sis315Setup(ScrnInfoPtr pScrn)
 	switch (pSiS->Chipset) {
 
 	case PCI_CHIP_SIS340:
-	case PCI_CHIP_XGIXG20:
-	case PCI_CHIP_XGIXG40:
 
-		if (pSiS->ChipType != XGI_20) {	/* SIS340, XGI_40 */
+		pSiS->IsAGPCard = TRUE;
 
-			pSiS->IsAGPCard = TRUE;
-
-			if (pSiS->ChipRev == 2) {
-				if (config1 & 0x01) config1 = 0x02;
-				else               config1 = 0x00;
-			}
-			if (config1 == 0x02)      pScrn->videoRam <<= 1; /* dual rank */
-			else if (config1 == 0x03) pScrn->videoRam <<= 2; /* quad rank */
-
-			inSISIDXREG(SISSR, 0x39, config2);
-			config2 &= 0x02;
-			if (!config2) {
-				inSISIDXREG(SISSR, 0x3a, config2);
-				config2 = (config2 & 0x02) >> 1;
-			}
-
-			pSiS->BusWidth = (config & 0x02) ? 64 : 32;
-
+		if (pSiS->ChipRev == 2) {
+			if (config1 & 0x01) config1 = 0x02;
+			else               config1 = 0x00;
 		}
-		else {				/* XGI_20 (Z7) */
+		if (config1 == 0x02)      pScrn->videoRam <<= 1; /* dual rank */
+		else if (config1 == 0x03) pScrn->videoRam <<= 2; /* quad rank */
 
-			config1 = 0x00;
-			inSISIDXREG(SISCR, 0x97, config2);
-			config2 &= 0x01;
-			config2 <<= 1;	/* 0 or 2 */
-
-			pSiS->BusWidth = (config & 0x02) ? 32 :
-				((config & 0x01) ? 16 : 8);
-
+		inSISIDXREG(SISSR, 0x39, config2);
+		config2 &= 0x02;
+		if (!config2) {
+			inSISIDXREG(SISSR, 0x3a, config2);
+			config2 = (config2 & 0x02) >> 1;
 		}
+
+		pSiS->BusWidth = (config & 0x02) ? 64 : 32;
 
 		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
 			"DRAM type: %s\n", dramTypeStr340[(config1 * 4) + (config2 & 0x03)]);
@@ -1064,8 +1047,6 @@ SiSSetup(ScrnInfoPtr pScrn)
 	case PCI_CHIP_SIS315PRO:
 	case PCI_CHIP_SIS330:
 	case PCI_CHIP_SIS340:
-	case PCI_CHIP_XGIXG20:
-	case PCI_CHIP_XGIXG40:
 		sis315Setup(pScrn);
 		break;
 	case PCI_CHIP_SIS550:

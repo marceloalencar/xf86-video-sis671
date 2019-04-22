@@ -1107,10 +1107,6 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 	if ((pSiS->VGAEngine != SIS_300_VGA) && (pSiS->VGAEngine != SIS_315_VGA))
 		return;
 
-	/* No video bridge ever on XGI Z7 (XG20) */
-	if (pSiS->ChipType == XGI_20)
-		return;
-
 	inSISIDXREG(SISPART4, 0x00, temp);
 	temp &= 0x0F;
 	if (temp == 1) {

@@ -755,7 +755,7 @@ struct _SISFB_INFO {
 	CARD32	sisfb_curfstn;			/* currently running FSTN/DSTN mode */
 	CARD32	sisfb_curdstn;
 
-	CARD16	sisfb_pci_vendor;		/* PCI vendor (SiS or XGI) */
+	CARD16	sisfb_pci_vendor;		/* PCI vendor SiS */
 
 	CARD32	sisfb_vbflags2;
 

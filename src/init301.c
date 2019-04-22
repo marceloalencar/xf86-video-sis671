@@ -3,8 +3,7 @@
 /*
  * Mode initializing code (CRT2 section)
  * for SiS 300/305/540/630/730,
- *     SiS 315/550/[M]650/651/[M]661[FGM]X/[M]74x[GX]/330/[M]76x[GX],
- *     XGI V3XT/V5/V8, Z7
+ *     SiS 315/550/[M]650/651/[M]661[FGM]X/[M]74x[GX]/330/[M]76x[GX]
  * (Universal module for Linux kernel framebuffer and X.org/XFree86 4.x)
  *
  * Copyright (C) 2001-2005 by Thomas Winischhofer, Vienna, Austria
@@ -98,9 +97,7 @@ static void		SiS_SetCH70xx(struct SiS_Private* SiS_Pr, unsigned short reg, unsig
 void
 SiS_UnLockCRT2(struct SiS_Private* SiS_Pr)
 {
-	if (SiS_Pr->ChipType == XGI_20)
-		return;
-	else if (SiS_Pr->ChipType >= SIS_315H)
+	if (SiS_Pr->ChipType >= SIS_315H)
 		SiS_SetRegOR(SiS_Pr->SiS_Part1Port, 0x2f, 0x01);
 	else
 		SiS_SetRegOR(SiS_Pr->SiS_Part1Port, 0x24, 0x01);
@@ -112,9 +109,7 @@ static
 void
 SiS_LockCRT2(struct SiS_Private* SiS_Pr)
 {
-	if (SiS_Pr->ChipType == XGI_20)
-		return;
-	else if (SiS_Pr->ChipType >= SIS_315H)
+	if (SiS_Pr->ChipType >= SIS_315H)
 		SiS_SetRegAND(SiS_Pr->SiS_Part1Port, 0x2F, 0xFE);
 	else
 		SiS_SetRegAND(SiS_Pr->SiS_Part1Port, 0x24, 0xFE);
@@ -1310,7 +1305,7 @@ SiS_SetTVMode(struct SiS_Private* SiS_Pr, unsigned short ModeNo, unsigned short 
 			}
 			else if (SiS_Pr->ChipType >= SIS_315H) {
 				temp = 0x38;
-				if (SiS_Pr->ChipType < XGI_20) {
+				if (SiS_Pr->ChipType <= SIS_671) {
 					romindex = 0xf3;
 					if (SiS_Pr->ChipType >= SIS_330) romindex = 0x11b;
 				}
@@ -4672,7 +4667,7 @@ SiS_DisableBridge(struct SiS_Private* SiS_Pr)
 			SiS_UnLockCRT2(SiS_Pr);
 
 			if (!(SiS_IsNotM650orLater(SiS_Pr))) {
-				/*if(SiS_Pr->ChipType < SIS_340) { */ /* XGI needs this */
+				/*if(SiS_Pr->ChipType < SIS_340) { */
 				SiS_SetRegAND(SiS_Pr->SiS_Part1Port, 0x4c, ~0x18);
 				/* } */
 			}
@@ -5317,7 +5312,7 @@ SiS_EnableBridge(struct SiS_Private* SiS_Pr)
 			SiS_UnLockCRT2(SiS_Pr);
 
 			if (!(SiS_IsNotM650orLater(SiS_Pr))) {
-				/*if(SiS_Pr->ChipType < SIS_340) {*/  /* XGI needs this */
+				/*if(SiS_Pr->ChipType < SIS_340) {*/
 				SiS_SetRegOR(SiS_Pr->SiS_Part1Port, 0x4c, 0x18);
 				/*}*/
 			}
@@ -8099,7 +8094,7 @@ SiS_SetGroup4_C_ELV(struct SiS_Private* SiS_Pr, unsigned short ModeNo, unsigned 
 	if (!(SiS_Pr->SiS_VBType & VB_SIS30xCLV)) return;
 	if (!(SiS_Pr->SiS_VBInfo & (SetCRT2ToHiVision | SetCRT2ToYPbPr525750))) return;
 
-	if (SiS_Pr->ChipType >= XGI_20) return;
+	if (SiS_Pr->ChipType > SIS_671) return;
 
 	if ((SiS_Pr->ChipType >= SIS_661) && (SiS_Pr->SiS_ROMNew)) {
 		if (!(ROMAddr[0x61] & 0x04)) return;
@@ -11301,25 +11296,12 @@ SetDelayComp661(struct SiS_Private* SiS_Pr, unsigned short ModeNo,
 	else                      delay = (SiS_Pr->SiS_RefIndex[RTI].Ext_PDC >> 4);
 	delay |= (delay << 8);
 
-	if (SiS_Pr->ChipType >= XGI_20) {
+	if (SiS_Pr->ChipType > SIS_671) {
 
 		delay = 0x0606;
 
 		if (SiS_Pr->SiS_VBInfo & SetCRT2ToTV) {
 			delay = 0x0404;
-			if (SiS_Pr->SiS_XGIROM) {
-				index = GetTVPtrIndex(SiS_Pr);
-				if ((romptr = SISGETROMW(0x35e))) {
-					delay = (ROMAddr[romptr + index] & 0x0f) << 1;
-					delay |= (delay << 8);
-				}
-			}
-
-			if (SiS_Pr->SiS_VBInfo & SetCRT2ToHiVision) {
-				if (SiS_Pr->ChipType == XGI_40 && SiS_Pr->ChipRevision == 0x02) {
-					delay -= 0x0404;
-				}
-			}
 		}
 
 	}

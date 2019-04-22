@@ -562,7 +562,7 @@ typedef unsigned char  UChar;
 #define SIS_530_VGA 1
 #define SIS_OLD_VGA 2
 #define SIS_300_VGA 3
-#define SIS_315_VGA 4   /* Includes all later chips (+XGI) */
+#define SIS_315_VGA 4   /* Includes all later chips */
 #define SIS_342_VGA 5   /*671 and 771 version A and B */
 
 /* pSiS->oldChipset */
@@ -599,12 +599,8 @@ typedef unsigned char  UChar;
 #define SiSCF_IsM66x        (SiSCF_IsM661 | SiSCF_IsM741 | SiSCF_IsM760 | SiSCF_IsM661M)
 #define SiSCF_Is315USB      0x00001000  /* USB2VGA dongle */
 #define SiSCF_Is315E	    0x00002000  /* 315E (lower clocks) */
-#define SiSCF_IsXGIV3	    SiSCF_Is651 /* Volari V3(XT)  (If neither XGI... set, is V8) */
-#define SiSCF_IsXGIV5	    SiSCF_IsM650/* Volari V5 */
-#define SiSCF_IsXGIDUO	    SiSCF_IsM652/* Volari Duo */
 /* ... */
 #define SiSCF_MMIOPalette   0x00100000  /* HW supports MMIO palette writing/reading */
-#define SiSCF_IsXGI	    0x00200000  /* Is XGI chip (Z7, V3XT, V5, V8) */
 #define SiSCF_HaveStrBB     0x00400000  /* Chip has accelerated stretched bitblt */
 #define SiSCF_NoCurHide     0x00800000  /* Chip supports changing hw cursor image without hiding */
 #define SiSCF_DualPipe	    0x04000000
@@ -621,8 +617,6 @@ typedef unsigned char  UChar;
 #define SiS3D_Mirage1       0x00000008	/* 3D: "Mirage 1": HW DX7, no pixel shader (662, 761) */
 #define SiS3D_Ultra256Core  0x00000010  /* 3D: "Mirage 2": HW DX8.1, pixel shader 1.3 (760) */
 #define SiS3D_Mirage3       0x00000020  /* 3D: "Mirage 3": HW DX9, pixel shader 2.0 (670, 770) */
-#define SiS3D_XG40Core	    0x00000040  /* 3D: XG40 core (XGI V5, V8) */
-#define SiS3D_XG42Core	    0x00000080  /* 3D: XG42 core (XGI V3XT) */
 
 /* SiS utility API */
 #define SiS_SD_IS300SERIES     0x00000001
@@ -680,7 +674,6 @@ typedef unsigned char  UChar;
 #define SiS_SD2_NEEDUSESSE     0x00020000   /* Need "UseSSE" option to use SSE (otherwise auto) */
 #define SiS_SD2_NODDCSUPPORT   0x00040000   /* No hardware DDC support (USB) */
 #define SiS_SD2_SUPPORTXVDEINT 0x00080000   /* Xv deinterlacing supported (n/a, for future use) */
-#define SiS_SD2_ISXGI	       0x00100000   /* Is XGI chip */
 #define SiS_SD2_USEVBFLAGS2    0x00200000   /* Use VBFlags2 for bridge ID */
 #define SiS_SD2_SUPPLTFLAG     0x00400000   /* Driver supports the following 3 flags */
 #define SiS_SD2_ISLAPTOP       0x00800000   /* This machine is (very probably) a laptop */
@@ -734,7 +727,7 @@ typedef unsigned char  UChar;
 /* 300 */
 #define AGP_CMDBUF_PAGES 256
 #define AGP_CMDBUF_SIZE (AGP_PAGE_SIZE * AGP_CMDBUF_PAGES)
-/* 315/330/340/XGI */
+/* 315/330/340 */
 #define AGP_VTXBUF_PAGES 512
 #define AGP_VTXBUF_SIZE (AGP_PAGE_SIZE * AGP_VTXBUF_PAGES)
 
@@ -957,7 +950,6 @@ typedef struct {
 	UChar		OldMode;
 	int			HWCursorMBufNum, HWCursorCBufNum;
 	Bool		ROM661New;
-	Bool		HaveXGIBIOS;
 	Bool		BenchMemCpy;
 	Bool		HaveFastVidCpy;
 	vidCopyFunc		SiSFastVidCopy, SiSFastMemCopy;
@@ -1066,7 +1058,6 @@ typedef struct {
 	int               BIOSVersion;
 	Bool		ROM661New;
 	Bool             ROMPCIENew;
-	Bool		HaveXGIBIOS;
 	Bool		NewCRLayout;
 
 	/* Output device related */

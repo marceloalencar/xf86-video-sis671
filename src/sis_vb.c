@@ -988,12 +988,8 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 		/* No "else", some BIOSes carry wrong data */
 	}
 
-	if (pSiS->ChipType >= XGI_20) {
-		if (pSiS->HaveXGIBIOS) {
-			biosflag = pSiS->BIOS[0x58] & 0x03;
-		}
-		else {
-			/* These boards have a s-video connector, but its
+	if (pSiS->ChipType > SIS_671) {
+		/* These boards have a s-video connector, but its
 		 * pins are routed both the bridge's composite and
 		 * svideo pins. This is for using the S-video plug
 		 * for YPbPr output. Anyway, since a svideo connected
@@ -1001,8 +997,7 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 		 * one, we don't check for composite if svideo is
 		 * detected.
 		 */
-			biosflag &= ~0x02;
-		}
+		biosflag &= ~0x02;
 	}
 
 	if (!(pSiS->VBFlags2 & VB2_SISVGA2BRIDGE)) {

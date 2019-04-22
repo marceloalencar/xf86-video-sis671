@@ -2,7 +2,7 @@
 .ds q \N'34'
 .TH SIS __drivermansuffix__ __vendorversion__
 .SH NAME
-sis \- SiS and XGI video driver
+sis \- SiS video driver
 .SH SYNOPSIS
 .nf
 .B "Section \*qDevice\*q"
@@ -13,7 +13,7 @@ sis \- SiS and XGI video driver
 .fi
 .SH DESCRIPTION
 .B sis
-is an __xservername__ driver for SiS (Silicon Integrated Systems) and XGI video
+is an __xservername__ driver for SiS (Silicon Integrated Systems) video
 chips. The driver is accelerated and provides support for colordepths of 8, 16
 and 24 bpp. XVideo, Render and other extensions are supported as well.
 .SH SUPPORTED HARDWARE
@@ -32,8 +32,6 @@ driver supports PCI, AGP and PCIe video cards based on the following chipsets:
 .B SiS650/651/661/741
 .B SiS330 (Xabre)
 .B SiS760/761
-.B XGI Volari V3/V5/V8
-.B XGI Volari Z7
 .PP
 In the following text, the following terms are used:
 .PP
@@ -44,8 +42,8 @@ for SiS5597/5598, 530/620 and 6326/AGP/DVD
 for SiS300/305, 540 and 630/730
 .PP
 .B 315/330/340 series
-for SiS315, 55x, 330, 661/741/76x (plus M, FX, MX, GX variants thereof), 340
-and all XGI chips.
+for SiS315, 55x, 330, 661/741/76x (plus M, FX, MX, GX variants thereof)
+and 340.
 .PP
 .SH CONFIGURATION DETAILS
 Please refer to __xconfigfile__(__filemansuffix__) for general configuration
@@ -183,7 +181,7 @@ yields the best results, hence it is the default.
 .PP
 .I "2. 300 and 315/330/340 series specific information"
 .PP
-The 300 and 315/330/340 series, except the XGI Z7, feature two CRT
+The 300 and 315/330/340 series, feature two CRT
 controllers and very often come with a video bridge for controlling LCD
 and TV output. Hereinafter, the term
 .B CRT1
@@ -223,12 +221,11 @@ video bridges if running NTSC or PAL-M at 1024x768.
 .PP
 About XVideo support
 .PP
-XVideo is supported on all chipsets of both families (except the XGI Volari
-Z7 which lacks hardware support for video overlays). However, there
+XVideo is supported on all chipsets of both families. However, there
 are some differences in hardware features which cause limitations.
 The 300 series as well as the SiS55x, M650, 651, 661FX, M661FX, M661MX,
 741, 741GX, M741, 76x, M76x support two video overlays. The SiS315/H/PRO,
-650/740, 330, 340 and the XGI Volari V3, V5 and V8 chips support only one such
+650/740, 330 and 340 chips support only one such
 overlay. On chips with two overlays, one overlay is used for CRT1, the other
 for CRT2. On the other chipsets, the option
 .B \*qXvOnCRT2\*q

@@ -1,7 +1,7 @@
 /* $XFree86$ */
 /* $XdotOrg$ */
 /*
- * Xv driver for SiS 300, 315, 330 and 340(XGI Volari) series.
+ * Xv driver for SiS 300, 315, 330 and 340 series.
  *
  * Copyright (C) 2001-2005 by Thomas Winischhofer, Vienna, Austria.
  *
@@ -50,7 +50,6 @@
  *  SiS340: One overlay. Extended registers for 4-tap scaler.
  *  SiS761: One overlay. Extended registers for 4-tap scaler.
  *  SiS670/770: Two overlays. Extended registers for 4-tap scaler.
- *  XGI Volari V3XT/V5/V8: One overlay. Extended registers for 4-tap scaler.
  *
  * Help for reading the code:
  * >=315           = SIS_315_VGA
@@ -324,7 +323,6 @@ SISInitVideo(ScreenPtr pScreen)
 #ifdef INCL_YUV_BLIT_ADAPTOR
 	if (((pSiS->ChipFlags & SiSCF_Is65x) ||
 		(pSiS->ChipType >= SIS_330)) &&
-		(pSiS->ChipType != XGI_20) &&
 		(pScrn->bitsPerPixel != 8)) {
 		if ((newBlitAdaptor = SISSetupBlitVideo(pScreen))) {
 			pSiS->HaveBlitAdaptor = TRUE;
@@ -528,8 +526,7 @@ SISResetVideo(ScrnInfoPtr pScrn)
 		}
 
 	}
-	else if ((pSiS->Chipset == PCI_CHIP_SIS340) ||
-		(pSiS->Chipset == PCI_CHIP_XGIXG40)) {
+	else if (pSiS->Chipset == PCI_CHIP_SIS340) {
 
 		/* Disable contrast enhancement (?) */
 		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x00, 0x10);
@@ -1106,14 +1103,13 @@ SISSetupImageVideo(ScreenPtr pScreen)
 		(pSiS->ChipType <= SIS_662)) ? TRUE : FALSE;
 	pPriv->is670 = ((pSiS->ChipType >= SIS_670) &&
 		(pSiS->ChipType <= SIS_671)) ? TRUE : FALSE;
-	pPriv->isXGI = (pSiS->ChipType >= XGI_40) ? TRUE : FALSE;
 
 	/* Setup chipset type helpers */
 	set_hastwooverlays(pSiS, pPriv);
 	set_allowswitchcrt(pSiS, pPriv);
 
 	pPriv->havetapscaler = FALSE;
-	if (pPriv->is340 || pPriv->is761 || pPriv->is670 || pPriv->isXGI) {
+	if (pPriv->is340 || pPriv->is761 || pPriv->is670) {
 		pPriv->havetapscaler = TRUE;
 	}
 	if (pPriv->is761 || pPriv->is670)	pPriv->PitchAlignmentMask = 63; /* 256 alignment */
@@ -1256,9 +1252,6 @@ SISSetupImageVideo(ScreenPtr pScreen)
 		}
 		else if (pPriv->is670) {
 			pPriv->linebufMergeLimit = 1920;		/* FIXME */
-		}
-		else if (pPriv->isXGI) {
-			pPriv->linebufMergeLimit = 1280;		/* FIXME */
 		}
 		else if (!(pPriv->hasTwoOverlays)) {
 			pPriv->linebufMergeLimit = 720;		/* should be 960 */
@@ -2354,7 +2347,7 @@ calc_line_buf_size(CARD32 srcW, CARD8 wHPre, CARD8 planar, SISPortPrivPtr pPriv)
 			I <<= 7;
 			break;
 		case 6:
-			if (pPriv->is661741760 || pPriv->is340 || pPriv->is761 || pPriv->is670 || pPriv->isXGI) {
+			if (pPriv->is661741760 || pPriv->is340 || pPriv->is761 || pPriv->is670) {
 				shift += 11;
 				mask <<= shift;
 				I = srcW >> shift;
@@ -2794,9 +2787,7 @@ set_disablegfx(SISPtr pSiS, Bool mybool, SISOverlayPtr pOverlay)
 	if ((!(pSiS->ChipFlags & SiSCF_Is65x)) &&
 		(pSiS->Chipset != PCI_CHIP_SIS660) &&
 		(pSiS->Chipset != PCI_CHIP_SIS340) &&
-		(pSiS->Chipset != PCI_CHIP_SIS670) &&
-		(pSiS->Chipset != PCI_CHIP_XGIXG20) &&
-		(pSiS->Chipset != PCI_CHIP_XGIXG40)) {
+		(pSiS->Chipset != PCI_CHIP_SIS670)) {
 		setvideoregmask(pSiS, Index_VI_Control_Misc2, mybool ? 0x04 : 0x00, 0x04);
 		if (mybool) pOverlay->keyOP = VI_ROP_Always;
 	}
@@ -2894,7 +2885,7 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 		if (pPriv->is661741760) {
 			setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, (pOverlay->lineBufSize2 >> 1) & 0x80, 0x80);
 		}
-		else if (pPriv->is340 || pPriv->is761 || pPriv->is670 || pPriv->isXGI) {
+		else if (pPriv->is340 || pPriv->is761 || pPriv->is670) {
 			setvideoreg(pSiS, Index_VI_Line_Buffer_Size_High, (CARD8)(pOverlay->lineBufSize2 >> 8));
 		}
 	}
@@ -2904,7 +2895,7 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 		if (pPriv->is661741760) {
 			setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, (pOverlay->lineBufSize >> 1) & 0x80, 0x80);
 		}
-		else if (pPriv->is340 || pPriv->isXGI) {
+		else if (pPriv->is340) {
 			setvideoreg(pSiS, Index_VI_Line_Buffer_Size_High, (CARD8)(pOverlay->lineBufSize >> 8));
 		}
 #ifdef SISMERGED
@@ -3069,7 +3060,7 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 
 		/*  if vertically downscale, remember to set VR31[6] 1
 			 Howerver so far, we only exam 662 & 671 */
-		if (pSiS->ChipType >= SIS_662 && pSiS->ChipType < XGI_20) {
+		if (pSiS->ChipType >= SIS_662 && pSiS->ChipType <= SIS_671) {
 			if (pOverlay->IntBit & 0x2)		setvideoregmask(pSiS, Index_VI_Control_Misc1, 0x40, 0x40);
 			else		setvideoregmask(pSiS, Index_VI_Control_Misc1, 0x00, 0x40);
 		}

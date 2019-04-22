@@ -118,7 +118,6 @@ typedef struct {
 	Bool	 is340;
 	Bool	 is761;
 	Bool	 is670;
-	Bool	 isXGI;
 
 } SISPortPrivRec, * SISPortPrivPtr;
 

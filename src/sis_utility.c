@@ -1056,7 +1056,7 @@ SiSHandleSiSDirectCommand(xSiSCtrlCommandReply * sdcbuf)
 		sdcbuf->sdc_result[1] = pSiS->PciBus;
 		sdcbuf->sdc_result[2] = pSiS->PciDevice;
 		sdcbuf->sdc_result[3] = pSiS->PciFunc;
-		sdcbuf->sdc_result[4] = pSiS->ROM661New ? 1 : (pSiS->HaveXGIBIOS ? 2 : 0),
+		sdcbuf->sdc_result[4] = pSiS->ROM661New ? 1 : 0,
 			sdcbuf->sdc_result[5] = pSiS->ChipFlags;
 		sdcbuf->sdc_result[6] = pSiS->ChipType;
 		sdcbuf->sdc_result[7] = pSiS->ChipRev;
