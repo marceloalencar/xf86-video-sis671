@@ -31,7 +31,7 @@
  */
 
 
-/***** Packet Format *****/
+ /***** Packet Format *****/
 #define SIS_3D_SPKC_HEADER		0x36800000L
 #define SIS_3D_BUST_HEADER		0x76800000L
 

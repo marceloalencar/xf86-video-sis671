@@ -54,7 +54,7 @@
 #ifndef _SIS_OSDEF_H_
 #define _SIS_OSDEF_H_
 
-/* The choices are: */
+ /* The choices are: */
 #undef  SIS_LINUX_KERNEL		/* Linux kernel framebuffer */
 #define SIS_XORG_XF86			/* XFree86/X.org */
 

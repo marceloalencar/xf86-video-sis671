@@ -37,8 +37,8 @@
 #define SISDGBMC
 #endif
 
-extern unsigned int SISAllocateFBMemory(ScrnInfoPtr pScrn, void **handle, int bytesize);
-extern void	    SISFreeFBMemory(ScrnInfoPtr pScrn, void **handle);
+extern unsigned int SISAllocateFBMemory(ScrnInfoPtr pScrn, void** handle, int bytesize);
+extern void	    SISFreeFBMemory(ScrnInfoPtr pScrn, void** handle);
 
 #define CPUBUFFERSIZE 2048       /* Size of /proc/cpuinfo buffer */
 #define BUFFERSIZE (576 * 1152)  /* Matches 720x576 YUV420 */
@@ -340,21 +340,21 @@ extern void	    SISFreeFBMemory(ScrnInfoPtr pScrn, void **handle);
 /* Type for table for benchmark list */
 
 typedef struct {
-    vidCopyFunc  mFunc;
-    char         *mName;
-    unsigned int mycpuflag;
-    int          grade;
-    int 	 gradefrom;
-    Bool         reqAlignment;
+	vidCopyFunc  mFunc;
+	char* mName;
+	unsigned int mycpuflag;
+	int          grade;
+	int 	 gradefrom;
+	Bool         reqAlignment;
 } SISMCFuncData;
 
 /************************************************************************/
 /*                   libc memcpy() wrapper - generic                    */
 /************************************************************************/
 
-static void SiS_libc_memcpy(UChar *dst, const UChar *src, int size)
+static void SiS_libc_memcpy(UChar* dst, const UChar* src, int size)
 {
-    memcpy(dst, src, size);
+	memcpy(dst, src, size);
 }
 
 /************************************************************************/
@@ -366,18 +366,18 @@ static void SiS_libc_memcpy(UChar *dst, const UChar *src, int size)
 
 unsigned int SiSGetCPUFlags(ScrnInfoPtr pScrn)
 {
-    return 0;
+	return 0;
 }
 
-vidCopyFunc SiSVidCopyInit(ScreenPtr pScreen, vidCopyFunc *UMemCpy, Bool from)
+vidCopyFunc SiSVidCopyInit(ScreenPtr pScreen, vidCopyFunc* UMemCpy, Bool from)
 {
-    *UMemCpy = SiS_libc_memcpy;
-    return SiS_libc_memcpy;
+	*UMemCpy = SiS_libc_memcpy;
+	return SiS_libc_memcpy;
 }
 
 vidCopyFunc SiSVidCopyGetDefault(void)
 {
-    return SiS_libc_memcpy;
+	return SiS_libc_memcpy;
 }
 
 #else /* ! Everything below is gcc specific ! */
@@ -401,79 +401,79 @@ vidCopyFunc SiSVidCopyGetDefault(void)
 #define SiS_haveBuiltInMC	/* Is there a built-in memcpy for this arch? */
 
 /* Built-in memcpy for i386 */
-static __inline void * builtin_memcpy(void * to, const void * from, size_t n)
+static __inline void* builtin_memcpy(void* to, const void* from, size_t n)
 {
-    int d1,d2,d3;
+	int d1, d2, d3;
 
-    __asm__ __volatile__(
-		  " cld\n"
-		  " shrl $1, %%ecx\n"
-		  " jnc 1f\n"
-		  " movsb\n"
+	__asm__ __volatile__(
+		" cld\n"
+		" shrl $1, %%ecx\n"
+		" jnc 1f\n"
+		" movsb\n"
 		"1: shrl $1, %%ecx\n"
-		  " jnc 2f\n"
-		  " movsw\n"
+		" jnc 2f\n"
+		" movsw\n"
 		"2: rep ; movsl\n"
-		  : "=&c" (d1), "=&D" (d2), "=&S" (d3)
-		  : "0" (n), "1" ((long) to), "2" ((long) from)
-		  : "memory", "cc");
+		: "=&c" (d1), "=&D" (d2), "=&S" (d3)
+		: "0" (n), "1" ((long)to), "2" ((long)from)
+		: "memory", "cc");
 
-    return(to);
+	return(to);
 }
 
 /* Alternative for 586: Unroll loop, copy 32 bytes at a time */
-static void SiS_builtin_memcp2(UChar *to, const UChar *from, int n)
+static void SiS_builtin_memcp2(UChar* to, const UChar* from, int n)
 {
-    int d1,d2,d3;
+	int d1, d2, d3;
 
-    __asm__ __volatile__(
-		  " movl %%edi, %%eax\n"
-		  " cmpl $32, %%ecx\n"
-		  " cld\n"
-		  " jbe 3f\n"
-		  " negl %%eax\n"		/* Align dest */
-		  " andl $3, %%eax\n"
-		  " subl %%eax, %%ecx\n"
-		  " xchgl %%eax, %%ecx\n"
-		  " rep ; movsb\n"
-		  " movl %%eax, %%ecx\n"
-		  " subl $32, %%ecx\n"
-		  " js 2f\n"
-		  " movl (%%edi), %%eax\n"
+	__asm__ __volatile__(
+		" movl %%edi, %%eax\n"
+		" cmpl $32, %%ecx\n"
+		" cld\n"
+		" jbe 3f\n"
+		" negl %%eax\n"		/* Align dest */
+		" andl $3, %%eax\n"
+		" subl %%eax, %%ecx\n"
+		" xchgl %%eax, %%ecx\n"
+		" rep ; movsb\n"
+		" movl %%eax, %%ecx\n"
+		" subl $32, %%ecx\n"
+		" js 2f\n"
+		" movl (%%edi), %%eax\n"
 		"1: movl 28(%%edi), %%edx\n"   	/* Trick: Read-ahead */
-		  " subl $32, %%ecx\n"
-		  " movl (%%esi), %%eax\n"
-		  " movl 4(%%esi), %%edx\n"
-		  " movl %%eax, (%%edi)\n"
-		  " movl %%edx, 4(%%edi)\n"
-		  " movl 8(%%esi), %%eax\n"
-		  " movl 12(%%esi), %%edx\n"
-		  " movl %%eax, 8(%%edi)\n"
-		  " movl %%edx, 12(%%edi)\n"
-		  " movl 16(%%esi), %%eax\n"
-		  " movl 20(%%esi), %%edx\n"
-		  " movl %%eax, 16(%%edi)\n"
-		  " movl %%edx, 20(%%edi)\n"
-		  " movl 24(%%esi), %%eax\n"
-		  " movl 28(%%esi), %%edx\n"
-		  " movl %%eax, 24(%%edi)\n"
-		  " movl %%edx, 28(%%edi)\n"
-		  " leal 32(%%esi), %%esi\n"
-		  " leal 32(%%edi), %%edi\n"
-		  " jns 1b\n"
+		" subl $32, %%ecx\n"
+		" movl (%%esi), %%eax\n"
+		" movl 4(%%esi), %%edx\n"
+		" movl %%eax, (%%edi)\n"
+		" movl %%edx, 4(%%edi)\n"
+		" movl 8(%%esi), %%eax\n"
+		" movl 12(%%esi), %%edx\n"
+		" movl %%eax, 8(%%edi)\n"
+		" movl %%edx, 12(%%edi)\n"
+		" movl 16(%%esi), %%eax\n"
+		" movl 20(%%esi), %%edx\n"
+		" movl %%eax, 16(%%edi)\n"
+		" movl %%edx, 20(%%edi)\n"
+		" movl 24(%%esi), %%eax\n"
+		" movl 28(%%esi), %%edx\n"
+		" movl %%eax, 24(%%edi)\n"
+		" movl %%edx, 28(%%edi)\n"
+		" leal 32(%%esi), %%esi\n"
+		" leal 32(%%edi), %%edi\n"
+		" jns 1b\n"
 		"2: addl $32, %%ecx\n"
 		"3: rep ; movsb"
-		  : "=&c" (d1), "=&D" (d2), "=&S" (d3)
-		  : "0" (n), "1" ((long) to), "2" ((long) from)
-		  : "eax", "edx", "memory", "cc");
+		: "=&c" (d1), "=&D" (d2), "=&S" (d3)
+		: "0" (n), "1" ((long)to), "2" ((long)from)
+		: "eax", "edx", "memory", "cc");
 
 }
 
 static unsigned int taketime(void)	/* get current time (for benchmarking) */
 {
-    unsigned int eax;
+	unsigned int eax;
 
-    __asm__ volatile (
+	__asm__ volatile (
 		" pushl %%ebx\n"
 		" cpuid\n"
 		" rdtsc\n"
@@ -482,7 +482,7 @@ static unsigned int taketime(void)	/* get current time (for benchmarking) */
 		: "0" (0)
 		: "ecx", "edx", "cc");
 
-    return(eax);
+	return(eax);
 }
 
 #elif defined(__AMD64__) || defined(__amd64__) || defined(__x86_64__) /***************** AMD64 */
@@ -495,67 +495,67 @@ static unsigned int taketime(void)	/* get current time (for benchmarking) */
 #define SiS_haveBuiltInMC	/* Is there a built-in memcpy for this arch? */
 
 /* Built-in memcpy for AMD64 */
-static __inline void * builtin_memcpy(void * to, const void * from, int n)
+static __inline void* builtin_memcpy(void* to, const void* from, int n)
 {
-    long d1, d2, d3;
+	long d1, d2, d3;
 
-    __asm__ __volatile__ (
+	__asm__ __volatile__(
 		" cld\n"
 		" rep ; movsq\n"
 		" movq %4, %%rcx\n"
 		" rep ; movsb"
 		: "=%c" (d1), "=&D" (d2), "=&S" (d3)
 		: "0" ((ULong)(n >> 3)), "q" ((ULong)(n & 7)),
-		  "1" ((long) to), "2" ((long) from)
+		"1" ((long)to), "2" ((long)from)
 		: "memory");
 
-    return(to);
+	return(to);
 }
 
 /* Alternative: Unroll loop, copy 32 bytes at a time */
-static void SiS_builtin_memcp2(UChar *to, const UChar *from, int n)
+static void SiS_builtin_memcp2(UChar * to, const UChar * from, int n)
 {
-    long d1,d2,d3;
+	long d1, d2, d3;
 
-    __asm__ __volatile__(
-		  " movq %%rdi, %%rax\n"
-		  " cmpq $32, %%rcx\n"
-		  " cld\n"			/* Pipeline; no other flags but DF */
-		  " jbe 1f\n"
-		  " negq %%rax\n"		/* Align dest */
-		  " andq $7, %%rax\n"
-		  " subq %%rax, %%rcx\n"
-		  " xchgq %%rax, %%rcx\n"
-		  " rep ; movsb\n"
-		  " movq %%rax, %%rcx\n"
-		  " subq $32, %%rcx\n"
-		  " js 2f\n"
-		  ".p2align 4\n"
+	__asm__ __volatile__(
+		" movq %%rdi, %%rax\n"
+		" cmpq $32, %%rcx\n"
+		" cld\n"			/* Pipeline; no other flags but DF */
+		" jbe 1f\n"
+		" negq %%rax\n"		/* Align dest */
+		" andq $7, %%rax\n"
+		" subq %%rax, %%rcx\n"
+		" xchgq %%rax, %%rcx\n"
+		" rep ; movsb\n"
+		" movq %%rax, %%rcx\n"
+		" subq $32, %%rcx\n"
+		" js 2f\n"
+		".p2align 4\n"
 		"3: subq $32, %%rcx\n"
-		  " movq (%%rsi), %%rax\n"
-		  " movq 8(%%rsi), %%rdx\n"
-		  " movq 16(%%rsi), %%r8\n"
-		  " movq 24(%%rsi), %%r9\n"
-		  " movq %%rax, (%%rdi)\n"
-		  " movq %%rdx, 8(%%rdi)\n"
-		  " movq %%r8, 16(%%rdi)\n"
-		  " movq %%r9, 24(%%rdi)\n"
-		  " leaq 32(%%rsi), %%rsi\n"
-		  " leaq 32(%%rdi), %%rdi\n"
-		  " jns 3b\n"
+		" movq (%%rsi), %%rax\n"
+		" movq 8(%%rsi), %%rdx\n"
+		" movq 16(%%rsi), %%r8\n"
+		" movq 24(%%rsi), %%r9\n"
+		" movq %%rax, (%%rdi)\n"
+		" movq %%rdx, 8(%%rdi)\n"
+		" movq %%r8, 16(%%rdi)\n"
+		" movq %%r9, 24(%%rdi)\n"
+		" leaq 32(%%rsi), %%rsi\n"
+		" leaq 32(%%rdi), %%rdi\n"
+		" jns 3b\n"
 		"2: addq $32, %%rcx\n"
 		"1: rep ; movsb"
-		  : "=&c" (d1), "=&D" (d2), "=&S" (d3)
-		  :"0" ((ULong) n), "1" ((long) to), "2" ((long) from)
-		  : "rax", "rdx", "r8", "r9", "memory", "cc");
+		: "=&c" (d1), "=&D" (d2), "=&S" (d3)
+		: "0" ((ULong)n), "1" ((long)to), "2" ((long)from)
+		: "rax", "rdx", "r8", "r9", "memory", "cc");
 
 }
 
 static unsigned int taketime(void)	/* get current time (for benchmarking) */
 {
-    unsigned int eax;
+	unsigned int eax;
 
-    __asm__ volatile (
+	__asm__ volatile (
 		" pushq %%rbx\n"
 		" cpuid\n"
 		" rdtsc\n"
@@ -564,7 +564,7 @@ static unsigned int taketime(void)	/* get current time (for benchmarking) */
 		: "0" (0)
 		: "rcx", "rdx", "cc");
 
-    return(eax);
+	return(eax);
 }
 
 #else		/* **************************************** Other archs */
@@ -595,9 +595,9 @@ static unsigned int taketime(void)	/* get current time (for benchmarking) */
 /************************************************************************/
 
 #ifdef SiS_haveBuiltInMC
-static void SiS_builtin_memcpy(UChar *dst, const UChar *src, int size)
+static void SiS_builtin_memcpy(UChar * dst, const UChar * src, int size)
 {
-    builtin_memcpy(dst, src, size);
+	builtin_memcpy(dst, src, size);
 }
 #endif
 
@@ -608,178 +608,180 @@ static void SiS_builtin_memcpy(UChar *dst, const UChar *src, int size)
 #ifdef SiS_canBenchmark
 
 /* Get time (unsigned int) */
-static unsigned int time_function(vidCopyFunc mf, UChar *buf1, UChar *buf2, int size)
+static unsigned int time_function(vidCopyFunc mf, UChar * buf1, UChar * buf2, int size)
 {
-    unsigned int t1, t2;
+	unsigned int t1, t2;
 
-    t1 = taketime();
+	t1 = taketime();
 
-    (*mf)(buf1, buf2, size);
+	(*mf)(buf1, buf2, size);
 
-    t2 = taketime();
+	t2 = taketime();
 
-    return((t1 <  t2) ? t2 - t1 : 0xFFFFFFFFU - (t1 - t2 - 1));
+	return((t1 < t2) ? t2 - t1 : 0xFFFFFFFFU - (t1 - t2 - 1));
 }
 
 /* Allocate an area of offscreen FB memory (buf1), a simulated video
  * player buffer (buf2) and a pool of uninitialized "video" data (buf3).
  */
-static void *
-SiS_AllocBuffers(ScrnInfoPtr pScrn, UChar **buf1, UChar **buf2, UChar **buf3)
+static void*
+SiS_AllocBuffers(ScrnInfoPtr pScrn, UChar * *buf1, UChar * *buf2, UChar * *buf3)
 {
-    SISPtr pSiS = SISPTR(pScrn);
-    unsigned int offset;
-    void *handle = NULL;
+	SISPtr pSiS = SISPTR(pScrn);
+	unsigned int offset;
+	void* handle = NULL;
 
-    if(!(offset = SISAllocateFBMemory(pScrn, &handle, BUFFERSIZE + 31))) {
-       return NULL;
-    }
-    (*buf1) = (UChar *)pSiS->FbBase + offset;
-    (*buf1) = (UChar *)(((ULong)(*buf1) + 31) & ~31);
+	if (!(offset = SISAllocateFBMemory(pScrn, &handle, BUFFERSIZE + 31))) {
+		return NULL;
+	}
+	(*buf1) = (UChar*)pSiS->FbBase + offset;
+	(*buf1) = (UChar*)(((ULong)(*buf1) + 31) & ~31);
 
-    if(!((*buf2) = (UChar *)malloc(BUFFERSIZE + 15))) {
-       SISFreeFBMemory(pScrn, &handle);
-       return NULL;
-    }
+	if (!((*buf2) = (UChar*)malloc(BUFFERSIZE + 15))) {
+		SISFreeFBMemory(pScrn, &handle);
+		return NULL;
+	}
 
-    if(!((*buf3) = (UChar *)malloc(BUFFERSIZE + 15))) {
-       free((*buf2));
-       SISFreeFBMemory(pScrn, &handle);
-       return NULL;
-    }
+	if (!((*buf3) = (UChar*)malloc(BUFFERSIZE + 15))) {
+		free((*buf2));
+		SISFreeFBMemory(pScrn, &handle);
+		return NULL;
+	}
 
-    return handle;
+	return handle;
 }
 
 /* Perform Benchmark */
-static int SiS_BenchmarkMemcpy(ScrnInfoPtr pScrn, SISMCFuncData *MCFunctions,
-                               unsigned int myCPUflags, UChar *buf1, UChar *buf2,
-			       UChar *buf3, char *frqBuf, double cpuFreq,
-			       vidCopyFunc *UMemCpy, int *best2, Bool from)
+static int SiS_BenchmarkMemcpy(ScrnInfoPtr pScrn, SISMCFuncData * MCFunctions,
+	unsigned int myCPUflags, UChar * buf1, UChar * buf2,
+	UChar * buf3, char* frqBuf, double cpuFreq,
+	vidCopyFunc * UMemCpy, int* best2, Bool from)
 {
-    SISMCFuncData *curData;
-    int j = 0, bestSoFar = 0;
-    unsigned int tmp1, tmp2, best = 0xFFFFFFFFU, sbest = 0xFFFFFFFFU;
+	SISMCFuncData* curData;
+	int j = 0, bestSoFar = 0;
+	unsigned int tmp1, tmp2, best = 0xFFFFFFFFU, sbest = 0xFFFFFFFFU;
 
-    (*best2) = 0;
+	(*best2) = 0;
 
-    /* Make probable buf1 and buf2 are not paged out by referencing them */
-    SiS_libc_memcpy(buf1, buf2, BUFFERSIZE);
+	/* Make probable buf1 and buf2 are not paged out by referencing them */
+	SiS_libc_memcpy(buf1, buf2, BUFFERSIZE);
 
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	       "Benchmarking %s RAM to %s RAM memory transfer methods:\n",
-	       from ? "video" : "system",
-	       from ? "system" : "video");
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+		"Benchmarking %s RAM to %s RAM memory transfer methods:\n",
+		from ? "video" : "system",
+		from ? "system" : "video");
 
 #ifdef TWDEBUG
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Benchmark: CPUFlags %x\n", myCPUflags);
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Benchmark: CPUFlags %x\n", myCPUflags);
 #endif
 
-    j = 0;
-    while(MCFunctions[j].mFunc) {
+	j = 0;
+	while (MCFunctions[j].mFunc) {
 
-	curData = MCFunctions + j;
+		curData = MCFunctions + j;
 
-	if(myCPUflags & curData->mycpuflag) {
+		if (myCPUflags & curData->mycpuflag) {
 
-	   /* Simulate setup of the video buffer and copy result to framebuffer */
-	   /* Do this 4 times to verify results */
-	   if(!from) {
-	      SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
-	      tmp1 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
-	      SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	      SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	      SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	   } else {
-	      SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
-	      tmp1 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
-	      SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	      SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	      SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
-	      tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
-	      tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
-	   }
+			/* Simulate setup of the video buffer and copy result to framebuffer */
+			/* Do this 4 times to verify results */
+			if (!from) {
+				SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
+				tmp1 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
+				SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+				SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+				SiS_builtin_memcpy(buf2, buf3, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf1, buf2, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+			}
+			else {
+				SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
+				tmp1 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
+				SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+				SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+				SiS_builtin_memcpy(buf3, buf2, BUFFERSIZE);
+				tmp2 = time_function(curData->mFunc, buf2, buf1, BUFFERSIZE);
+				tmp1 = (tmp2 < tmp1) ? tmp2 : tmp1;
+			}
 
-	   if((!frqBuf) || (tmp1 == 0)) {
-	      xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			   "\tChecked %s memcpy()... \t%u\n",curData->mName, tmp1);
-	   } else {
-	      xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			   "\tChecked %s memcpy()... \t%.1f MiB/s\n",
-			   curData->mName,
-			   cpuFreq * 1.e6 * (double)BUFFERSIZE / ((double)(tmp1) * (double)(0x100000)));
-	   }
+			if ((!frqBuf) || (tmp1 == 0)) {
+				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+					"\tChecked %s memcpy()... \t%u\n", curData->mName, tmp1);
+			}
+			else {
+				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+					"\tChecked %s memcpy()... \t%.1f MiB/s\n",
+					curData->mName,
+					cpuFreq * 1.e6 * (double)BUFFERSIZE / ((double)(tmp1) * (double)(0x100000)));
+			}
 
-	   if(tmp1 < best) {
-	      best = tmp1;
-	      bestSoFar = j;
-	   }
+			if (tmp1 < best) {
+				best = tmp1;
+				bestSoFar = j;
+			}
 
-	   if(!curData->reqAlignment) {
-	      if(tmp1 < sbest) {
-	         sbest = tmp1;
-	         (*best2) = j;
-	      }
-	   }
+			if (!curData->reqAlignment) {
+				if (tmp1 < sbest) {
+					sbest = tmp1;
+					(*best2) = j;
+				}
+			}
 
+		}
+
+		j++;
 	}
 
-	j++;
-    }
-
-    return bestSoFar;
+	return bestSoFar;
 }
 
-static vidCopyFunc SiS_GetBestByGrade(ScrnInfoPtr pScrn, SISMCFuncData *MCFunctions,
-			unsigned int myCPUflags, vidCopyFunc *UMemCpy, Bool from)
+static vidCopyFunc SiS_GetBestByGrade(ScrnInfoPtr pScrn, SISMCFuncData * MCFunctions,
+	unsigned int myCPUflags, vidCopyFunc * UMemCpy, Bool from)
 {
-    int j = 0, best = -1, secondbest = -1, bestSoFar = 10, best2SoFar = 10;
-    int grade;
+	int j = 0, best = -1, secondbest = -1, bestSoFar = 10, best2SoFar = 10;
+	int grade;
 
-    *UMemCpy = SiS_libc_memcpy;
+	*UMemCpy = SiS_libc_memcpy;
 
-    while(MCFunctions[j].mFunc) {
-	if(myCPUflags & MCFunctions[j].mycpuflag) {
-	   grade = from ? MCFunctions[j].gradefrom : MCFunctions[j].grade;
-	   if(grade < bestSoFar) {
-	      best = j;
-	      bestSoFar = grade;
-	   }
-	   if(grade < best2SoFar) {
-	      if(!MCFunctions[j].reqAlignment) {
-	         secondbest = j;
-		 best2SoFar = grade;
-	      }
-	   }
+	while (MCFunctions[j].mFunc) {
+		if (myCPUflags & MCFunctions[j].mycpuflag) {
+			grade = from ? MCFunctions[j].gradefrom : MCFunctions[j].grade;
+			if (grade < bestSoFar) {
+				best = j;
+				bestSoFar = grade;
+			}
+			if (grade < best2SoFar) {
+				if (!MCFunctions[j].reqAlignment) {
+					secondbest = j;
+					best2SoFar = grade;
+				}
+			}
+		}
+		j++;
 	}
-	j++;
-    }
-    if(best >= 0) {
-       xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		"Chose %s method for aligned data transfers %s video RAM\n",
-		MCFunctions[best].mName,
-		from ? "from" : "to");
-       if(secondbest >= 0) {
-          xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		"Chose %s method for unaligned data transfers %s video RAM\n",
-		   MCFunctions[secondbest].mName,
-		   from ? "from" : "to");
-          *UMemCpy = MCFunctions[secondbest].mFunc;
-       }
-       return MCFunctions[best].mFunc;
-    }
+	if (best >= 0) {
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+			"Chose %s method for aligned data transfers %s video RAM\n",
+			MCFunctions[best].mName,
+			from ? "from" : "to");
+		if (secondbest >= 0) {
+			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+				"Chose %s method for unaligned data transfers %s video RAM\n",
+				MCFunctions[secondbest].mName,
+				from ? "from" : "to");
+			*UMemCpy = MCFunctions[secondbest].mFunc;
+		}
+		return MCFunctions[best].mFunc;
+	}
 
-    return SiS_libc_memcpy;
+	return SiS_libc_memcpy;
 }
 #endif /* canBenchmark */
 
@@ -789,50 +791,50 @@ static vidCopyFunc SiS_GetBestByGrade(ScrnInfoPtr pScrn, SISMCFuncData *MCFuncti
 
 #ifdef SiS_haveProc
 /* Linux: Read file (/proc/cpuinfo) into buffer */
-static int SiS_ReadProc(char *buf, char *filename)
+static int SiS_ReadProc(char* buf, char* filename)
 {
-    FILE *cpuInfoFile;
-    int count;
+	FILE* cpuInfoFile;
+	int count;
 
-    if((cpuInfoFile = fopen(filename, "r")) == NULL) {
-       return 0;
-    }
+	if ((cpuInfoFile = fopen(filename, "r")) == NULL) {
+		return 0;
+	}
 
-    count = fread(buf, 1, CPUBUFFERSIZE, cpuInfoFile);
-    if(ferror(cpuInfoFile)) {
-       fclose(cpuInfoFile);
-       return 0;
-    }
+	count = fread(buf, 1, CPUBUFFERSIZE, cpuInfoFile);
+	if (ferror(cpuInfoFile)) {
+		fclose(cpuInfoFile);
+		return 0;
+	}
 
-    fclose(cpuInfoFile);
+	fclose(cpuInfoFile);
 
-    if(count >= CPUBUFFERSIZE - 2) {
-       return 0;
-    }
+	if (count >= CPUBUFFERSIZE - 2) {
+		return 0;
+	}
 
-    buf[count] = 0;
+	buf[count] = 0;
 
-    return count;
+	return count;
 }
 
 /* Linux: Extract CPU speed from /proc/cpuinfo */
-static char *SiS_GetCPUFreq(ScrnInfoPtr pScrn, char *buf, double *cpuFreq)
+static char* SiS_GetCPUFreq(ScrnInfoPtr pScrn, char* buf, double* cpuFreq)
 {
-    char *frqBuf, *endBuf;
+	char* frqBuf, * endBuf;
 
-    (*cpuFreq) = 0.0;
+	(*cpuFreq) = 0.0;
 
-    if((frqBuf = strstr(buf,"cpu MHz\t\t:"))) {
-       frqBuf += 11;
-       (*cpuFreq) = strtod(frqBuf, &endBuf);
-       if(endBuf == frqBuf) frqBuf = NULL;
-       if((*cpuFreq) < 10.0) frqBuf = NULL; /* sanity check */
-       if(frqBuf) {
-          xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU frequency %.2fMhz\n", (*cpuFreq));
-       }
-    }
+	if ((frqBuf = strstr(buf, "cpu MHz\t\t:"))) {
+		frqBuf += 11;
+		(*cpuFreq) = strtod(frqBuf, &endBuf);
+		if (endBuf == frqBuf) frqBuf = NULL;
+		if ((*cpuFreq) < 10.0) frqBuf = NULL; /* sanity check */
+		if (frqBuf) {
+			xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU frequency %.2fMhz\n", (*cpuFreq));
+		}
+	}
 
-    return frqBuf;
+	return frqBuf;
 }
 #endif /* haveProc */
 
@@ -854,19 +856,19 @@ static jmp_buf sigill_return;
 
 static void sigill_handler(void)
 {
-    longjmp(sigill_return, 1);
+	longjmp(sigill_return, 1);
 }
 #endif
 
 void __cpuid(int* cpuinfo, int info)
 {
-    __asm__ __volatile__(
-	"xchg %%ebx, %%edi;"
-	"cpuid;"
-	"xchg %%ebx, %%edi;"
-	:"=a" (cpuinfo[0]), "=D" (cpuinfo[1]), "=c" (cpuinfo[2]), "=d" (cpuinfo[3])
-	:"0" (info)
-    );
+	__asm__ __volatile__(
+		"xchg %%ebx, %%edi;"
+		"cpuid;"
+		"xchg %%ebx, %%edi;"
+		:"=a" (cpuinfo[0]), "=D" (cpuinfo[1]), "=c" (cpuinfo[2]), "=d" (cpuinfo[3])
+		: "0" (info)
+	);
 }
 
 
@@ -875,40 +877,41 @@ static Bool CheckOSforSSE(ScrnInfoPtr pScrn)
 #ifdef SISCHECKOSSSE  /* Check OS for SSE possible: */
 
 #ifdef SISDGBMC
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Checking OS SSE support\n");
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Checking OS SSE support\n");
 #endif
-    Bool sseSupported = FALSE;
-    int cpuinfo[4];
-    __cpuid(cpuinfo, 1);
-    sseSupported = cpuinfo[3] & (1 << 25) || FALSE;
+	Bool sseSupported = FALSE;
+	int cpuinfo[4];
+	__cpuid(cpuinfo, 1);
+	sseSupported = cpuinfo[3] & (1 << 25) || FALSE;
 
 #ifdef SISDGBMC
-    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "OS SSE support signal %d\n", sseSupported);
+	xf86DrvMsg(pScrn->scrnIndex, X_INFO, "OS SSE support signal %d\n", sseSupported);
 #endif
 
-    if(!sseSupported) {
-       xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"OS does not support SSE instructions\n");
-    }
+	if (!sseSupported) {
+		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+			"OS does not support SSE instructions\n");
+	}
 
-    return sseSupported;
+	return sseSupported;
 
 #else  /* no check for SSE possible: */
 
-    SISPtr pSiS = SISPTR(pScrn);
+	SISPtr pSiS = SISPTR(pScrn);
 
-    xf86DrvMsg(pScrn->scrnIndex, pSiS->XvSSEMemcpy ? X_WARNING : X_INFO,
-	"Checking OS for SSE support is not supported in this version of " SISMYSERVERNAME "\n");
+	xf86DrvMsg(pScrn->scrnIndex, pSiS->XvSSEMemcpy ? X_WARNING : X_INFO,
+		"Checking OS for SSE support is not supported in this version of " SISMYSERVERNAME "\n");
 
-    if(pSiS->XvSSEMemcpy) {
-       xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-	"If you get a signal 4 here, set the option \"UseSSE\" to \"off\".\n");
-       return TRUE;
-    } else {
-       xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-	"If your OS supports SSE, set the option \"UseSSE\" to \"on\".\n");
-       return FALSE;
-    }
+	if (pSiS->XvSSEMemcpy) {
+		xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+			"If you get a signal 4 here, set the option \"UseSSE\" to \"off\".\n");
+		return TRUE;
+	}
+	else {
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+			"If your OS supports SSE, set the option \"UseSSE\" to \"on\".\n");
+		return FALSE;
+	}
 #endif
 }
 
@@ -916,20 +919,20 @@ static Bool CheckOSforSSE(ScrnInfoPtr pScrn)
 
 #ifdef __i386__   /* i386 specific *************************************/
 
-PREFETCH_FUNC(SiS_sse,SSE,SSE,,FENCE,small_memcpy_i386)
-PREFETCH_FUNC(SiS_mmxext,MMXEXT,SSE,EMMS,FENCEMMS,small_memcpy_i386)
-PREFETCH_FUNC(SiS_now,MMX,NOW,FEMMS,FEMMS,small_memcpy_i386)
-NOPREFETCH_FUNC(SiS_mmx,MMX,EMMS,EMMS,small_memcpy_i386)
+PREFETCH_FUNC(SiS_sse, SSE, SSE, , FENCE, small_memcpy_i386)
+PREFETCH_FUNC(SiS_mmxext, MMXEXT, SSE, EMMS, FENCEMMS, small_memcpy_i386)
+PREFETCH_FUNC(SiS_now, MMX, NOW, FEMMS, FEMMS, small_memcpy_i386)
+NOPREFETCH_FUNC(SiS_mmx, MMX, EMMS, EMMS, small_memcpy_i386)
 
 static SISMCFuncData MCFunctions_i386[] = {
-    {SiS_libc_memcpy,   "libc",      SIS_CPUFL_LIBC,  4,  4, FALSE},
-    {SiS_builtin_memcpy,"built-in-1",SIS_CPUFL_BI,    5,  5, FALSE},
-    {SiS_builtin_memcp2,"built-in-2",SIS_CPUFL_BI2,   6,  6, FALSE},
-    {SiS_mmx_memcpy,    "MMX",       SIS_CPUFL_MMX,   3,  3, FALSE},
-    {SiS_sse_memcpy,    "SSE",       SIS_CPUFL_SSE,   1,  0, TRUE},
-    {SiS_now_memcpy,    "3DNow!",    SIS_CPUFL_3DNOW, 2,  2, FALSE},
-    {SiS_mmxext_memcpy, "MMX2",      SIS_CPUFL_MMX2,  0,  1, FALSE},
-    {NULL,              "",          0,              10, 10, FALSE}
+	{SiS_libc_memcpy,   "libc",      SIS_CPUFL_LIBC,  4,  4, FALSE},
+	{SiS_builtin_memcpy,"built-in-1",SIS_CPUFL_BI,    5,  5, FALSE},
+	{SiS_builtin_memcp2,"built-in-2",SIS_CPUFL_BI2,   6,  6, FALSE},
+	{SiS_mmx_memcpy,    "MMX",       SIS_CPUFL_MMX,   3,  3, FALSE},
+	{SiS_sse_memcpy,    "SSE",       SIS_CPUFL_SSE,   1,  0, TRUE},
+	{SiS_now_memcpy,    "3DNow!",    SIS_CPUFL_3DNOW, 2,  2, FALSE},
+	{SiS_mmxext_memcpy, "MMX2",      SIS_CPUFL_MMX2,  0,  1, FALSE},
+	{NULL,              "",          0,              10, 10, FALSE}
 };
 
 #define Def_FL  (SIS_CPUFL_LIBC | SIS_CPUFL_BI | SIS_CPUFL_BI2)  /* Default methods */
@@ -947,10 +950,10 @@ static SISMCFuncData MCFunctions_i386[] = {
 
 static Bool cpuIDSupported(ScrnInfoPtr pScrn)
 {
-    int eax, ebx, ecx, edx;
+	int eax, ebx, ecx, edx;
 
-    /* Check for cpuid instruction */
-    __asm__ __volatile__ (
+	/* Check for cpuid instruction */
+	__asm__ __volatile__(
 		" pushf\n"
 		" popl %0\n"
 		" movl %0, %1\n"
@@ -963,79 +966,79 @@ static Bool cpuIDSupported(ScrnInfoPtr pScrn)
 		:
 		: "cc");
 
-    if(eax == ecx) {
-       xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU does not support CPUID instruction\n");
-       return FALSE;
-    }
+	if (eax == ecx) {
+		xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU does not support CPUID instruction\n");
+		return FALSE;
+	}
 
-    /* Check for cpuid level */
-    cpuid(0x00000000, eax, ebx, ecx, edx);
-    if(!eax) {
-       return FALSE;
-    }
+	/* Check for cpuid level */
+	cpuid(0x00000000, eax, ebx, ecx, edx);
+	if (!eax) {
+		return FALSE;
+	}
 
-    /* Check for RDTSC */
-    cpuid(0x00000001, eax, ebx, ecx, edx);
+	/* Check for RDTSC */
+	cpuid(0x00000001, eax, ebx, ecx, edx);
 
-    if(!(edx & 0x10)) {
-       xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU does not support RDTSC instruction\n");
-       return FALSE;
-    }
+	if (!(edx & 0x10)) {
+		xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "CPU does not support RDTSC instruction\n");
+		return FALSE;
+	}
 
-    return TRUE;
+	return TRUE;
 }
 
 static unsigned int SiS_GetCpuFeatures(ScrnInfoPtr pScrn)
 {
-    unsigned int flags = 0, eax, ebx, ecx, edx;
-    Bool IsAMD;
+	unsigned int flags = 0, eax, ebx, ecx, edx;
+	Bool IsAMD;
 
-    /* Check if cpuid and rdtsc instructions are supported */
-    if(!cpuIDSupported(pScrn)) {
-       return 0;
-    }
+	/* Check if cpuid and rdtsc instructions are supported */
+	if (!cpuIDSupported(pScrn)) {
+		return 0;
+	}
 
-    cpuid(0x00000000, eax, ebx, ecx, edx);
+	cpuid(0x00000000, eax, ebx, ecx, edx);
 
-    IsAMD = (ebx == 0x68747541) && (edx == 0x69746e65) && (ecx == 0x444d4163);
+	IsAMD = (ebx == 0x68747541) && (edx == 0x69746e65) && (ecx == 0x444d4163);
 
-    cpuid(0x00000001, eax, ebx, ecx, edx);
-    /* MMX */
-    if(edx & 0x00800000) flags |= SIS_CPUFL_MMX;
-    /* SSE, MMXEXT */
-    if(edx & 0x02000000) flags |= (SIS_CPUFL_SSE | SIS_CPUFL_MMX2);
-    /* SSE2 - don't need this one directly, set SSE instead */
-    if(edx & 0x04000000) flags |= (SIS_CPUFL_SSE | SIS_CPUFL_SSE2);
+	cpuid(0x00000001, eax, ebx, ecx, edx);
+	/* MMX */
+	if (edx & 0x00800000) flags |= SIS_CPUFL_MMX;
+	/* SSE, MMXEXT */
+	if (edx & 0x02000000) flags |= (SIS_CPUFL_SSE | SIS_CPUFL_MMX2);
+	/* SSE2 - don't need this one directly, set SSE instead */
+	if (edx & 0x04000000) flags |= (SIS_CPUFL_SSE | SIS_CPUFL_SSE2);
 
-    cpuid(0x80000000, eax, ebx, ecx, edx);
-    if(eax >= 0x80000001) {
-       cpuid(0x80000001, eax, ebx, ecx, edx);
-       /* 3DNow! */
-       if(edx & 0x80000000) flags |= SIS_CPUFL_3DNOW;
-       /* AMD MMXEXT */
-       if(IsAMD && (edx & 0x00400000)) flags |= SIS_CPUFL_MMX2;
-    }
+	cpuid(0x80000000, eax, ebx, ecx, edx);
+	if (eax >= 0x80000001) {
+		cpuid(0x80000001, eax, ebx, ecx, edx);
+		/* 3DNow! */
+		if (edx & 0x80000000) flags |= SIS_CPUFL_3DNOW;
+		/* AMD MMXEXT */
+		if (IsAMD && (edx & 0x00400000)) flags |= SIS_CPUFL_MMX2;
+	}
 
-    return flags;
+	return flags;
 }
 
 #elif defined(__AMD64__) || defined(__amd64__) || defined(__x86_64__) /* AMD64 specific ***** */
 
-PREFETCH_FUNC(SiS_sse,SSE64,SSE,,FENCE,small_memcpy_amd64)
+PREFETCH_FUNC(SiS_sse, SSE64, SSE, , FENCE, small_memcpy_amd64)
 
 static SISMCFuncData MCFunctions_AMD64[] = {
-    {SiS_libc_memcpy,   "libc",      SIS_CPUFL_LIBC, 2,  2, FALSE},
-    {SiS_builtin_memcpy,"built-in-1",SIS_CPUFL_BI,   1,  1, FALSE},
-    {SiS_builtin_memcp2,"built-in-2",SIS_CPUFL_BI2,  3,  3, FALSE},
-    {SiS_sse_memcpy,    "SSE",       SIS_CPUFL_SSE,  0,  0, TRUE},
-    {NULL,              "",          0,             10, 10, FALSE}
+	{SiS_libc_memcpy,   "libc",      SIS_CPUFL_LIBC, 2,  2, FALSE},
+	{SiS_builtin_memcpy,"built-in-1",SIS_CPUFL_BI,   1,  1, FALSE},
+	{SiS_builtin_memcp2,"built-in-2",SIS_CPUFL_BI2,  3,  3, FALSE},
+	{SiS_sse_memcpy,    "SSE",       SIS_CPUFL_SSE,  0,  0, TRUE},
+	{NULL,              "",          0,             10, 10, FALSE}
 };
 
 #define Def_FL  (SIS_CPUFL_LIBC | SIS_CPUFL_BI | SIS_CPUFL_BI2)
 
 static unsigned int SiS_GetCpuFeatures(ScrnInfoPtr pScrn)
 {
-    return((unsigned int)(SIS_CPUFL_SSE|SIS_CPUFL_SSE2));
+	return((unsigned int)(SIS_CPUFL_SSE | SIS_CPUFL_SSE2));
 }
 
 #else  /* Specific for other archs ******************************** */
@@ -1046,7 +1049,7 @@ static unsigned int SiS_GetCpuFeatures(ScrnInfoPtr pScrn)
 
 static unsigned int SiS_GetCpuFeatures(ScrnInfoPtr pScrn)
 {
-    return((unsigned int)(0));
+	return((unsigned int)(0));
 }
 
 #endif
@@ -1057,66 +1060,66 @@ static unsigned int SiS_GetCpuFeatures(ScrnInfoPtr pScrn)
 
 #ifdef SiS_canBenchmark
 static vidCopyFunc
-SiSVidCopyInitGen(ScreenPtr pScreen, SISMCFuncData *MCFunctions, vidCopyFunc *UMemCpy, Bool from)
+SiSVidCopyInitGen(ScreenPtr pScreen, SISMCFuncData * MCFunctions, vidCopyFunc * UMemCpy, Bool from)
 {
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
-    SISPtr pSiS = SISPTR(pScrn);
-    void *fbhandle = NULL;
-    char  *frqBuf = NULL;
-    UChar *buf1 = NULL, *buf2 = NULL, *buf3 = NULL;
-    double cpuFreq = 0.0;
-    unsigned int myCPUflags = pSiS->CPUFlags | Def_FL;
-    int best, secondbest;
+	ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
+	SISPtr pSiS = SISPTR(pScrn);
+	void* fbhandle = NULL;
+	char* frqBuf = NULL;
+	UChar* buf1 = NULL, * buf2 = NULL, * buf3 = NULL;
+	double cpuFreq = 0.0;
+	unsigned int myCPUflags = pSiS->CPUFlags | Def_FL;
+	int best, secondbest;
 #ifdef SiS_haveProc
-    char buf[CPUBUFFERSIZE];
+	char buf[CPUBUFFERSIZE];
 #endif
 
-    *UMemCpy = SiS_libc_memcpy;
+	* UMemCpy = SiS_libc_memcpy;
 
-    /* Bail out if user disabled benchmarking */
-    if(!pSiS->BenchMemCpy) {
-       return SiS_libc_memcpy;
-    }
+	/* Bail out if user disabled benchmarking */
+	if (!pSiS->BenchMemCpy) {
+		return SiS_libc_memcpy;
+	}
 
 #ifdef SiS_haveProc
-    /* Read /proc/cpuinfo into buf */
-    if(SiS_ReadProc(buf, "/proc/cpuinfo")) {
+	/* Read /proc/cpuinfo into buf */
+	if (SiS_ReadProc(buf, "/proc/cpuinfo")) {
 
-       /* Extract CPU frequency */
-       frqBuf = SiS_GetCPUFreq(pScrn, buf, &cpuFreq);
+		/* Extract CPU frequency */
+		frqBuf = SiS_GetCPUFreq(pScrn, buf, &cpuFreq);
 
-    }
+	}
 #endif
 
-    /* Allocate buffers */
-    if(!(fbhandle = SiS_AllocBuffers(pScrn, &buf1, &buf2, &buf3))) {
-       xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-       		"Failed to allocate video RAM for video data transfer benchmark\n");
-       return SiS_GetBestByGrade(pScrn, MCFunctions, myCPUflags, UMemCpy, from);
-    }
+	/* Allocate buffers */
+	if (!(fbhandle = SiS_AllocBuffers(pScrn, &buf1, &buf2, &buf3))) {
+		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+			"Failed to allocate video RAM for video data transfer benchmark\n");
+		return SiS_GetBestByGrade(pScrn, MCFunctions, myCPUflags, UMemCpy, from);
+	}
 
-    /* Perform Benchmark */
-    best = SiS_BenchmarkMemcpy(pScrn, MCFunctions, myCPUflags, buf1,
-    				(UChar *)(((unsigned long)buf2 + 15) & ~15),
-				(UChar *)(((unsigned long)buf3 + 15) & ~15),
-				frqBuf, cpuFreq, UMemCpy, &secondbest, from);
+	/* Perform Benchmark */
+	best = SiS_BenchmarkMemcpy(pScrn, MCFunctions, myCPUflags, buf1,
+		(UChar*)(((unsigned long)buf2 + 15) & ~15),
+		(UChar*)(((unsigned long)buf3 + 15) & ~15),
+		frqBuf, cpuFreq, UMemCpy, &secondbest, from);
 
-    /* Free buffers */
-    SISFreeFBMemory(pScrn, &fbhandle);
-    free(buf2);
-    free(buf3);
+	/* Free buffers */
+	SISFreeFBMemory(pScrn, &fbhandle);
+	free(buf2);
+	free(buf3);
 
-    xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-	       "Using %s method for aligned data transfers %s video RAM\n",
-	       MCFunctions[best].mName,
-	       from ? "from" : "to");
+	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+		"Using %s method for aligned data transfers %s video RAM\n",
+		MCFunctions[best].mName,
+		from ? "from" : "to");
 
-    xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-	       "Using %s method for unaligned data transfers %s video RAM\n",
-	       MCFunctions[secondbest].mName,
-	       from ? "from" : "to");
+	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+		"Using %s method for unaligned data transfers %s video RAM\n",
+		MCFunctions[secondbest].mName,
+		from ? "from" : "to");
 
-    return MCFunctions[best].mFunc;
+	return MCFunctions[best].mFunc;
 }
 #endif /* canBenchmark */
 
@@ -1128,20 +1131,20 @@ SiSVidCopyInitGen(ScreenPtr pScreen, SISMCFuncData *MCFunctions, vidCopyFunc *UM
 unsigned int
 SiSGetCPUFlags(ScrnInfoPtr pScrn)
 {
-    unsigned int myCPUflags = SiS_GetCpuFeatures(pScrn);
+	unsigned int myCPUflags = SiS_GetCpuFeatures(pScrn);
 
 #ifdef SiS_checkosforsse
-    if(myCPUflags & (SIS_CPUFL_SSE | SIS_CPUFL_SSE2)) {
+	if (myCPUflags & (SIS_CPUFL_SSE | SIS_CPUFL_SSE2)) {
 
-       /* Check if OS supports usage of SSE instructions */
-       if(!(CheckOSforSSE(pScrn))) {
-          myCPUflags &= ~(SIS_CPUFL_SSE | SIS_CPUFL_SSE2);
-       }
+		/* Check if OS supports usage of SSE instructions */
+		if (!(CheckOSforSSE(pScrn))) {
+			myCPUflags &= ~(SIS_CPUFL_SSE | SIS_CPUFL_SSE2);
+		}
 
-    }
+	}
 #endif
 
-    return myCPUflags;
+	return myCPUflags;
 }
 
 /**********************************************************************/
@@ -1150,21 +1153,21 @@ SiSGetCPUFlags(ScrnInfoPtr pScrn)
 /*		(SiSGetCPUFlags must be called before this one)       */
 /**********************************************************************/
 
-vidCopyFunc SiSVidCopyInit(ScreenPtr pScreen, vidCopyFunc *UMemCpy, Bool from)
+vidCopyFunc SiSVidCopyInit(ScreenPtr pScreen, vidCopyFunc * UMemCpy, Bool from)
 {
 #if defined(__i386__) && defined(SiS_canBenchmark)
-    return(SiSVidCopyInitGen(pScreen, MCFunctions_i386, UMemCpy, from));
+	return(SiSVidCopyInitGen(pScreen, MCFunctions_i386, UMemCpy, from));
 #elif (defined(__AMD64__) || defined(__amd64__) || defined(__x86_64__)) && defined(SiS_canBenchmark)
-    return(SiSVidCopyInitGen(pScreen, MCFunctions_AMD64, UMemCpy, from));
+	return(SiSVidCopyInitGen(pScreen, MCFunctions_AMD64, UMemCpy, from));
 #else /* Other cases: Use libc memcpy() */
-    *UMemCpy = SiS_libc_memcpy;
-    return SiS_libc_memcpy;
+	* UMemCpy = SiS_libc_memcpy;
+	return SiS_libc_memcpy;
 #endif
 }
 
 vidCopyFunc SiSVidCopyGetDefault(void)
 {
-    return SiS_libc_memcpy;
+	return SiS_libc_memcpy;
 }
 
 #endif /* GNU C */

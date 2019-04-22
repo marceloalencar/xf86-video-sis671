@@ -34,7 +34,7 @@
  *
  */
 
-/* SiS315 and 330 engine commands */
+ /* SiS315 and 330 engine commands */
 #define BITBLT                  0x00000000  /* Blit */
 #define COLOREXP                0x00000001  /* Color expand */
 #define ENCOLOREXP              0x00000002  /* Enhanced color expand */
@@ -248,7 +248,7 @@
 
 #define SiSSetupCMDFlag(flags)  pSiS->CommandReg |= (flags);
 
-/* --- VRAM mode --- */
+ /* --- VRAM mode --- */
 
 #define SiSGetSwWP() (CARD32)(*(pSiS->cmdQ_SharedWritePort))
 #define SiSGetHwRP() (CARD32)(SIS_MMIO_IN32(pSiS->IOBase, Q_READ_PTR))
@@ -294,20 +294,25 @@
 #define SiSCheckQueue(amount)
 
 #if 0
-      { \
-	CARD32 mcurrent, i=0, ttt = SiSGetSwWP(); \
-	if((ttt + amount) >= pSiS->cmdQueueSize) { \
-	   do { \
-	      mcurrent = SIS_MMIO_IN32(pSiS->IOBase, Q_READ_PTR); \
-	      i++; \
-	   } while((mcurrent > ttt) || (mcurrent < ((ttt + amount) & pSiS->cmdQueueSizeMask))); \
-	} else { \
-	   do { \
-	      mcurrent = SIS_MMIO_IN32(pSiS->IOBase, Q_READ_PTR); \
-	      i++; \
-	   } while((mcurrent > ttt) && (mcurrent < (ttt + amount))); \
-	} \
-      }
+	  { \
+		  CARD32 mcurrent, i = 0, ttt = SiSGetSwWP(); \
+		  if ((ttt + amount) >= pSiS->cmdQueueSize) {
+			  \
+				  do {
+					  \
+						  mcurrent = SIS_MMIO_IN32(pSiS->IOBase, Q_READ_PTR); \
+						  i++; \
+				  } while ((mcurrent > ttt) || (mcurrent < ((ttt + amount) & pSiS->cmdQueueSizeMask))); \
+		  }
+		  else {
+			  \
+				  do {
+					  \
+						  mcurrent = SIS_MMIO_IN32(pSiS->IOBase, Q_READ_PTR); \
+						  i++; \
+				  } while ((mcurrent > ttt) && (mcurrent < (ttt + amount))); \
+		  } \
+	  }
 #endif
 
 #define SiSUpdateQueue {\
@@ -315,7 +320,7 @@
       ttt &= pSiS->cmdQueueSizeMask; \
       }
 
-/* Write-updates MUST be 128bit aligned. */
+	  /* Write-updates MUST be 128bit aligned. */
 #define SiSNILandUpdateSWQueue \
       SIS_WQINDEX(2) = (CARD32)(SIS_NIL_CMD); \
       SIS_WQINDEX(3) = (CARD32)(SIS_NIL_CMD); \
@@ -821,90 +826,90 @@
 	 SiSSetSwWP(ttt); \
       }
 
-typedef struct _SiS_Packet1 {
-      CARD32 P1_Header0;
-      CARD32 P1_Header1;
-      CARD32 P1_SrcAddr;	/* 8200 source base address */
-      CARD16 P1_SrcPitch;	/* 8204 source pitch (16bit) */
-      CARD16 P1_Unused1;	/* 8206 */
-      CARD16 P1_SrcY;		/* 8208 source y */
-      CARD16 P1_SrcX;		/* 820a source x */
-      CARD16 P1_DstY;		/* 820c dest y */
-      CARD16 P1_DstX;		/* 820e dest x */
-      CARD32 P1_DstAddr;	/* 8210 dest base address */
-      CARD16 P1_DstPitch;	/* 8214 dest pitch */
-      CARD16 P1_DstHeight;	/* 8216 */
-      CARD16 P1_RectWidth;	/* 8218 */
-      CARD16 P1_RectHeight;	/* 821a */
-      CARD32 P1_Command;	/* 823c */
-      CARD32 P1_Null1;
-      CARD32 P1_Null2;
-} SiS_Packet1;
+	  typedef struct _SiS_Packet1 {
+		  CARD32 P1_Header0;
+		  CARD32 P1_Header1;
+		  CARD32 P1_SrcAddr;	/* 8200 source base address */
+		  CARD16 P1_SrcPitch;	/* 8204 source pitch (16bit) */
+		  CARD16 P1_Unused1;	/* 8206 */
+		  CARD16 P1_SrcY;		/* 8208 source y */
+		  CARD16 P1_SrcX;		/* 820a source x */
+		  CARD16 P1_DstY;		/* 820c dest y */
+		  CARD16 P1_DstX;		/* 820e dest x */
+		  CARD32 P1_DstAddr;	/* 8210 dest base address */
+		  CARD16 P1_DstPitch;	/* 8214 dest pitch */
+		  CARD16 P1_DstHeight;	/* 8216 */
+		  CARD16 P1_RectWidth;	/* 8218 */
+		  CARD16 P1_RectHeight;	/* 821a */
+		  CARD32 P1_Command;	/* 823c */
+		  CARD32 P1_Null1;
+		  CARD32 P1_Null2;
+	  } SiS_Packet1;
 
-typedef struct _SiS_Packet12_YUV {
-      CARD32 P12_Header0;
-      CARD32 P12_Header1;
-      CARD16 P12_UVPitch;	/* 8200 UV if planar, Y if packed */
-      CARD16 P12_Unused0;	/* 8202 */
-      CARD16 P12_YPitch;	/* 8204 Y if planar */
-      CARD16 P12_AGPBase;	/* 8206 */
-      CARD16 P12_Unused1;	/* 8208 */
-      CARD16 P12_Unused2;	/* 820a */
-      CARD16 P12_DstY;		/* 820c */
-      CARD16 P12_DstX;		/* 820e */
-      CARD32 P12_DstAddr;	/* 8210 */
-      CARD16 P12_DstPitch;	/* 8214 */
-      CARD16 P12_DstHeight;	/* 8216 */
-      CARD16 P12_RectWidth;	/* 8218 */
-      CARD16 P12_RectHeight;	/* 821a */
-      CARD32 P12_Unused3;	/* 821c */
-      CARD32 P12_Unused4;	/* 8220 */
-      CARD32 P12_UVSrcAddr;	/* 8224 UV if planar, Y if packed */
-      CARD32 P12_YSrcAddr;	/* 8228 Y if planar */
-      CARD32 P12_Unused5;	/* 822c */
-      CARD32 P12_Unused6;	/* 8230 */
-      CARD16 P12_ClipLeft;	/* 8234 */
-      CARD16 P12_ClipTop;	/* 8236 */
-      CARD16 P12_ClipRight;	/* 8238 */
-      CARD16 P12_ClipBottom;	/* 823a */
-      CARD32 P12_Command;	/* 823c */
-      CARD32 P12_Null1;
-      CARD32 P12_Null2;
-} SiS_Packet12_YUV;
+	  typedef struct _SiS_Packet12_YUV {
+		  CARD32 P12_Header0;
+		  CARD32 P12_Header1;
+		  CARD16 P12_UVPitch;	/* 8200 UV if planar, Y if packed */
+		  CARD16 P12_Unused0;	/* 8202 */
+		  CARD16 P12_YPitch;	/* 8204 Y if planar */
+		  CARD16 P12_AGPBase;	/* 8206 */
+		  CARD16 P12_Unused1;	/* 8208 */
+		  CARD16 P12_Unused2;	/* 820a */
+		  CARD16 P12_DstY;		/* 820c */
+		  CARD16 P12_DstX;		/* 820e */
+		  CARD32 P12_DstAddr;	/* 8210 */
+		  CARD16 P12_DstPitch;	/* 8214 */
+		  CARD16 P12_DstHeight;	/* 8216 */
+		  CARD16 P12_RectWidth;	/* 8218 */
+		  CARD16 P12_RectHeight;	/* 821a */
+		  CARD32 P12_Unused3;	/* 821c */
+		  CARD32 P12_Unused4;	/* 8220 */
+		  CARD32 P12_UVSrcAddr;	/* 8224 UV if planar, Y if packed */
+		  CARD32 P12_YSrcAddr;	/* 8228 Y if planar */
+		  CARD32 P12_Unused5;	/* 822c */
+		  CARD32 P12_Unused6;	/* 8230 */
+		  CARD16 P12_ClipLeft;	/* 8234 */
+		  CARD16 P12_ClipTop;	/* 8236 */
+		  CARD16 P12_ClipRight;	/* 8238 */
+		  CARD16 P12_ClipBottom;	/* 823a */
+		  CARD32 P12_Command;	/* 823c */
+		  CARD32 P12_Null1;
+		  CARD32 P12_Null2;
+	  } SiS_Packet12_YUV;
 
-typedef struct _SiS_Packet12_Stretch {
-      CARD32 P12_Header0;
-      CARD32 P12_Header1;
-      CARD32 P12_SrcAddr;	/* 8200 */
-      CARD16 P12_SrcPitch;	/* 8204 Y if planar */
-      CARD16 P12_AGPBase;	/* 8206 */
-      CARD16 P12_SrcY;	/* 8208 */
-      CARD16 P12_SrcX;	/* 820a */
-      CARD16 P12_DstY;		/* 820c */
-      CARD16 P12_DstX;		/* 820e */
-      CARD32 P12_DstAddr;	/* 8210 */
-      CARD16 P12_DstPitch;	/* 8214 */
-      CARD16 P12_DstHeight;	/* 8216 */
-      CARD16 P12_RectWidth;	/* 8218 */
-      CARD16 P12_RectHeight;	/* 821a */
-      CARD16 P12_SrcWidth;	/* 821c */
-      CARD16 P12_SrcHeight;	/* 821e */
-      CARD16 P12_X_K1;		/* 8220 */
-      CARD16 P12_X_K2;		/* 8222 */      
-      CARD16 P12_Y_K1;		/* 8224 */
-      CARD16 P12_Y_K2;		/* 8226 */
-      CARD16 P12_InitErrorX;	/* 8228 */
-      CARD16 P12_InitErrorY;	/* 822a */
-      CARD32 P12_Unused0;	/* 822c */
-      CARD32 P12_Unused1;	/* 8230 */
-      CARD16 P12_ClipLeft;	/* 8234 */
-      CARD16 P12_ClipTop;	/* 8236 */
-      CARD16 P12_ClipRight;	/* 8238 */
-      CARD16 P12_ClipBottom;	/* 823a */
-      CARD32 P12_Command;	/* 823c */
-      CARD32 P12_Null1;
-      CARD32 P12_Null2;
-}SiS_Packet12_Stretch;
+	  typedef struct _SiS_Packet12_Stretch {
+		  CARD32 P12_Header0;
+		  CARD32 P12_Header1;
+		  CARD32 P12_SrcAddr;	/* 8200 */
+		  CARD16 P12_SrcPitch;	/* 8204 Y if planar */
+		  CARD16 P12_AGPBase;	/* 8206 */
+		  CARD16 P12_SrcY;	/* 8208 */
+		  CARD16 P12_SrcX;	/* 820a */
+		  CARD16 P12_DstY;		/* 820c */
+		  CARD16 P12_DstX;		/* 820e */
+		  CARD32 P12_DstAddr;	/* 8210 */
+		  CARD16 P12_DstPitch;	/* 8214 */
+		  CARD16 P12_DstHeight;	/* 8216 */
+		  CARD16 P12_RectWidth;	/* 8218 */
+		  CARD16 P12_RectHeight;	/* 821a */
+		  CARD16 P12_SrcWidth;	/* 821c */
+		  CARD16 P12_SrcHeight;	/* 821e */
+		  CARD16 P12_X_K1;		/* 8220 */
+		  CARD16 P12_X_K2;		/* 8222 */
+		  CARD16 P12_Y_K1;		/* 8224 */
+		  CARD16 P12_Y_K2;		/* 8226 */
+		  CARD16 P12_InitErrorX;	/* 8228 */
+		  CARD16 P12_InitErrorY;	/* 822a */
+		  CARD32 P12_Unused0;	/* 822c */
+		  CARD32 P12_Unused1;	/* 8230 */
+		  CARD16 P12_ClipLeft;	/* 8234 */
+		  CARD16 P12_ClipTop;	/* 8236 */
+		  CARD16 P12_ClipRight;	/* 8238 */
+		  CARD16 P12_ClipBottom;	/* 823a */
+		  CARD32 P12_Command;	/* 823c */
+		  CARD32 P12_Null1;
+		  CARD32 P12_Null2;
+	  }SiS_Packet12_Stretch;
 
 
 #define SiSWritePacketPart(part1, part2, part3, part4) \
@@ -922,7 +927,7 @@ typedef struct _SiS_Packet12_Stretch {
 
 #endif  /* VRAM mode */
 
-/* ---- MMIO mode ---- */
+	  /* ---- MMIO mode ---- */
 
 #ifndef SISVRAMQ
 
@@ -1045,7 +1050,7 @@ typedef struct _SiS_Packet12_Stretch {
       SIS_MMIO_OUT32(pSiS->IOBase, FIRE_TRIGGER, 0); \
       CmdQueLen -= 2;
 
-/* Line */
+ /* Line */
 
 #define SiSSetupX0Y0(x,y) \
       if (CmdQueLen <= 0)  SiSIdle;\

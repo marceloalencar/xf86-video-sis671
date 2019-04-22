@@ -39,7 +39,7 @@
 #undef INCL_YUV_BLIT_ADAPTOR
 #undef SIS_USE_EXA
 
-/* Configurable stuff: ------------------------------------- */
+ /* Configurable stuff: ------------------------------------- */
 
 #define SISDUALHEAD		/* Include Dual Head support  */
 

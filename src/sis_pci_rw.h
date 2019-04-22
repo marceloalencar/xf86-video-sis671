@@ -13,10 +13,10 @@
 #define SIS_PCI_WRITE_LONG(pdev,off,data)	sisPciWriteLong(pdev, off, data)
 #define SIS_PCI_WRITE_LONG_PR(priv,off,data)	sisPciWriteLong((priv)->pdev, off, data)
 
-CARD8  sisPciReadByte(struct pci_device *pdev, int offset);
-CARD16 sisPciReadWord(struct pci_device *pdev, int offset);
-CARD32 sisPciReadLong(struct pci_device *pdev, int offset);
-void sisPciWriteByte(struct pci_device *pdev, int offset, unsigned char data);
-void sisPciWriteLong(struct pci_device *pdev, int offset, CARD32 data);
+CARD8  sisPciReadByte(struct pci_device* pdev, int offset);
+CARD16 sisPciReadWord(struct pci_device* pdev, int offset);
+CARD32 sisPciReadLong(struct pci_device* pdev, int offset);
+void sisPciWriteByte(struct pci_device* pdev, int offset, unsigned char data);
+void sisPciWriteLong(struct pci_device* pdev, int offset, CARD32 data);
 
 #endif

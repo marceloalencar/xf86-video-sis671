@@ -37,9 +37,9 @@
 
 #include "xf86drm.h"
 
-/* Hack: When the types were changed, the typedefs
- * went into drm.h. This file did not exist earlier.
- */
+ /* Hack: When the types were changed, the typedefs
+  * went into drm.h. This file did not exist earlier.
+  */
 #ifndef _DRM_H_
 #define drm_handle_t drmHandle
 #define drm_context_t drmContext
@@ -51,17 +51,17 @@
 #include <pthread.h>
 
 typedef struct {
-  int CtxOwner;
-  int QueueLength;		/* (300: current, 315/etc: total) length of command queue */
-  unsigned int AGPCmdBufNext;   /* (rename to AGPVtxBufNext) */
-  unsigned int FrameCount;
+	int CtxOwner;
+	int QueueLength;		/* (300: current, 315/etc: total) length of command queue */
+	unsigned int AGPCmdBufNext;   /* (rename to AGPVtxBufNext) */
+	unsigned int FrameCount;
 #ifdef SIS315DRI
-  unsigned int agpCmdBufWriteOffset;
-  unsigned int  sharedWPoffset;	/* Offset to current queue position (shared with 2D) */
+	unsigned int agpCmdBufWriteOffset;
+	unsigned int  sharedWPoffset;	/* Offset to current queue position (shared with 2D) */
 #endif
-  pthread_mutex_t CmdQ_Lock;
+	pthread_mutex_t CmdQ_Lock;
 
-} SISSAREAPriv, *SISSAREAPrivPtr;
+} SISSAREAPriv, * SISSAREAPrivPtr;
 
 #define AGPVtxBufNext AGPCmdBufNext
 
@@ -70,53 +70,53 @@ typedef struct {
 #define SIS_DEPTH 2
 
 typedef struct {
-  drm_handle_t handle;
-  drmSize size;
-/* chris, remove the variable for compatible with sizeof(SISDRIRec) in 3D driver(sis315_dri.so) */
-/*#ifndef SISISXORG6899900*/
-  drmAddress map;
-/*#endif*/
-} sisRegion, *sisRegionPtr;
+	drm_handle_t handle;
+	drmSize size;
+	/* chris, remove the variable for compatible with sizeof(SISDRIRec) in 3D driver(sis315_dri.so) */
+	/*#ifndef SISISXORG6899900*/
+	drmAddress map;
+	/*#endif*/
+} sisRegion, * sisRegionPtr;
 
 typedef struct {
-  sisRegion regs;			/* MMIO registers */
-  sisRegion agp;			/* AGP public area */
-  int deviceID;				/* = pSiS->Chipset (PCI ID) */
-  int width;				/* = pScrn->virtualX */
-  int height;				/* = pScrn->virtualY */
-  int mem;				/* total video RAM; seems unused */
-  int bytesPerPixel;			/* Screen's bpp/8 */
-  int priv1;				/* unused */
-  int priv2;				/* unused */
-  int fbOffset;				/* Front buffer; set up, but unused by DRI driver*/
-  int backOffset;			/* unused (handled by the DRI driver) */
-  int depthOffset;			/* unused (handled by the DRI driver) */
-  int textureOffset;			/* unused (handled by the DRI driver) */
-  int textureSize;			/* unused (handled by the DRI driver) */
-  unsigned int AGPCmdBufOffset;		/* (rename to AGPVtxBufOffset) */
-  unsigned int AGPCmdBufSize;		/* (rename to AGPVtxBufSize)   */
-  int irqEnabled;
-  unsigned int scrnX;			/* TODO: = width = pScrn->virtualX */
-  unsigned int scrnY;			/* TODO: = height = pScrn->virtualY */
+	sisRegion regs;			/* MMIO registers */
+	sisRegion agp;			/* AGP public area */
+	int deviceID;				/* = pSiS->Chipset (PCI ID) */
+	int width;				/* = pScrn->virtualX */
+	int height;				/* = pScrn->virtualY */
+	int mem;				/* total video RAM; seems unused */
+	int bytesPerPixel;			/* Screen's bpp/8 */
+	int priv1;				/* unused */
+	int priv2;				/* unused */
+	int fbOffset;				/* Front buffer; set up, but unused by DRI driver*/
+	int backOffset;			/* unused (handled by the DRI driver) */
+	int depthOffset;			/* unused (handled by the DRI driver) */
+	int textureOffset;			/* unused (handled by the DRI driver) */
+	int textureSize;			/* unused (handled by the DRI driver) */
+	unsigned int AGPCmdBufOffset;		/* (rename to AGPVtxBufOffset) */
+	unsigned int AGPCmdBufSize;		/* (rename to AGPVtxBufSize)   */
+	int irqEnabled;
+	unsigned int scrnX;			/* TODO: = width = pScrn->virtualX */
+	unsigned int scrnY;			/* TODO: = height = pScrn->virtualY */
 #ifdef SIS315DRI
-  unsigned int  cmdQueueOffset;	        /* Offset of start of command queue in VRAM */                                            /* Size of VRAM command queue */
-  unsigned int  cmdQueueSize; 
-  int deviceRev;			/* Chip revision */
+	unsigned int  cmdQueueOffset;	        /* Offset of start of command queue in VRAM */                                            /* Size of VRAM command queue */
+	unsigned int  cmdQueueSize;
+	int deviceRev;			/* Chip revision */
 #endif
-} SISDRIRec, *SISDRIPtr;
+} SISDRIRec, * SISDRIPtr;
 
 #define AGPVtxBufOffset AGPCmdBufOffset
 #define AGPVtxBufSize AGPCmdBufSize
 
 typedef struct {
-  /* Nothing here yet */
-  int dummy;
-} SISConfigPrivRec, *SISConfigPrivPtr;
+	/* Nothing here yet */
+	int dummy;
+} SISConfigPrivRec, * SISConfigPrivPtr;
 
 typedef struct {
-  /* Nothing here yet */
-  int dummy;
-} SISDRIContextRec, *SISDRIContextPtr;
+	/* Nothing here yet */
+	int dummy;
+} SISDRIContextRec, * SISDRIContextPtr;
 
 
 #include "screenint.h"

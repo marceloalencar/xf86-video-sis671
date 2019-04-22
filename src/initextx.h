@@ -117,162 +117,162 @@ static const struct {
 
 struct SiS_PlasmaModes
 {
-   const char     *name;
-   unsigned int   clock;
-   unsigned short HDisplay, HTotal, HFrontPorch, HSyncWidth;
-   unsigned short VDisplay, VTotal, VFrontPorch, VSyncWidth;
-   unsigned char  SyncFlags;
+	const char* name;
+	unsigned int   clock;
+	unsigned short HDisplay, HTotal, HFrontPorch, HSyncWidth;
+	unsigned short VDisplay, VTotal, VFrontPorch, VSyncWidth;
+	unsigned char  SyncFlags;
 };
 
 struct SiS_PlasmaTables
 {
-   unsigned short vendor;
-   unsigned char  productnum;
-   unsigned short product[5];
-   const char     *DDCnames[5];
-   const char     *plasmaname;
-   unsigned short maxx,maxy;
-   unsigned short prefx, prefy;
-   unsigned char  modenum;
-   unsigned char  plasmamodes[20];  /* | 0x80 = DVI-capable, | 0x40 = analog */
+	unsigned short vendor;
+	unsigned char  productnum;
+	unsigned short product[5];
+	const char* DDCnames[5];
+	const char* plasmaname;
+	unsigned short maxx, maxy;
+	unsigned short prefx, prefy;
+	unsigned char  modenum;
+	unsigned char  plasmamodes[20];  /* | 0x80 = DVI-capable, | 0x40 = analog */
 };
 
 static const struct SiS_PlasmaModes SiS_PlasmaMode[] = {
    {  "640x400",		/* 00: IBM 400@70 */
-      25175,
-       640,  800, 17,  64,
-       400,  449, 13,   2,
-      SIS_PL_HSYNCN | SIS_PL_VSYNCN },
+	  25175,
+	   640,  800, 17,  64,
+	   400,  449, 13,   2,
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCN },
    {  "640x480",		/* 01: VESA 480@72 */
-      31500,
-       640,  832, 24,  40,
-       480,  520,  9,   3,
-      SIS_PL_HSYNCN | SIS_PL_VSYNCN },
+	  31500,
+	   640,  832, 24,  40,
+	   480,  520,  9,   3,
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCN },
    {  "800x600",		/* 02: VESA 600@72 */
-      50000,
-       800, 1040, 56, 120,
-       600,  666, 37,   6,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  50000,
+	   800, 1040, 56, 120,
+	   600,  666, 37,   6,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "864x480",		/* 03: Cereb wide 1 */
-      42526,
-       864, 1134, 22,  86,
-       480,  500,  1,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCN },
+	  42526,
+	   864, 1134, 22,  86,
+	   480,  500,  1,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCN },
    {  "848x480",		/* 04: VESA wide (NEC1) */
-      33750,
-       848, 1088, 16, 112,
-       480,  517,  6,   8,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  33750,
+	   848, 1088, 16, 112,
+	   480,  517,  6,   8,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1024x576",		/* 05: VESA wide (NEC2) */
-      47250,
-      1024, 1320, 16, 144,
-       576,  596,  2,   4,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  47250,
+	  1024, 1320, 16, 144,
+	   576,  596,  2,   4,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x720",		/* 06: VESA wide (NEC3) */
-      76500,
-      1280, 1696, 48, 176,
-       720,  750,  4,   8,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  76500,
+	  1280, 1696, 48, 176,
+	   720,  750,  4,   8,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1360x765",		/* 07: VESA wide (NEC4) */
-      85500,
-      1360, 1792, 64, 176,
-       765,  795,  4,   8,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  85500,
+	  1360, 1792, 64, 176,
+	   765,  795,  4,   8,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1024x600",		/* 08: CEREB wide 2 */
-      51200,
-      1024, 1352, 51, 164,
-       600,  628,  1,   4,
-      SIS_PL_HSYNCN | SIS_PL_VSYNCP },
+	  51200,
+	  1024, 1352, 51, 164,
+	   600,  628,  1,   4,
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCP },
    {  "1024x768",		/* 09: VESA 768@75 */
-      78750,
-      1024, 1312,  16, 96,
-       768,  800,   1,  3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  78750,
+	  1024, 1312,  16, 96,
+	   768,  800,   1,  3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1152x864",		/* 10: VESA 1152x864@75 */
-      108000,
-      1152, 1600, 64, 128,
-       864,  900,  1,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  108000,
+	  1152, 1600, 64, 128,
+	   864,  900,  1,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x1024",		/* 11: VESA 1024@60 */
-      108000,
-      1280, 1688, 48, 112,
-      1024, 1066,  1,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  108000,
+	  1280, 1688, 48, 112,
+	  1024, 1066,  1,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x768",		/* 12: W_XGA */
-      81000,
-      1280, 1688, 48, 112,
-       768,  802,  3,   6,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCN },
+	  81000,
+	  1280, 1688, 48, 112,
+	   768,  802,  3,   6,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCN },
    {  "1280x768",		/* 13: I/O Data W_XGA@56Hz */
-      76064,
-      1280, 1688, 48, 112,
-       768,  802,  2,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  76064,
+	  1280, 1688, 48, 112,
+	   768,  802,  2,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1376x768",		/* 14: I/O Wide XGA */
-      87340,
-      1376, 1808, 32, 128,
-       768,  806,  3,   6,
-      SIS_PL_HSYNCN | SIS_PL_VSYNCP },
+	  87340,
+	  1376, 1808, 32, 128,
+	   768,  806,  3,   6,
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCP },
    {  "1280x960",		/* 15: VESA 960@60 */
-      108000,
-      1280, 1800, 96, 112,
-       960, 1000,  1,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  108000,
+	  1280, 1800, 96, 112,
+	   960, 1000,  1,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1400x1050",		/* 16: VESA 1050@60Hz */
-      108000,
-      1400, 1688, 48, 112,
-      1050, 1066,  1,   3,
-      SIS_PL_HSYNCN | SIS_PL_VSYNCN },
+	  108000,
+	  1400, 1688, 48, 112,
+	  1050, 1066,  1,   3,
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCN },
    {  "1360x768",		/* 17: VESA wide (NEC4/2) */
-      85500,
-      1360, 1792, 64, 112,
-       765,  795,  3,   6,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  85500,
+	  1360, 1792, 64, 112,
+	   765,  795,  3,   6,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "800x600",		/* 18: VESA 600@56 */
-      36000,
-       800, 1024, 24,   2,
-       600,  625,  1,   2,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  36000,
+	   800, 1024, 24,   2,
+	   600,  625,  1,   2,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1072x600",		/* 19: Panasonic 1072x600 (sync?) */
-      54100,
-       1072, 1424, 48, 176,
-        600,  628, 16,   1,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  54100,
+	   1072, 1424, 48, 176,
+		600,  628, 16,   1,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "848x480",		/* 20: Panasonic 848x480 (sync?) */
-      33070,			/* is 852x480, but we can't use 852 */
-        848, 1068, 20,  40,	/* differs from DDC data, better centered */
-        480,  516,  3,   5,	/* won't work assumingly, because data is % 8 */
-      SIS_PL_HSYNCN | SIS_PL_VSYNCN },
+	  33070,			/* is 852x480, but we can't use 852 */
+		848, 1068, 20,  40,	/* differs from DDC data, better centered */
+		480,  516,  3,   5,	/* won't work assumingly, because data is % 8 */
+	  SIS_PL_HSYNCN | SIS_PL_VSYNCN },
    {  "1280x720",		/* 21: WIDE720(60) (aka "750p") (Panasonic) */
-      74300,
-      1280, 1650,110,  40,
-       720,  750,  5,   5,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  74300,
+	  1280, 1650,110,  40,
+	   720,  750,  5,   5,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x768",		/* 22: 1280x768@56.5 (Panasonic) */
-      76200,			/* (According to manual not supported for HDMI; but works) */
-      1280, 1680, 16,  24,
-       768,  802,  2,   5,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  76200,			/* (According to manual not supported for HDMI; but works) */
+	  1280, 1680, 16,  24,
+	   768,  802,  2,   5,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x720@50",		/* 23: WIDE720(50) (aka "750p") (Panasonic) */
-      74300,			/* Panasonic states 45.0kHz. Not possible. This one works (with some overscan) */
-      1280, 1980,400,  80,
-       720,  750,  1,   2,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  74300,			/* Panasonic states 45.0kHz. Not possible. This one works (with some overscan) */
+	  1280, 1980,400,  80,
+	   720,  750,  1,   2,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "720x480",		/* 24: 720x480 (aka "525p" and "480p") (Panasonic) */
-      27000,
-       720,  856, 40,  32,
-       480,  525,  1,   3,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  27000,
+	   720,  856, 40,  32,
+	   480,  525,  1,   3,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "720x576",		/* 25: 720x576 (aka "625p"and "576p") (Panasonic) */
-      27500,
-       720,  864, 16,  64,
-       576,  625,  5,   6,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  27500,
+	   720,  864, 16,  64,
+	   576,  625,  5,   6,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
    {  "1280x720@50",		/* 26: WIDE720(50) (aka "750p") (Generic) */
-      74300,
-      1280, 1980,400,  80,
-       720,  750,  5,   5,
-      SIS_PL_HSYNCP | SIS_PL_VSYNCP },
+	  74300,
+	  1280, 1980,400,  80,
+	   720,  750,  5,   5,
+	  SIS_PL_HSYNCP | SIS_PL_VSYNCP },
 };
 
 /*
@@ -283,177 +283,177 @@ static const struct SiS_PlasmaModes SiS_PlasmaMode[] = {
 static const struct SiS_PlasmaTables SiS_PlasmaTable[] = {
 #if 0  /* Product IDs missing */
    { 0x38a3, 4,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 42VP4/42VP4D/42VP4G/42VP4DG",
-     0, 0,
-     0, 0,
-     11,   /* All DVI, except 0, 7, 13 */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 7|0x40, 9|0xc0,10|0xc0,11|0xc0,13|0x40,14|0xc0,
-      17|0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 42VP4/42VP4D/42VP4G/42VP4DG",
+	 0, 0,
+	 0, 0,
+	 11,   /* All DVI, except 0, 7, 13 */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 7 | 0x40, 9 | 0xc0,10 | 0xc0,11 | 0xc0,13 | 0x40,14 | 0xc0,
+	  17 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
 #endif
 #if 0  /* Product IDs missing */
    { 0x38a3, 3,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 42PD1/50PD1/50PD2",
-     0, 0,
-     0, 0,
-     5,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 9|0xc0, 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 42PD1/50PD1/50PD2",
+	 0, 0,
+	 0, 0,
+	 5,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 9 | 0xc0, 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 42PD3",
-     0, 0,
-     0, 0,
-     10,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 3|0xc0, 4|0xc0, 5|0xc0, 6|0xc0, 7|0x40, 8|0xc0, 9|0xc0,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 42PD3",
+	 0, 0,
+	 0, 0,
+	 10,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 3 | 0xc0, 4 | 0xc0, 5 | 0xc0, 6 | 0xc0, 7 | 0x40, 8 | 0xc0, 9 | 0xc0,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 2,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 42VM3/61XM1",
-     0, 0,
-     0, 0,
-     11,  /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 3|0xc0, 4|0xc0, 5|0xc0, 6|0xc0, 8|0xc0, 9|0xc0,11|0xc0,
-      17|0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 42VM3/61XM1",
+	 0, 0,
+	 0, 0,
+	 11,  /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 3 | 0xc0, 4 | 0xc0, 5 | 0xc0, 6 | 0xc0, 8 | 0xc0, 9 | 0xc0,11 | 0xc0,
+	  17 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 2,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 42MP1/42MP2",
-     0, 0,
-     0, 0,
-     6,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 9|0xc0,11|0xc0, 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 42MP1/42MP2",
+	 0, 0,
+	 0, 0,
+	 6,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 9 | 0xc0,11 | 0xc0, 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 50MP1",
-     0, 0,
-     0, 0,
-     10,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 7|0x40, 9|0xc0,10|0xc0,11|0xc0,13|0x40,14|0xc0,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 50MP1",
+	 0, 0,
+	 0, 0,
+	 10,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 7 | 0x40, 9 | 0xc0,10 | 0xc0,11 | 0xc0,13 | 0x40,14 | 0xc0,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
 #endif
    { 0x38a3, 4,
-     { 0xa482, 0xa483, 0x0000, 0x0000, 0x0000 },
-     { "PX-42VM", "", "", "", "" },
-     "NEC PlasmaSync 42MP3/42MP4/50MP2/61MP1",
-     0, 0,
-     0, 0,
-     11,   /* All DVI except 0, 7, 13, 17 */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 7|0x40, 9|0xc0,10|0xc0,11|0xc0,13|0x40,14|0xc0,
-      17|0x40, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0xa482, 0xa483, 0x0000, 0x0000, 0x0000 },
+	 { "PX-42VM", "", "", "", "" },
+	 "NEC PlasmaSync 42MP3/42MP4/50MP2/61MP1",
+	 0, 0,
+	 0, 0,
+	 11,   /* All DVI except 0, 7, 13, 17 */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 7 | 0x40, 9 | 0xc0,10 | 0xc0,11 | 0xc0,13 | 0x40,14 | 0xc0,
+	  17 | 0x40, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
 #if 0  /* Product IDs missing */
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 3300W",
-     0, 0,
-     0, 0,
-     3,
-     { 0|0x40, 1|0xc0,18|0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 3300W",
+	 0, 0,
+	 0, 0,
+	 3,
+	 { 0 | 0x40, 1 | 0xc0,18 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 4200W",
-     4,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 0     , 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 4200W",
+	 4,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 4210W",
-     0, 0,
-     0, 0,
-     6,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 9|0xc0,11|0xc0, 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 4210W",
+	 0, 0,
+	 0, 0,
+	 6,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 9 | 0xc0,11 | 0xc0, 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x38a3, 1,
-     { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "NEC PlasmaSync 5000W",
-     0, 0,
-     0, 0,
-     7,   /* DVI entirely unknown */
-     { 0|0x40, 1|0xc0, 2|0xc0, 4|0xc0, 7|0x40, 9|0xc0,11|0xc0, 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x0000, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "NEC PlasmaSync 5000W",
+	 0, 0,
+	 0, 0,
+	 7,   /* DVI entirely unknown */
+	 { 0 | 0x40, 1 | 0xc0, 2 | 0xc0, 4 | 0xc0, 7 | 0x40, 9 | 0xc0,11 | 0xc0, 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
 #endif
    { 0x412f, 2,
-     { 0x000c, 0x000b, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "Pioneer 503CMX/PDA-5002",
-     0, 0,
-     0, 0,
-     6,   /* DVI unknown */
-     { 1|0xc0, 2|0xc0, 9|0xc0,11|0xc0,12|0xc0,15|0xc0, 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x000c, 0x000b, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "Pioneer 503CMX/PDA-5002",
+	 0, 0,
+	 0, 0,
+	 6,   /* DVI unknown */
+	 { 1 | 0xc0, 2 | 0xc0, 9 | 0xc0,11 | 0xc0,12 | 0xc0,15 | 0xc0, 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x34a9, 1,
-     { 0xa00e, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "", "", "", "", "" },
-     "Panasonic TH-42",
-     0, 0,
-     0, 0,
-     5,   /* No DVI output */
-     { 1|0x40, 2|0x40, 4|0x40, 9|0x40,15|0x40, 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0xa00e, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "", "", "", "", "" },
+	 "Panasonic TH-42",
+	 0, 0,
+	 0, 0,
+	 5,   /* No DVI output */
+	 { 1 | 0x40, 2 | 0x40, 4 | 0x40, 9 | 0x40,15 | 0x40, 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x34a9, 1,
-     { 0xa005, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "TH-42PW*4", "", "", "", "" },
-     "Panasonic TH-42PW5",
-     0, 0,
-     0, 0,
-     1,   /* No special modes otherwise; no DVI. */
-     {20|0x40,19|0x40, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0xa005, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "TH-42PW*4", "", "", "", "" },
+	 "Panasonic TH-42PW5",
+	 0, 0,
+	 0, 0,
+	 1,   /* No special modes otherwise; no DVI. */
+	 {20 | 0x40,19 | 0x40, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x4c2e, 1,
-     { 0x9b05, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "PLV-Z2", "", "", "", "" },
-     "Sanyo PLV-Z2 (non HDCP-mode)", 	/* HDCP mode would be id 9b06, but not needed */
-     1280, 768,				/* as it then advertises correct size */
-     1280, 720,
-     1,   /* 1280x720, no special modes otherwise */
-     {21|0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0x9b05, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "PLV-Z2", "", "", "", "" },
+	 "Sanyo PLV-Z2 (non HDCP-mode)", 	/* HDCP mode would be id 9b06, but not needed */
+	 1280, 768,				/* as it then advertises correct size */
+	 1280, 720,
+	 1,   /* 1280x720, no special modes otherwise */
+	 {21 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x34a9, 1,
-     { 0xd034, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "AE500U (DVI-D)", "", "", "", "" },
-     "Panasonic AE500U",
-     1280, 768,
-     1280, 720,
-     1,   /* 1280x720, no special modes otherwise */
-     {21|0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0xd034, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "AE500U (DVI-D)", "", "", "", "" },
+	 "Panasonic AE500U",
+	 1280, 768,
+	 1280, 720,
+	 1,   /* 1280x720, no special modes otherwise */
+	 {21 | 0xc0, 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x34a9, 1,
-     { 0xd043, 0x0000, 0x0000, 0x0000, 0x0000 },
-     { "AE700U (HDMI)", "", "", "", "" },
-     "Panasonic AE700U",
-     1360, 768,
-     1280, 720,
-     6,   /* 1280x720/60, 1280x720/50, 1280x768@56(digital/analog), 720x480, 720x576 */
-     {21|0xc0,23|0xc0,22|0x80,13|0x40,24|0x80,25|0x80, 0     , 0     , 0     , 0     ,
-       0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
+	 { 0xd043, 0x0000, 0x0000, 0x0000, 0x0000 },
+	 { "AE700U (HDMI)", "", "", "", "" },
+	 "Panasonic AE700U",
+	 1360, 768,
+	 1280, 720,
+	 6,   /* 1280x720/60, 1280x720/50, 1280x768@56(digital/analog), 720x480, 720x576 */
+	 {21 | 0xc0,23 | 0xc0,22 | 0x80,13 | 0x40,24 | 0x80,25 | 0x80, 0     , 0     , 0     , 0     ,
+	   0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0     , 0       }
    },
    { 0x0000 }
 };
@@ -463,39 +463,39 @@ DisplayModePtr	SiSBuildBuiltInModeList(ScrnInfoPtr pScrn, BOOLEAN, BOOLEAN, BOOL
 int		SiSTranslateToVESA(ScrnInfoPtr pScrn, int modenumber);
 int		SiSTranslateToOldMode(int modenumber);
 unsigned short	SiS_GetModeNumber(ScrnInfoPtr pScrn, DisplayModePtr mode, unsigned int VBFlags);
-BOOLEAN		SiS_GetPanelID(struct SiS_Private *SiS_Pr);
+BOOLEAN		SiS_GetPanelID(struct SiS_Private* SiS_Pr);
 
-unsigned short	SiS_SenseLCDDDC(struct SiS_Private *SiS_Pr, SISPtr pSiS);
-unsigned short	SiS_SenseVGA2DDC(struct SiS_Private *SiS_Pr, SISPtr pSiS);
+unsigned short	SiS_SenseLCDDDC(struct SiS_Private* SiS_Pr, SISPtr pSiS);
+unsigned short	SiS_SenseVGA2DDC(struct SiS_Private* SiS_Pr, SISPtr pSiS);
 
-void		SiS_CalcXTapScaler(struct SiS_Private *SiS_Pr, int srcsize, int destsize, int taps, Bool ishoriz);
-void		SiS_SetGroup2_C_ELV(struct SiS_Private *SiS_Pr, unsigned short ModeNo,
-			unsigned short ModeIdIndex, unsigned short RefreshRateTableIndex);
+void		SiS_CalcXTapScaler(struct SiS_Private* SiS_Pr, int srcsize, int destsize, int taps, Bool ishoriz);
+void		SiS_SetGroup2_C_ELV(struct SiS_Private* SiS_Pr, unsigned short ModeNo,
+	unsigned short ModeIdIndex, unsigned short RefreshRateTableIndex);
 
 extern unsigned char	SiS_GetReg(SISIOADDRESS port, unsigned short index);
 extern void		SiS_SetReg(SISIOADDRESS port, unsigned short index, unsigned short data);
 extern void		SiS_SetRegOR(SISIOADDRESS, unsigned short, unsigned short);
 extern void		SiS_SetRegAND(SISIOADDRESS, unsigned short, unsigned short);
 extern void		SiS_SetRegANDOR(SISIOADDRESS Port, unsigned short Index, unsigned short DataAND,
-				unsigned short DataOR);
-extern int		SiS_compute_vclk(int Clock, int *out_n, int *out_dn, int *out_div,
-				int *out_sbit, int *out_scale);
-extern void		SiSCalcClock(ScrnInfoPtr pScrn, int clock, int max_VLD, unsigned int *vclk);
-extern void		SiS_CalcCRRegisters(struct SiS_Private *SiS_Pr, int depth);
-extern BOOLEAN		SiSInitPtr(struct SiS_Private *SiS_Pr);
+	unsigned short DataOR);
+extern int		SiS_compute_vclk(int Clock, int* out_n, int* out_dn, int* out_div,
+	int* out_sbit, int* out_scale);
+extern void		SiSCalcClock(ScrnInfoPtr pScrn, int clock, int max_VLD, unsigned int* vclk);
+extern void		SiS_CalcCRRegisters(struct SiS_Private* SiS_Pr, int depth);
+extern BOOLEAN		SiSInitPtr(struct SiS_Private* SiS_Pr);
 extern unsigned short	SiS_GetModeID(int VGAEngine, unsigned int VBFlags, int HDisplay, int VDisplay,
-				int Depth, BOOLEAN FSTN, int LCDwith, int LCDheight);
-extern unsigned short	SiS_GetRefCRT1CRTC(struct SiS_Private *SiS_Pr, unsigned short Index, int UseWide);
-extern unsigned short	SiS_GetRefCRTVCLK(struct SiS_Private *SiS_Pr, unsigned short Index, int UseWide);
-extern void		SiS_Generic_ConvertCRData(struct SiS_Private *SiS_Pr, unsigned char *crdata,
-				int xres, int yres, DisplayModePtr current);
+	int Depth, BOOLEAN FSTN, int LCDwith, int LCDheight);
+extern unsigned short	SiS_GetRefCRT1CRTC(struct SiS_Private* SiS_Pr, unsigned short Index, int UseWide);
+extern unsigned short	SiS_GetRefCRTVCLK(struct SiS_Private* SiS_Pr, unsigned short Index, int UseWide);
+extern void		SiS_Generic_ConvertCRData(struct SiS_Private* SiS_Pr, unsigned char* crdata,
+	int xres, int yres, DisplayModePtr current);
 
-extern unsigned short	SiS_InitDDCRegs(struct SiS_Private *SiS_Pr, unsigned int VBFlags, int VGAEngine,
-                		unsigned short adaptnum, unsigned short DDCdatatype, BOOLEAN checkcr32,
-				unsigned int VBFlags2);
-extern unsigned short	SiS_ProbeDDC(struct SiS_Private *SiS_Pr);
-extern unsigned short	SiS_ReadDDC(struct SiS_Private *SiS_Pr, unsigned short DDCdatatype,
-				unsigned char *buffer);
+extern unsigned short	SiS_InitDDCRegs(struct SiS_Private* SiS_Pr, unsigned int VBFlags, int VGAEngine,
+	unsigned short adaptnum, unsigned short DDCdatatype, BOOLEAN checkcr32,
+	unsigned int VBFlags2);
+extern unsigned short	SiS_ProbeDDC(struct SiS_Private* SiS_Pr);
+extern unsigned short	SiS_ReadDDC(struct SiS_Private* SiS_Pr, unsigned short DDCdatatype,
+	unsigned char* buffer);
 
 #endif
 

@@ -40,87 +40,87 @@
    (SISPortPrivPtr)((SISPTR(pScrn))->adaptor->pPortPrivates[0].ptr)
 
 typedef struct {
-    void *	 handle;
-    CARD32	 bufAddr[2];
+	void* handle;
+	CARD32	 bufAddr[2];
 
-    UChar	 currentBuf, nextBuf;
+	UChar	 currentBuf, nextBuf;
 
-    short	 drw_x, drw_y, drw_w, drw_h;
-    short	 src_x, src_y, src_w, src_h;
-    int		 id;
-    short	 srcPitch, height;
-    Bool	 isRGB;
+	short	 drw_x, drw_y, drw_w, drw_h;
+	short	 src_x, src_y, src_w, src_h;
+	int		 id;
+	short	 srcPitch, height;
+	Bool	 isRGB;
 
-    char         brightness;
-    UChar        contrast;
-    char 	 hue;
-    short        saturation;
+	char         brightness;
+	UChar        contrast;
+	char 	 hue;
+	short        saturation;
 
-    RegionRec    clip;
-    CARD32       colorKey;
-    Bool 	 autopaintColorKey;
-    int		 forceColorkey;
+	RegionRec    clip;
+	CARD32       colorKey;
+	Bool 	 autopaintColorKey;
+	int		 forceColorkey;
 
-    Bool 	 disablegfx;
-    Bool	 disablegfxlr;
+	Bool 	 disablegfx;
+	Bool	 disablegfxlr;
 
-    Bool         usechromakey;
-    Bool	 insidechromakey, yuvchromakey;
-    CARD32	 chromamin, chromamax;
+	Bool         usechromakey;
+	Bool	 insidechromakey, yuvchromakey;
+	CARD32	 chromamin, chromamax;
 
-    CARD32       videoStatus;
-    Bool	 overlayStatus;
-    Time         offTime;
-    Time         freeTime;
+	CARD32       videoStatus;
+	Bool	 overlayStatus;
+	Time         offTime;
+	Time         freeTime;
 
-    CARD32       displayMode;
-    Bool	 bridgeIsSlave;
+	CARD32       displayMode;
+	Bool	 bridgeIsSlave;
 
-    Bool         hasTwoOverlays;   /* Chipset has two overlays */
-    Bool         dualHeadMode;     /* We're running in DHM */
+	Bool         hasTwoOverlays;   /* Chipset has two overlays */
+	Bool         dualHeadMode;     /* We're running in DHM */
 
-    Bool  	 NoOverlay;
-    Bool	 PrevOverlay;
+	Bool  	 NoOverlay;
+	Bool	 PrevOverlay;
 
-    Bool	 AllowSwitchCRT;
-    int 	 crtnum;	   /* 0=CRT1, 1=CRT2 */
+	Bool	 AllowSwitchCRT;
+	int 	 crtnum;	   /* 0=CRT1, 1=CRT2 */
 
-    Bool         needToScale;      /* Need to scale video */
+	Bool         needToScale;      /* Need to scale video */
 
-    Bool	 havetapscaler;	   /* 4tap scaler (340) */
+	Bool	 havetapscaler;	   /* 4tap scaler (340) */
 
-    Bool    	 mustresettap;
+	Bool    	 mustresettap;
 
-    int          shiftValue;       /* 315/330 series need word addr/pitch, 300 series double word */
+	int          shiftValue;       /* 315/330 series need word addr/pitch, 300 series double word */
 
-    short  	 linebufMergeLimit;
-    CARD8        linebufmask;
-    CARD8 	PitchAlignmentMask;
+	short  	 linebufMergeLimit;
+	CARD8        linebufmask;
+	CARD8 	PitchAlignmentMask;
 
-    short        oldx1, oldx2, oldy1, oldy2;
+	short        oldx1, oldx2, oldy1, oldy2;
 #ifdef SISMERGED
-    short        oldx1_2, oldx2_2, oldy1_2, oldy2_2;
-    Bool    	 mustresettap2;
+	short        oldx1_2, oldx2_2, oldy1_2, oldy2_2;
+	Bool    	 mustresettap2;
 #endif
-    int          mustwait;
+	int          mustwait;
 
-    Bool         grabbedByV4L;	   /* V4L stuff */
-    int          pitch;
-    int          offset;
+	Bool         grabbedByV4L;	   /* V4L stuff */
+	int          pitch;
+	int          offset;
 
-    int 	 modeflags;	   /* Flags field of current display mode */
+	int 	 modeflags;	   /* Flags field of current display mode */
 
-    int 	 tvxpos, tvypos;
-    Bool 	 updatetvxpos, updatetvypos;
+	int 	 tvxpos, tvypos;
+	Bool 	 updatetvxpos, updatetvypos;
 
-    Bool	 is661741760;
-    Bool	 is760;
-    Bool	 is340;
-    Bool	 is761;
-    Bool	 is670;
-    Bool	 isXGI;
+	Bool	 is661741760;
+	Bool	 is760;
+	Bool	 is340;
+	Bool	 is761;
+	Bool	 is670;
+	Bool	 isXGI;
 
-} SISPortPrivRec, *SISPortPrivPtr;
+} SISPortPrivRec, * SISPortPrivPtr;
 
 #endif
 

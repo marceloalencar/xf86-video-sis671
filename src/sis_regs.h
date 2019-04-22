@@ -32,30 +32,30 @@
 #ifndef _SIS_REGS_H_
 #define _SIS_REGS_H_
 
-/*
-#define SIS_NEED_inSISREG
-#define SIS_NEED_inSISREGW
-#define SIS_NEED_inSISREGL
-#define SIS_NEED_outSISREG
-#define SIS_NEED_outSISREGW
-#define SIS_NEED_outSISREGL
-#define SIS_NEED_orSISREG
-#define SIS_NEED_andSISREG
-#define SIS_NEED_inSISIDXREG
-#define SIS_NEED_outSISIDXREG
-#define SIS_NEED_orSISIDXREG
-#define SIS_NEED_andSISIDXREG
-#define SIS_NEED_setSISIDXREG
-#define SIS_NEED_setSISIDXREGmask
-*/
-
-/* Video RAM access macros */
-
-/* (Currently, these are use on all platforms; USB2VGA is handled
- * entirely different in a dedicated driver)
+ /*
+ #define SIS_NEED_inSISREG
+ #define SIS_NEED_inSISREGW
+ #define SIS_NEED_inSISREGL
+ #define SIS_NEED_outSISREG
+ #define SIS_NEED_outSISREGW
+ #define SIS_NEED_outSISREGL
+ #define SIS_NEED_orSISREG
+ #define SIS_NEED_andSISREG
+ #define SIS_NEED_inSISIDXREG
+ #define SIS_NEED_outSISIDXREG
+ #define SIS_NEED_orSISIDXREG
+ #define SIS_NEED_andSISIDXREG
+ #define SIS_NEED_setSISIDXREG
+ #define SIS_NEED_setSISIDXREGmask
  */
 
-/* dest is video RAM, src is system RAM */
+ /* Video RAM access macros */
+
+ /* (Currently, these are use on all platforms; USB2VGA is handled
+  * entirely different in a dedicated driver)
+  */
+
+  /* dest is video RAM, src is system RAM */
 #define sisfbwritel(dest, data)        	*(dest)     = (data)
 #define sisfbwritelinc(dest, data)     	*((dest)++) = (data)
 #define sisfbwritelp(dest, dataptr)    	*(dest)     = *(dataptr)
@@ -160,100 +160,100 @@ extern int sisdevport;
 #ifdef SIS_NEED_inSISREG
 static UChar inSISREG(ULong base)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    read(sisdevport, &tmp, 1);
-    return tmp;
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	read(sisdevport, &tmp, 1);
+	return tmp;
 }
 #endif
 
 #ifdef SIS_NEED_inSISREGW
 static __inline UShort inSISREGW(ULong base)
 {
-    UShort tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    read(sisdevport, &tmp, 2);
-    return tmp;
+	UShort tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	read(sisdevport, &tmp, 2);
+	return tmp;
 }
 #endif
 
 #ifdef SIS_NEED_inSISREGL
 static __inline unsigned int inSISREGL(ULong base)
 {
-    ULong tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    read(sisdevport, &tmp, 4);
-    return tmp;
+	ULong tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	read(sisdevport, &tmp, 4);
+	return tmp;
 }
 #endif
 
 #ifdef SIS_NEED_outSISREG
 static void outSISREG(ULong base, UChar val)
 {
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &val, 1);
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &val, 1);
 }
 #endif
 
 #ifdef SIS_NEED_outSISREGW
 static __inline void outSISREGW(ULong base, UShort val)
 {
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &val, 2);
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &val, 2);
 }
 #endif
 
 #ifdef SIS_NEED_outSISREGL
 static __inline void outSISREGL(ULong base, unsigned int val)
 {
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &val, 4);
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &val, 4);
 }
 #endif
 
 #ifdef SIS_NEED_orSISREG
 static void orSISREG(ULong base, UChar val)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    read(sisdevport, &tmp, 1);
-    tmp |= val;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	read(sisdevport, &tmp, 1);
+	tmp |= val;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 
 #ifdef SIS_NEED_andSISREG
 static void andSISREG(ULong base, UChar val)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    read(sisdevport, &tmp, 1);
-    tmp &= val;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	read(sisdevport, &tmp, 1);
+	tmp &= val;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 
 #ifdef SIS_NEED_outSISIDXREG
 static void outSISIDXREG(ULong base, UChar idx, UChar val)
 {
-    UChar value[2];
-    value[0] = idx;	/* sic! reads/writes bytewise! */
-    value[1] = val;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &value[0], 2);
+	UChar value[2];
+	value[0] = idx;	/* sic! reads/writes bytewise! */
+	value[1] = val;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &value[0], 2);
 }
 #endif
 
 #ifdef SIS_NEED_inSISIDXREG
 static UChar __inSISIDXREG(ULong base, UChar idx)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &idx, 1);
-    read(sisdevport, &tmp, 1);
-    return tmp;
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &idx, 1);
+	read(sisdevport, &tmp, 1);
+	return tmp;
 }
 #define inSISIDXREG(base,idx,var)  var = __inSISIDXREG(base, idx);
 #endif
@@ -261,56 +261,56 @@ static UChar __inSISIDXREG(ULong base, UChar idx)
 #ifdef SIS_NEED_orSISIDXREG
 static void orSISIDXREG(ULong base, UChar idx, UChar val)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &idx, 1);
-    read(sisdevport, &tmp, 1);
-    tmp |= val;
-    lseek(sisdevport, base + 1, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &idx, 1);
+	read(sisdevport, &tmp, 1);
+	tmp |= val;
+	lseek(sisdevport, base + 1, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 
 #ifdef SIS_NEED_andSISIDXREG
 static void andSISIDXREG(ULong base, UChar idx, UChar val)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &idx, 1);
-    read(sisdevport, &tmp, 1);
-    tmp &= val;
-    lseek(sisdevport, base + 1, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &idx, 1);
+	read(sisdevport, &tmp, 1);
+	tmp &= val;
+	lseek(sisdevport, base + 1, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 
 #ifdef SIS_NEED_setSISIDXREG
 static void setSISIDXREG(ULong base, UChar idx,
-			 UChar myand, UChar myor)
+	UChar myand, UChar myor)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &idx, 1);
-    read(sisdevport, &tmp, 1);
-    tmp &= myand;
-    tmp |= myor;
-    lseek(sisdevport, base + 1, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &idx, 1);
+	read(sisdevport, &tmp, 1);
+	tmp &= myand;
+	tmp |= myor;
+	lseek(sisdevport, base + 1, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 
 #ifdef SIS_NEED_setSISIDXREGmask
 static void setSISIDXREGmask(ULong base, UChar idx,
-                             UChar data, UChar mask)
+	UChar data, UChar mask)
 {
-    UChar tmp;
-    lseek(sisdevport, base, SEEK_SET);
-    write(sisdevport, &idx, 1);
-    read(sisdevport, &tmp, 1);
-    tmp &= ~(mask);
-    tmp |= (data & mask);
-    lseek(sisdevport, base + 1, SEEK_SET);
-    write(sisdevport, &tmp, 1);
+	UChar tmp;
+	lseek(sisdevport, base, SEEK_SET);
+	write(sisdevport, &idx, 1);
+	read(sisdevport, &tmp, 1);
+	tmp &= ~(mask);
+	tmp |= (data & mask);
+	lseek(sisdevport, base + 1, SEEK_SET);
+	write(sisdevport, &tmp, 1);
 }
 #endif
 

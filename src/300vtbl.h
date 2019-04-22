@@ -600,7 +600,7 @@ static struct SiS_VCLKData SiS300_VCLKData[] =
 	{ 0x52,0x07,149}, /* 0x3c */  /* 1280x960-85 */
 	{ 0x62,0xc6, 34}, /* 0x3d */  /* 848x480-60  */
 	{ 0x30,0x23, 88}, /* 0x3e */  /* 1360x768-60 */
-        { 0x70,0x29, 81}, /* 0x3f */  /* 1280x768-60 */
+	{ 0x70,0x29, 81}, /* 0x3f */  /* 1280x768-60 */
 	{ 0x72,0x2a, 76}, /* 0x40 */  /* test for SiS730 --- LIMIT for table (&0x3f) */
 	{ 0x15,0x21, 79}, /* 0x41 */  /* test for SiS730 */
 	{ 0xa1,0x42,108}, /* 0x42 */  /* 1280x960 LCD */
@@ -736,7 +736,7 @@ static const struct SiS_Part2PortTbl SiS300_CRT2Part2_1024x768_3[] =
 /**************************************************************/
 
 /* Custom data for Barco iQ R series */
-static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_1[]=
+static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_1[] =
 {
 	{ 832, 438,1331, 806},
 	{ 832, 388,1331, 806},
@@ -750,7 +750,7 @@ static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_1[]=
 };
 
 /* Custom data for Barco iQ R series */
-static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_2[]=
+static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_2[] =
 {
 	{1344, 806,1344, 806},
 	{1344, 806,1344, 806},
@@ -764,7 +764,7 @@ static const struct SiS_LVDSData SiS300_LVDSBARCO1366Data_2[]=
 };
 
 /* Custom data for Barco iQ G series */
-static const struct SiS_LVDSData SiS300_LVDSBARCO1024Data_1[]=
+static const struct SiS_LVDSData SiS300_LVDSBARCO1024Data_1[] =
 {
 	{ 832, 438,1331, 806},
 	{ 832, 409,1331, 806},
@@ -776,7 +776,7 @@ static const struct SiS_LVDSData SiS300_LVDSBARCO1024Data_1[]=
 };
 
 /* Custom data for 848x480 and 856x480 parallel LVDS panels */
-static const struct SiS_LVDSData SiS300_LVDS848x480Data_1[]=
+static const struct SiS_LVDSData SiS300_LVDS848x480Data_1[] =
 {
 	{   0,   0,   0,   0},
 	{   0,   0,   0,   0},
@@ -798,7 +798,7 @@ static const struct SiS_LVDSData SiS300_LVDS848x480Data_1[]=
 };
 
 /* Custom data for 848x480 parallel panel */
-static const struct SiS_LVDSData SiS300_LVDS848x480Data_2[]=
+static const struct SiS_LVDSData SiS300_LVDS848x480Data_2[] =
 {
 	{   0,   0,   0,   0},
 	{   0,   0,   0,   0},
@@ -1063,16 +1063,16 @@ static const struct SiS_CHTVRegData SiS300_CHTVReg_SOPAL[] =
 	{{0x81,0x50,0x00,0x1b,0x00,0,0,0,0,0,0,0,0,0,0,0}}  /* Mode 19: 800x600 PAL 1/1 */
 };
 
-static const unsigned char SiS300_CHTVVCLKUNTSC[]  = { 0x29,0x29,0x29,0x29,0x2a,0x2e };
+static const unsigned char SiS300_CHTVVCLKUNTSC[] = { 0x29,0x29,0x29,0x29,0x2a,0x2e };
 
-static const unsigned char SiS300_CHTVVCLKONTSC[]  = { 0x2c,0x2c,0x2c,0x2c,0x2d,0x2b };
+static const unsigned char SiS300_CHTVVCLKONTSC[] = { 0x2c,0x2c,0x2c,0x2c,0x2d,0x2b };
 
 static const unsigned char SiS300_CHTVVCLKSONTSC[] = { 0x2c,0x2c,0x2c,0x2c,0x2d,0x2b };
 
-static const unsigned char SiS300_CHTVVCLKUPAL[]   = { 0x2f,0x2f,0x2f,0x2f,0x2f,0x31 };
+static const unsigned char SiS300_CHTVVCLKUPAL[] = { 0x2f,0x2f,0x2f,0x2f,0x2f,0x31 };
 
-static const unsigned char SiS300_CHTVVCLKOPAL[]   = { 0x2f,0x2f,0x2f,0x2f,0x30,0x32 };
+static const unsigned char SiS300_CHTVVCLKOPAL[] = { 0x2f,0x2f,0x2f,0x2f,0x30,0x32 };
 
-static const unsigned char SiS300_CHTVVCLKSOPAL[]  = { 0x2f,0x2f,0x2f,0x2f,0x36,0x29 };
+static const unsigned char SiS300_CHTVVCLKSOPAL[] = { 0x2f,0x2f,0x2f,0x2f,0x36,0x29 };
 
 

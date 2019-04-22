@@ -37,7 +37,7 @@
 #define BR(x)   (0x8200 | (x) << 2)
 #define PBR(x)  (0x8300 | (x) << 2)
 
-/* SiS300 engine commands */
+ /* SiS300 engine commands */
 #define BITBLT                  0x00000000  /* Blit */
 #define COLOREXP                0x00000001  /* Color expand */
 #define ENCOLOREXP              0x00000002  /* Enhanced color expand */
@@ -350,9 +350,9 @@
 #define REG_3D_TSUCc                    0x8888
 #define REG_3D_TSVCc                    0x888C
 
-/*
- * REG_3D_AGPCmdSetting (89e4h-89f7)
- */
+ /*
+  * REG_3D_AGPCmdSetting (89e4h-89f7)
+  */
 #define REG_3D_AGPCmBase                0x89E4
 #define REG_3D_AGPRmDwNum               0x89E8
 #define REG_3D_AGPTtDwNum               0x89EC
@@ -403,9 +403,9 @@
 #define REG_3D_BumpMapMatrix0           0x8A74
 #define REG_3D_BumpMapMatrix1           0x8A78
 
-/*
- * Texture Registers
- */
+  /*
+   * Texture Registers
+   */
 #define REG_3D_TextureSet                     0x8A7C
 #define REG_3D_TextureWidthHeight             0x8A7C
 #define REG_3D_TextureMip                     0x8A80
@@ -481,9 +481,9 @@
 
 #define REG_3D_TexturePalette                  0x8C00
 
-/*
- * REG_3D_ParsingSet - Parsing Mask (89F4h-89F7h)
- */
+   /*
+	* REG_3D_ParsingSet - Parsing Mask (89F4h-89F7h)
+	*/
 #define MASK_VertexDWSize		0xF0000000
 
 #define MASK_VertexDataFormat		0x0FFF0000
@@ -523,9 +523,9 @@
 #define MASK_PsTriangleFan              0x0000000A
 
 
-/*
- * REG_3D_PrimitiveSet - Fire Primitive Mask (89F8h-89FBh)
- */
+	/*
+	 * REG_3D_PrimitiveSet - Fire Primitive Mask (89F8h-89FBh)
+	 */
 #define MASK_DrawPrimitiveCommand       0x00000007
 #define MASK_SetFirePosition            0x00001F00
 #define MASK_BumpTextureFrom            0x00030000
@@ -579,14 +579,14 @@
 
 
 
-/*
- *  Command Queue Length Mask (89FCh-89FF)
- */
+	 /*
+	  *  Command Queue Length Mask (89FCh-89FF)
+	  */
 #define MASK_CmdQueueLen                0x0FFF0000
 
-/*
- * REG_3D_TEnable - Capability Enable Mask (8A00h-8A03h)
- */
+	  /*
+	   * REG_3D_TEnable - Capability Enable Mask (8A00h-8A03h)
+	   */
 #define MASK_DitherEnable               0x00000001
 #define MASK_BlendEnable                0x00000002
 #define MASK_FogTestEnable              0x00000004
@@ -617,9 +617,9 @@
 #define MASK_TextureCWrapUCorrection    0x40000000
 #define MASK_TextureCWrapVCorrection    0x80000000
 
-/*
- * REG_3D_TEnable2 - Capability Enable Mask2 (8A04h-8A07h)
- */
+	   /*
+		* REG_3D_TEnable2 - Capability Enable Mask2 (8A04h-8A07h)
+		*/
 #define MASK_Texture0BlockTextureEnable 0x00000001
 #define MASK_Texture1BlockTextureEnable 0x00000002
 #define MASK_Texture0AnisotropicEnable  0x00000010
@@ -642,9 +642,9 @@
 #define MASK_ColorCacheClear            0x00400000
 #define MASK_ColorCacheEnable           0x00800000
 
-/*
- * REG_3D_ZSet -- Define Z Buffer Setting Mask (8A08h-8A0Bh)
- */
+		/*
+		 * REG_3D_ZSet -- Define Z Buffer Setting Mask (8A08h-8A0Bh)
+		 */
 #define MASK_ZBufferPitch               0x00000FFF
 #define MASK_ZTestMode                  0x00070000
 #define MASK_ZBufferInSystem            0x00080000
@@ -664,7 +664,7 @@
 #define Z_BUFFER_FORMAT_FS2Z30          0x01D00000
 #define MASK_Z_BUFFER_FORMAT            0x01F00000
 
-/* (Duplicates) */
+		 /* (Duplicates) */
 #define Z_16				0x00000000
 #define S_1_Z_15			0x00400000
 #define Z_32				0x00800000
@@ -679,19 +679,19 @@
  */
 #define MASK_ZBias                      0xFFFFFFFF
 
-/*
- * REG_3D_ZStWriteMask -- Define Z and Stencil Buffer Mask (8A10h-8A13h)
- */
+ /*
+  * REG_3D_ZStWriteMask -- Define Z and Stencil Buffer Mask (8A10h-8A13h)
+  */
 #define MASK_ZWriteMask                 0x00FFFFFF
 
-/*
- * REG_3D_ZAddress -- Define Z Buffer Base Address(8A14h-8A17h)
- */
+  /*
+   * REG_3D_ZAddress -- Define Z Buffer Base Address(8A14h-8A17h)
+   */
 #define MASK_ZAddress                   0xFFFFFFFF
 
-/*
- * REG_3D_AlphaSet -- Define Alpha Buffer Setting Mask (8A18h-8A1Bh)
- */
+   /*
+	* REG_3D_AlphaSet -- Define Alpha Buffer Setting Mask (8A18h-8A1Bh)
+	*/
 #define MASK_AlphaBufferPitch           0x000003FF
 #define MASK_AlphaRefValue              0x00FF0000
 #define MASK_AlphaTestMode              0x07000000
@@ -704,15 +704,15 @@
 #define ALPHA_BUFFER_FORMAT_8           0x30000000
 
 
-/*
- * REG_3D_AlphaAddress -- Define Alpha Buffer Base Address(8A1Ch-8A1Fh)
- */
+	/*
+	 * REG_3D_AlphaAddress -- Define Alpha Buffer Base Address(8A1Ch-8A1Fh)
+	 */
 #define MASK_AlphaAddress               0xFFFFFFFF
 
 
-/*
- * REG_3D_DstSet -- Define Destination Buffer Setting Mask (8A20h-8A23h)
- */
+	 /*
+	  * REG_3D_DstSet -- Define Destination Buffer Setting Mask (8A20h-8A23h)
+	  */
 #define MASK_DstBufferPitch             0x00000FFF /* max dest pitch: 4095!!! */
 #define MASK_DstBufferFormat            0x000F0000
 #define MASK_DstBufferBitDepth          0x00300000
@@ -741,7 +741,7 @@
 #define DST_FORMAT_ABGR_8888            0x00730000
 #define DST_FORMAT_ABGR_0888            0x00740000
 
-/* Logic Op */
+	  /* Logic Op */
 #define LOP_CLEAR			0x00000000
 #define LOP_NOR				0x01000000
 #define LOP_AND_INVERTED		0x02000000
@@ -767,23 +767,23 @@
 #define MASK_AlphaWriteMask             0xFF000000
 
 
-/*
- * REG_3D_DstAddress -- Define Destination Buffer Base Address(8A1Ch-8A1Fh)
- */
+ /*
+  * REG_3D_DstAddress -- Define Destination Buffer Base Address(8A1Ch-8A1Fh)
+  */
 #define MASK_DstAddress                 0xFFFFFFFF
 
 
-/*
- * REG_3D_LinePattern -- Define Line Pattern (8A2Ch-8A2Fh)
- */
+  /*
+   * REG_3D_LinePattern -- Define Line Pattern (8A2Ch-8A2Fh)
+   */
 #define MASK_LinePatternRepeatFactor    0x00007FFF
 #define MASK_LinePatternLastPixelFlag   0x00008000
 #define MASK_LinePattern                0xFFFF0000
 
 
-/*
- * REG_3D_FogSet -- Define Fog Mask (8A30h-8A33h)
- */
+   /*
+	* REG_3D_FogSet -- Define Fog Mask (8A30h-8A33h)
+	*/
 #define MASK_FogColor                   0x00FFFFFF
 #define MASK_FogMode                    0x07000000
 #define MASK_FogZLookup		        0x08000000
@@ -794,24 +794,24 @@
 #define FOGMODE_EXP2                    0x07000000
 
 
-/*
- * REG_3D_FogStartEnd -- Define Fog Start End Setting (8A34h-8A37h)
- */
+	/*
+	 * REG_3D_FogStartEnd -- Define Fog Start End Setting (8A34h-8A37h)
+	 */
 #define MASK_FogFarDistance            	0x0007FFFF
 
-/*
- * REG_3D_FogStartEnd -- Define Fog End Setting (8A38h-8A3Bh)
- */
+	 /*
+	  * REG_3D_FogStartEnd -- Define Fog End Setting (8A38h-8A3Bh)
+	  */
 #define MASK_FogInvFarDistance          0x0007FFFF
 
 #define MASK_FogDensity                 0x0003FFFF
 #define MASK_FogFactor                  0xFF000000
 
 
-/* TW: REG_3D_StencilSet               0x8A44
-       REG_3D_StencilSet2              0x8A48
-       REG_3D_StencilAddress           0x8A4C
-*/
+	  /* TW: REG_3D_StencilSet               0x8A44
+			 REG_3D_StencilSet2              0x8A48
+			 REG_3D_StencilAddress           0x8A4C
+	  */
 #define MASK_StencilMaskValue           0x000000FF
 #define MASK_StencilReferenceValue      0x0000FF00
 #define MASK_StencilTestMode            0x07000000
@@ -831,9 +831,9 @@
 #define MASK_StencilAddress             0xFFFFFFFF
 
 
-/* TW: REG_3D_DstBlendMode             0x8A50
-       REG_3D_SrcBlendMode             0x8A50
-*/
+	  /* TW: REG_3D_DstBlendMode             0x8A50
+			 REG_3D_SrcBlendMode             0x8A50
+	  */
 #define MASK_SrcBlendMode                       0x0000000F
 #define MASK_DstBlendMode                       0x000000F0
 #define MASK_DSTBLEND_ZERO                      0x00000000
@@ -863,9 +863,9 @@
 #define MASK_SRCBLEND_BOTH_INV_SRC_ALPHA        0x0000000C
 
 
-/* TW: REG_3D_ClipTopBottom            0x8A54
-       REG_3D_ClipLeftRight            0x8A58
-*/
+	  /* TW: REG_3D_ClipTopBottom            0x8A54
+			 REG_3D_ClipLeftRight            0x8A58
+	  */
 #define MASK_BottomClip                0x00001FFF
 #define MASK_TopClip                   0x03FFE000
 
@@ -873,12 +873,12 @@
 #define MASK_LeftClip                  0x03FFE000
 
 
-/* TW: REG_3D_BumpMapSet               0x8A68
-       REG_3D_BumpMapAddress           0x8A6C
-       REG_3D_BumpMapPitch             0x8A70
-       REG_3D_BumpMapMatrix0           0x8A74
-       REG_3D_BumpMapMatrix1           0x8A78
-*/
+	  /* TW: REG_3D_BumpMapSet               0x8A68
+			 REG_3D_BumpMapAddress           0x8A6C
+			 REG_3D_BumpMapPitch             0x8A70
+			 REG_3D_BumpMapMatrix0           0x8A74
+			 REG_3D_BumpMapMatrix1           0x8A78
+	  */
 #define MASK_BMMemoryInSystem          0x00000080
 #define MASK_BMHeight                  0x00000F00
 #define MASK_BMWidth                   0x0000F000
@@ -899,9 +899,9 @@
 #define MASK_BMMatrix11                0x07FF0000
 
 
-/* TW: REG_3D_TextureSet                     0x8A7C
-       REG_3D_TextureWidthHeight             0x8A7C
-*/
+	  /* TW: REG_3D_TextureSet                     0x8A7C
+			 REG_3D_TextureWidthHeight             0x8A7C
+	  */
 #define MASK_TextureHeight             0x0000000F
 #define MASK_TextureWidth              0x000000F0
 #define MASK_TextureLevel              0x00000F00
@@ -1003,8 +1003,8 @@
 #define TEXEL_LUV888                    0x03000000
 
 
-/* TW: REG_3D_TextureMip                     0x8A80
-*/
+	  /* TW: REG_3D_TextureMip                     0x8A80
+	  */
 #define MASK_TextureAnisotropyRatio    0x0000000F
 #define MASK_TextureMipmapLodBias      0x00003FF0 /* (-128 - 127) << 4 */
 #define MASK_TextureFilterMin          0x0001C000
@@ -1014,7 +1014,7 @@
 #define MASK_TextureLevel0InSystem     0x00040000 /* if in AGP space */
 #define MASK_TextureBlockLength        0xF0000000
 
-/* These for min */
+	  /* These for min */
 #define TEXTURE_FILTER_NEAREST			0x00000000
 #define TEXTURE_FILTER_LINEAR			0x00004000
 #define TEXTURE_FILTER_NEAREST_MIP_NEAREST	0x00008000

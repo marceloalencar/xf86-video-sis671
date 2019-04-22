@@ -21,10 +21,10 @@
  * SOFTWARE.
  */
 
-/**
- * Macros for porting drivers from legacy xfree86 PCI code to the pciaccess
- * library. The main purpose being to facilitate source code compatibility.
- */
+ /**
+  * Macros for porting drivers from legacy xfree86 PCI code to the pciaccess
+  * library. The main purpose being to facilitate source code compatibility.
+  */
 
 #ifndef SISPCIRENAME_H
 #define SISPCIRENAME_H
@@ -32,8 +32,8 @@
 #include <stdint.h>
 
 enum region_type {
-    REGION_MEM,
-    REGION_IO 
+	REGION_MEM,
+	REGION_IO
 };
 
 #if (defined(__alpha__) || defined(__ia64__)) && defined (linux)
@@ -50,15 +50,15 @@ enum region_type {
 static inline uint32_t
 pciTag(int busnum, int devnum, int funcnum)
 {
- uint32_t tag;
- tag = (busnum & (PCI_DOMBUS_MASK)) << 16;
- tag |= (devnum & 0x00001fu) << 11;
- tag |= (funcnum & 0x000007u) << 8;
+	uint32_t tag;
+	tag = (busnum & (PCI_DOMBUS_MASK)) << 16;
+	tag |= (devnum & 0x00001fu) << 11;
+	tag |= (funcnum & 0x000007u) << 8;
 
- return tag;
+	return tag;
 }
 
-typedef struct pci_device *pciVideoPtr;
+typedef struct pci_device* pciVideoPtr;
 
 #define PCI_DEV_VENDOR_ID(_pcidev) ((_pcidev)->vendor_id)
 #define PCI_DEV_DEVICE_ID(_pcidev) ((_pcidev)->device_id)

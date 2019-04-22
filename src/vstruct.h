@@ -54,7 +54,7 @@
 #define _VSTRUCT_H_
 
 struct SiS_PanelDelayTbl {
- 	unsigned char timer[2];
+	unsigned char timer[2];
 };
 
 struct SiS_LCDData {
@@ -175,7 +175,7 @@ struct SiS_Ext2 {
 };
 
 struct SiS_Part2PortTbl {
- 	unsigned char  CR[12];
+	unsigned char  CR[12];
 };
 
 struct SiS_CRT1Table {
@@ -183,17 +183,17 @@ struct SiS_CRT1Table {
 };
 
 struct SiS_MCLKData {
-	unsigned char  SR28,SR29,SR2A;
+	unsigned char  SR28, SR29, SR2A;
 	unsigned short CLOCK;
 };
 
 struct SiS_VCLKData {
-	unsigned char  SR2B,SR2C;
+	unsigned char  SR2B, SR2C;
 	unsigned short CLOCK;
 };
 
 struct SiS_VBVCLKData {
-	unsigned char  Part4_A,Part4_B;
+	unsigned char  Part4_A, Part4_B;
 	unsigned short CLOCK;
 };
 
@@ -240,16 +240,16 @@ struct SiS_Private
 {
 	unsigned char			ChipType;
 	unsigned char			ChipRevision;
-	struct pci_device       *pdev;
+	struct pci_device* pdev;
 #ifdef SIS_LINUX_KERNEL
-	void				*ivideo;
+	void* ivideo;
 #endif
-	unsigned char 			*VirtualRomBase;
+	unsigned char* VirtualRomBase;
 	BOOLEAN				UseROM;
 	Bool				MergedFB;
 	int                                    BIOSVersion;
 #ifdef SIS_LINUX_KERNEL
-	unsigned char SISIOMEMTYPE	*VideoMemoryAddress;
+	unsigned char SISIOMEMTYPE* VideoMemoryAddress;
 	unsigned int			VideoMemorySize;
 #endif
 	SISIOADDRESS			IOAddress;
@@ -309,7 +309,7 @@ struct SiS_Private
 	BOOLEAN				HaveEMI;
 	BOOLEAN				HaveEMILCD;
 	BOOLEAN				OverruleEMI;
-	unsigned char			EMI_30,EMI_31,EMI_32,EMI_33;
+	unsigned char			EMI_30, EMI_31, EMI_32, EMI_33;
 	unsigned short			SiS_EMIOffset;
 	unsigned short			SiS_PWDOffset;
 	short				PDC, PDCA;
@@ -366,150 +366,150 @@ struct SiS_Private
 	unsigned short			SiS_PanelMinLVDS;
 	unsigned short			SiS_PanelMin301;
 
-	const struct SiS_St		*SiS_SModeIDTable;
-	const struct SiS_StandTable_S	*SiS_StandTable;
-	const struct SiS_Ext		*SiS_EModeIDTable;
-	const struct SiS_Ext2		*SiS_RefIndex;
-	const struct SiS_VBMode		*SiS_VBModeIDTable;
-	const struct SiS_CRT1Table	*SiS_CRT1Table;
-	const struct SiS_MCLKData	*SiS_MCLKData_0;
-	const struct SiS_MCLKData	*SiS_MCLKData_1;
-	struct SiS_VCLKData		*SiS_VCLKData;
-	struct SiS_VBVCLKData		*SiS_VBVCLKData;
-	const struct SiS_StResInfo_S	*SiS_StResInfo;
-	const struct SiS_ModeResInfo_S	*SiS_ModeResInfo;
+	const struct SiS_St* SiS_SModeIDTable;
+	const struct SiS_StandTable_S* SiS_StandTable;
+	const struct SiS_Ext* SiS_EModeIDTable;
+	const struct SiS_Ext2* SiS_RefIndex;
+	const struct SiS_VBMode* SiS_VBModeIDTable;
+	const struct SiS_CRT1Table* SiS_CRT1Table;
+	const struct SiS_MCLKData* SiS_MCLKData_0;
+	const struct SiS_MCLKData* SiS_MCLKData_1;
+	struct SiS_VCLKData* SiS_VCLKData;
+	struct SiS_VBVCLKData* SiS_VBVCLKData;
+	const struct SiS_StResInfo_S* SiS_StResInfo;
+	const struct SiS_ModeResInfo_S* SiS_ModeResInfo;
 
-	const unsigned char		*pSiS_OutputSelect;
-	const unsigned char		*pSiS_SoftSetting;
+	const unsigned char* pSiS_OutputSelect;
+	const unsigned char* pSiS_SoftSetting;
 
-	const unsigned char		*SiS_SR15;
+	const unsigned char* SiS_SR15;
 
-	const struct SiS_PanelDelayTbl	*SiS_PanelDelayTbl;
-	const struct SiS_PanelDelayTbl	*SiS_PanelDelayTblLVDS;
-       BOOLEAN		UseFutroTiming;		/*for Fuji-Siemans Futro*/
-	
+	const struct SiS_PanelDelayTbl* SiS_PanelDelayTbl;
+	const struct SiS_PanelDelayTbl* SiS_PanelDelayTblLVDS;
+	BOOLEAN		UseFutroTiming;		/*for Fuji-Siemans Futro*/
 
-	/* SiS bridge */
 
-	const struct SiS_LCDData	*SiS_ExtLCD1024x768Data;
-	const struct SiS_LCDData	*SiS_St2LCD1024x768Data;
-	const struct SiS_LCDData	*SiS_LCD1280x720Data;
-	const struct SiS_LCDData	*SiS_StLCD1280x768_2Data;
-	const struct SiS_LCDData	*SiS_ExtLCD1280x768_2Data;
-	const struct SiS_LCDData	*SiS_LCD1280x800Data;
-	const struct SiS_LCDData	*SiS_LCD1280x800_2Data;
-	const struct SiS_LCDData	*SiS_LCD1280x854Data;
-	const struct SiS_LCDData	*SiS_LCD1280x960Data;
-	const struct SiS_LCDData	*SiS_ExtLCD1280x1024Data;
-	const struct SiS_LCDData	*SiS_St2LCD1280x1024Data;
-	const struct SiS_LCDData	*SiS_StLCD1400x1050Data;
-	const struct SiS_LCDData	*SiS_ExtLCD1400x1050Data;
-	const struct SiS_LCDData	*SiS_StLCD1600x1200Data;
-	const struct SiS_LCDData	*SiS_ExtLCD1600x1200Data;
-	const struct SiS_LCDData	*SiS_LCD1680x1050Data;
-	const struct SiS_LCDData	*SiS_NoScaleData;
+ /* SiS bridge */
 
-	const struct SiS_LCDData        *SiS_LCD1440x900Data;/*Ivans add 1440x900*/
-	const struct SiS_LCDData        *SiS_LCD1366x768Data;/*1366x768. Ivans@090109*/
+	const struct SiS_LCDData* SiS_ExtLCD1024x768Data;
+	const struct SiS_LCDData* SiS_St2LCD1024x768Data;
+	const struct SiS_LCDData* SiS_LCD1280x720Data;
+	const struct SiS_LCDData* SiS_StLCD1280x768_2Data;
+	const struct SiS_LCDData* SiS_ExtLCD1280x768_2Data;
+	const struct SiS_LCDData* SiS_LCD1280x800Data;
+	const struct SiS_LCDData* SiS_LCD1280x800_2Data;
+	const struct SiS_LCDData* SiS_LCD1280x854Data;
+	const struct SiS_LCDData* SiS_LCD1280x960Data;
+	const struct SiS_LCDData* SiS_ExtLCD1280x1024Data;
+	const struct SiS_LCDData* SiS_St2LCD1280x1024Data;
+	const struct SiS_LCDData* SiS_StLCD1400x1050Data;
+	const struct SiS_LCDData* SiS_ExtLCD1400x1050Data;
+	const struct SiS_LCDData* SiS_StLCD1600x1200Data;
+	const struct SiS_LCDData* SiS_ExtLCD1600x1200Data;
+	const struct SiS_LCDData* SiS_LCD1680x1050Data;
+	const struct SiS_LCDData* SiS_NoScaleData;
 
-	const struct SiS_TVData		*SiS_StPALData;
-	const struct SiS_TVData		*SiS_ExtPALData;
-	const struct SiS_TVData		*SiS_StNTSCData;
-	const struct SiS_TVData		*SiS_ExtNTSCData;
-	const struct SiS_TVData		*SiS_St1HiTVData;
-	const struct SiS_TVData		*SiS_St2HiTVData;
-	const struct SiS_TVData		*SiS_ExtHiTVData;
-	const struct SiS_TVData		*SiS_St525iData;
-	const struct SiS_TVData		*SiS_St525pData;
-	const struct SiS_TVData		*SiS_St625iData;
-	const struct SiS_TVData		*SiS_St625pData;
-	const struct SiS_TVData		*SiS_St750pData;
-	const struct SiS_TVData		*SiS_Ext525iData;
-	const struct SiS_TVData		*SiS_Ext525pData;
-	const struct SiS_TVData		*SiS_Ext625iData;
-	const struct SiS_TVData		*SiS_Ext625pData;
-	const struct SiS_TVData		*SiS_Ext750pData;
-	const unsigned char		*SiS_NTSCTiming;
-	const unsigned char		*SiS_PALTiming;
-	const unsigned char		*SiS_HiTVExtTiming;
-	const unsigned char		*SiS_HiTVSt1Timing;
-	const unsigned char		*SiS_HiTVSt2Timing;
-	const unsigned char		*SiS_HiTVGroup3Data;
-	const unsigned char		*SiS_HiTVGroup3Simu;
+	const struct SiS_LCDData* SiS_LCD1440x900Data;/*Ivans add 1440x900*/
+	const struct SiS_LCDData* SiS_LCD1366x768Data;/*1366x768. Ivans@090109*/
+
+	const struct SiS_TVData* SiS_StPALData;
+	const struct SiS_TVData* SiS_ExtPALData;
+	const struct SiS_TVData* SiS_StNTSCData;
+	const struct SiS_TVData* SiS_ExtNTSCData;
+	const struct SiS_TVData* SiS_St1HiTVData;
+	const struct SiS_TVData* SiS_St2HiTVData;
+	const struct SiS_TVData* SiS_ExtHiTVData;
+	const struct SiS_TVData* SiS_St525iData;
+	const struct SiS_TVData* SiS_St525pData;
+	const struct SiS_TVData* SiS_St625iData;
+	const struct SiS_TVData* SiS_St625pData;
+	const struct SiS_TVData* SiS_St750pData;
+	const struct SiS_TVData* SiS_Ext525iData;
+	const struct SiS_TVData* SiS_Ext525pData;
+	const struct SiS_TVData* SiS_Ext625iData;
+	const struct SiS_TVData* SiS_Ext625pData;
+	const struct SiS_TVData* SiS_Ext750pData;
+	const unsigned char* SiS_NTSCTiming;
+	const unsigned char* SiS_PALTiming;
+	const unsigned char* SiS_HiTVExtTiming;
+	const unsigned char* SiS_HiTVSt1Timing;
+	const unsigned char* SiS_HiTVSt2Timing;
+	const unsigned char* SiS_HiTVGroup3Data;
+	const unsigned char* SiS_HiTVGroup3Simu;
 #if 0
-	const unsigned char		*SiS_HiTVTextTiming;
-	const unsigned char		*SiS_HiTVGroup3Text;
+	const unsigned char* SiS_HiTVTextTiming;
+	const unsigned char* SiS_HiTVGroup3Text;
 #endif
 
-	const struct SiS_Part2PortTbl	*SiS_CRT2Part2_1024x768_1;
-	const struct SiS_Part2PortTbl	*SiS_CRT2Part2_1024x768_2;
-	const struct SiS_Part2PortTbl	*SiS_CRT2Part2_1024x768_3;
+	const struct SiS_Part2PortTbl* SiS_CRT2Part2_1024x768_1;
+	const struct SiS_Part2PortTbl* SiS_CRT2Part2_1024x768_2;
+	const struct SiS_Part2PortTbl* SiS_CRT2Part2_1024x768_3;
 
 	/* LVDS, Chrontel */
 
-	const struct SiS_LVDSData	*SiS_LVDS320x240Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS320x240Data_2;
-	const struct SiS_LVDSData	*SiS_LVDS640x480Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS800x600Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS1024x600Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS1024x768Data_1;
-	const struct SiS_LVDSData	*SiS_LVDSBARCO1366Data_1;
-	const struct SiS_LVDSData	*SiS_LVDSBARCO1366Data_2;
-	const struct SiS_LVDSData	*SiS_LVDSBARCO1024Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS848x480Data_1;
-	const struct SiS_LVDSData	*SiS_LVDS848x480Data_2;
-	const struct SiS_LVDSData	*SiS_CHTVUNTSCData;
-	const struct SiS_LVDSData	*SiS_CHTVONTSCData;
-	const struct SiS_LVDSData	*SiS_CHTVUPALData;
-	const struct SiS_LVDSData	*SiS_CHTVOPALData;
-	const struct SiS_LVDSData	*SiS_CHTVUPALMData;
-	const struct SiS_LVDSData	*SiS_CHTVOPALMData;
-	const struct SiS_LVDSData	*SiS_CHTVUPALNData;
-	const struct SiS_LVDSData	*SiS_CHTVOPALNData;
-	const struct SiS_LVDSData	*SiS_CHTVSOPALData;
+	const struct SiS_LVDSData* SiS_LVDS320x240Data_1;
+	const struct SiS_LVDSData* SiS_LVDS320x240Data_2;
+	const struct SiS_LVDSData* SiS_LVDS640x480Data_1;
+	const struct SiS_LVDSData* SiS_LVDS800x600Data_1;
+	const struct SiS_LVDSData* SiS_LVDS1024x600Data_1;
+	const struct SiS_LVDSData* SiS_LVDS1024x768Data_1;
+	const struct SiS_LVDSData* SiS_LVDSBARCO1366Data_1;
+	const struct SiS_LVDSData* SiS_LVDSBARCO1366Data_2;
+	const struct SiS_LVDSData* SiS_LVDSBARCO1024Data_1;
+	const struct SiS_LVDSData* SiS_LVDS848x480Data_1;
+	const struct SiS_LVDSData* SiS_LVDS848x480Data_2;
+	const struct SiS_LVDSData* SiS_CHTVUNTSCData;
+	const struct SiS_LVDSData* SiS_CHTVONTSCData;
+	const struct SiS_LVDSData* SiS_CHTVUPALData;
+	const struct SiS_LVDSData* SiS_CHTVOPALData;
+	const struct SiS_LVDSData* SiS_CHTVUPALMData;
+	const struct SiS_LVDSData* SiS_CHTVOPALMData;
+	const struct SiS_LVDSData* SiS_CHTVUPALNData;
+	const struct SiS_LVDSData* SiS_CHTVOPALNData;
+	const struct SiS_LVDSData* SiS_CHTVSOPALData;
 
-	const struct SiS_LVDSDes	*SiS_PanelType04_1a;
-	const struct SiS_LVDSDes	*SiS_PanelType04_2a;
-	const struct SiS_LVDSDes	*SiS_PanelType04_1b;
-	const struct SiS_LVDSDes	*SiS_PanelType04_2b;
+	const struct SiS_LVDSDes* SiS_PanelType04_1a;
+	const struct SiS_LVDSDes* SiS_PanelType04_2a;
+	const struct SiS_LVDSDes* SiS_PanelType04_1b;
+	const struct SiS_LVDSDes* SiS_PanelType04_2b;
 
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1320x240_1;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1320x240_2;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1320x240_2_H;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1320x240_3;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1320x240_3_H;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1640x480_1;
-	const struct SiS_LVDSCRT1Data	*SiS_LVDSCRT1640x480_1_H;
-	const struct SiS_LVDSCRT1Data	*SiS_CHTVCRT1UNTSC;
-	const struct SiS_LVDSCRT1Data	*SiS_CHTVCRT1ONTSC;
-	const struct SiS_LVDSCRT1Data	*SiS_CHTVCRT1UPAL;
-	const struct SiS_LVDSCRT1Data	*SiS_CHTVCRT1OPAL;
-	const struct SiS_LVDSCRT1Data	*SiS_CHTVCRT1SOPAL;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1320x240_1;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1320x240_2;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1320x240_2_H;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1320x240_3;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1320x240_3_H;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1640x480_1;
+	const struct SiS_LVDSCRT1Data* SiS_LVDSCRT1640x480_1_H;
+	const struct SiS_LVDSCRT1Data* SiS_CHTVCRT1UNTSC;
+	const struct SiS_LVDSCRT1Data* SiS_CHTVCRT1ONTSC;
+	const struct SiS_LVDSCRT1Data* SiS_CHTVCRT1UPAL;
+	const struct SiS_LVDSCRT1Data* SiS_CHTVCRT1OPAL;
+	const struct SiS_LVDSCRT1Data* SiS_CHTVCRT1SOPAL;
 
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_UNTSC;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_ONTSC;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_UPAL;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_OPAL;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_UPALM;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_OPALM;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_UPALN;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_OPALN;
-	const struct SiS_CHTVRegData	*SiS_CHTVReg_SOPAL;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_UNTSC;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_ONTSC;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_UPAL;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_OPAL;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_UPALM;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_OPALM;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_UPALN;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_OPALN;
+	const struct SiS_CHTVRegData* SiS_CHTVReg_SOPAL;
 
-	const unsigned char		*SiS_CHTVVCLKUNTSC;
-	const unsigned char		*SiS_CHTVVCLKONTSC;
-	const unsigned char		*SiS_CHTVVCLKUPAL;
-	const unsigned char		*SiS_CHTVVCLKOPAL;
-	const unsigned char		*SiS_CHTVVCLKUPALM;
-	const unsigned char		*SiS_CHTVVCLKOPALM;
-	const unsigned char		*SiS_CHTVVCLKUPALN;
-	const unsigned char		*SiS_CHTVVCLKOPALN;
-	const unsigned char		*SiS_CHTVVCLKSOPAL;
+	const unsigned char* SiS_CHTVVCLKUNTSC;
+	const unsigned char* SiS_CHTVVCLKONTSC;
+	const unsigned char* SiS_CHTVVCLKUPAL;
+	const unsigned char* SiS_CHTVVCLKOPAL;
+	const unsigned char* SiS_CHTVVCLKUPALM;
+	const unsigned char* SiS_CHTVVCLKOPALM;
+	const unsigned char* SiS_CHTVVCLKUPALN;
+	const unsigned char* SiS_CHTVVCLKOPALN;
+	const unsigned char* SiS_CHTVVCLKSOPAL;
 
 	unsigned short			PanelXRes, PanelHT;
 	unsigned short			PanelYRes, PanelVT;
-	unsigned short			PanelHRS,  PanelHRE;
-	unsigned short			PanelVRS,  PanelVRE;
+	unsigned short			PanelHRS, PanelHRE;
+	unsigned short			PanelVRS, PanelVRE;
 	unsigned short			PanelVCLKIdx300;
 	unsigned short			PanelVCLKIdx315;
 	BOOLEAN				Alternate1600x1200;

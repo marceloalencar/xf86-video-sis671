@@ -31,41 +31,41 @@
  *
  */
 
-/* VESA */
-/*     The following is included because there are BIOSes out there that
- *     report incomplete mode lists. These are 630 BIOS versions <2.01.2x
- *     -) VBE 3.0 on SiS300 and 315 series do not support 24 fpp modes
- *     -) Only SiS315 series support 1920x1440x32
- */
+ /* VESA */
+ /*     The following is included because there are BIOSes out there that
+  *     report incomplete mode lists. These are 630 BIOS versions <2.01.2x
+  *     -) VBE 3.0 on SiS300 and 315 series do not support 24 fpp modes
+  *     -) Only SiS315 series support 1920x1440x32
+  */
 
 static const UShort VESAModeIndices[] = {
-   /*   x    y     8      16    (24)    32   */
-       320, 200, 0x138, 0x10e, 0x000, 0x000,
-       320, 240, 0x132, 0x135, 0x000, 0x000,
-       400, 300, 0x133, 0x136, 0x000, 0x000,
-       512, 384, 0x134, 0x137, 0x000, 0x000,
-       640, 400, 0x100, 0x139, 0x000, 0x000,
-       640, 480, 0x101, 0x111, 0x000, 0x13a,
-       800, 600, 0x103, 0x114, 0x000, 0x13b,
-      1024, 768, 0x105, 0x117, 0x000, 0x13c,
-      1280,1024, 0x107, 0x11a, 0x000, 0x13d,
-      1600,1200, 0x130, 0x131, 0x000, 0x13e,
-      1920,1440, 0x13f, 0x140, 0x000, 0x141,
-      9999,9999, 0,     0,     0,     0
+	/*   x    y     8      16    (24)    32   */
+		320, 200, 0x138, 0x10e, 0x000, 0x000,
+		320, 240, 0x132, 0x135, 0x000, 0x000,
+		400, 300, 0x133, 0x136, 0x000, 0x000,
+		512, 384, 0x134, 0x137, 0x000, 0x000,
+		640, 400, 0x100, 0x139, 0x000, 0x000,
+		640, 480, 0x101, 0x111, 0x000, 0x13a,
+		800, 600, 0x103, 0x114, 0x000, 0x13b,
+	   1024, 768, 0x105, 0x117, 0x000, 0x13c,
+	   1280,1024, 0x107, 0x11a, 0x000, 0x13d,
+	   1600,1200, 0x130, 0x131, 0x000, 0x13e,
+	   1920,1440, 0x13f, 0x140, 0x000, 0x141,
+	   9999,9999, 0,     0,     0,     0
 };
 
 /* For calculating refresh rate index (CR33) */
 static const struct _sis_vrate {
-    CARD16 idx;
-    CARD16 xres;
-    CARD16 yres;
-    CARD16 refresh;
-    Bool SiS730valid32bpp;
+	CARD16 idx;
+	CARD16 xres;
+	CARD16 yres;
+	CARD16 refresh;
+	Bool SiS730valid32bpp;
 } sisx_vrate[] = {
 	{1,  320,  200,  60,  TRUE}, {1,  320,  200,  70,  TRUE},
 	{1,  320,  240,  60,  TRUE},
 	{1,  400,  300,  60,  TRUE},
-        {1,  512,  384,  60,  TRUE},
+		{1,  512,  384,  60,  TRUE},
 	{1,  640,  400,  60,  TRUE}, {1,  640,  400,  72,  TRUE},
 	{1,  640,  480,  60,  TRUE}, {2,  640,  480,  72,  TRUE}, {3,  640,  480,  75,  TRUE},
 	{4,  640,  480,  85,  TRUE}, {5,  640,  480, 100,  TRUE}, {6,  640,  480, 120,  TRUE},
@@ -118,7 +118,7 @@ static const struct _sis_vrate {
  *     boxes)
  */
 static const pdctable mypdctable[] = {
-        { 0x1071, 0x7522, 32, "Mitac", "7521T" },
+		{ 0x1071, 0x7522, 32, "Mitac", "7521T" },
 	{ 0,      0,       0, ""     , ""      }
 };
 
@@ -126,7 +126,7 @@ static const pdctable mypdctable[] = {
  *     disabling communication with the Chrontel TV encoder
  */
 static const chswtable mychswtable[] = {
-        { 0x1631, 0x1002, "Mitachi", "0x1002" },
+		{ 0x1631, 0x1002, "Mitachi", "0x1002" },
 	{ 0x1071, 0x7521, "Mitac"  , "7521P"  },
 	{ 0,      0,      ""       , ""       }
 };
@@ -707,14 +707,14 @@ static DisplayModeRec SiS6326SIS1600x1200_60Mode = {
 #endif
 
 /* Structure argument for SISFB_GET_INFO ioctl  */
-typedef struct _SISFB_INFO sisfb_info, *psisfb_info;
+typedef struct _SISFB_INFO sisfb_info, * psisfb_info;
 
 struct _SISFB_INFO {
 	CARD32 	sisfb_id;		/* for identifying sisfb */
 #ifndef SISFB_ID
 #define SISFB_ID	  0x53495346	/* Identify myself with 'SISF' */
 #endif
- 	CARD32 	chip_id;		/* PCI ID of detected chip */
+	CARD32 	chip_id;		/* PCI ID of detected chip */
 	CARD32	memory;			/* video memory in KB which sisfb manages */
 	CARD32	heapstart;		/* heap start (= sisfb "mem" argument) in KB */
 	CARD8 	fbvidmode;		/* current sisfb mode */
@@ -742,7 +742,7 @@ struct _SISFB_INFO {
 	CARD32 	sisfb_specialtiming;
 
 	CARD8 	sisfb_haveemi;
-	CARD8 	sisfb_emi30,sisfb_emi31,sisfb_emi32,sisfb_emi33;
+	CARD8 	sisfb_emi30, sisfb_emi31, sisfb_emi32, sisfb_emi33;
 	CARD8 	sisfb_haveemilcd;
 
 	CARD8 	sisfb_lcdpdca;
@@ -769,7 +769,7 @@ struct _SISFB_INFO {
 /* Mandatory functions */
 static void SISIdentify(int flags);
 static Bool SISPreInit(ScrnInfoPtr pScrn, int flags);
-static Bool SISScreenInit(ScreenPtr pScreen, int argc, char **argv);
+static Bool SISScreenInit(ScreenPtr pScreen, int argc, char** argv);
 static Bool SISEnterVT(ScrnInfoPtr pScrn);
 static void SISLeaveVT(ScrnInfoPtr pScrn);
 static Bool SISCloseScreen(ScreenPtr pScreen);
@@ -778,10 +778,10 @@ static Bool SISSwitchMode(ScrnInfoPtr pScrn, DisplayModePtr mode);
 static void SISNewAdjustFrame(ScrnInfoPtr pScrn, int x, int y);
 static Bool SISPMEvent(ScrnInfoPtr pScrn, pmEvent event, Bool undo);/*APM-ACPI, adding by Ivans.*/
 
-static Bool SIS_pci_probe(DriverPtr driver, int entity_num, struct pci_device *device, intptr_t match_data);
+static Bool SIS_pci_probe(DriverPtr driver, int entity_num, struct pci_device* device, intptr_t match_data);
 /* ACPI Device Switch functions */
-static Bool SISHotkeySwitchCRT1Status(ScrnInfoPtr pScrn,int onoff);/*hotkey pressing: switch CRT1 on/off*/
-static Bool SISHotkeySwitchCRT2Status(ScrnInfoPtr pScrn,ULong newvbflags ,ULong newvbflags3);/*LCD on/off*/
+static Bool SISHotkeySwitchCRT1Status(ScrnInfoPtr pScrn, int onoff);/*hotkey pressing: switch CRT1 on/off*/
+static Bool SISHotkeySwitchCRT2Status(ScrnInfoPtr pScrn, ULong newvbflags, ULong newvbflags3);/*LCD on/off*/
 
 /* Optional functions */
 #ifdef SISDUALHEAD
@@ -789,7 +789,7 @@ static Bool	SISSaveScreenDH(ScreenPtr pScreen, int mode);
 #endif
 static void     SISFreeScreen(ScrnInfoPtr pScrn);
 static ModeStatus SISValidMode(ScrnInfoPtr pScrn, DisplayModePtr mode,
-				Bool verbose, int flags);
+	Bool verbose, int flags);
 #ifdef SIS_HAVE_RR_FUNC
 #ifdef SIS_HAVE_DRIVER_FUNC
 static Bool SISDriverFunc(ScrnInfoPtr pScrn, xorgDriverFuncOp op, pointer p);
@@ -798,7 +798,7 @@ static Bool SISDriverFunc(ScrnInfoPtr pScrn, xorgRRFuncFlags op, xorgRRRotationP
 #endif
 #ifdef SISISXORG6899901
 static Bool SiS_GetModeMM(ScrnInfoPtr pScrn, DisplayModePtr mode, int virtX, int virtY,
-					int *mmWidth, int *mmHeight);
+	int* mmWidth, int* mmHeight);
 #endif
 #endif
 
@@ -810,30 +810,30 @@ static Bool	SISUnmapIOPMem(ScrnInfoPtr pScrn);
 void		SISAdjustFrame(ScrnInfoPtr pScrn, int x, int y);
 UChar		SISSearchCRT1Rate(ScrnInfoPtr pScrn, DisplayModePtr mode);
 UShort		SiS_CheckModeCRT1(ScrnInfoPtr pScrn, DisplayModePtr mode,
-				 unsigned int VBFlags, unsigned int VBFlags3, Bool hcm);
+	unsigned int VBFlags, unsigned int VBFlags3, Bool hcm);
 UShort		SiS_CheckModeCRT2(ScrnInfoPtr pScrn, DisplayModePtr mode,
-				 unsigned int VBFlags, unsigned int VBFlags3, Bool hcm);
+	unsigned int VBFlags, unsigned int VBFlags3, Bool hcm);
 void		SiSPrintModes(ScrnInfoPtr pScrn, Bool printfreq);
 Bool		SiSBridgeIsInSlaveMode(ScrnInfoPtr pScrn);
 UChar		SiS_GetSetBIOSScratch(ScrnInfoPtr pScrn, UShort offset, UChar value);
 Bool		SISDetermineLCDACap(ScrnInfoPtr pScrn);
 void		SISSaveDetectedDevices(ScrnInfoPtr pScrn);
-void		SISErrorLog(ScrnInfoPtr pScrn, const char *format, ...);
+void		SISErrorLog(ScrnInfoPtr pScrn, const char* format, ...);
 void		SiSFindAspect(ScrnInfoPtr pScrn, xf86MonPtr pMonitor, int crtnum, Bool q);
 DisplayModePtr	SiSDuplicateMode(DisplayModePtr source);
 Bool		SiSMakeOwnModeList(ScrnInfoPtr pScrn, Bool acceptcustommodes,
-				Bool includelcdmodes, Bool isfordvi, Bool *havecustommodes,
-				Bool fakecrt2modes, Bool IsForCRT2);
+	Bool includelcdmodes, Bool isfordvi, Bool* havecustommodes,
+	Bool fakecrt2modes, Bool IsForCRT2);
 xf86MonPtr	SiSInternalDDC(ScrnInfoPtr pScrn, int crtno);
 Bool		SiSFixupHVRanges(ScrnInfoPtr pScrn, int mfbcrt, Bool quiet);
 void		SiSClearModesPrivate(DisplayModePtr modelist);
 DisplayModePtr	SiSSearchMode(ScrnInfoPtr pScrn, DisplayModePtr modelist,
-			DisplayModePtr mode, Bool *needreset, Bool *needrecalcxine);
+	DisplayModePtr mode, Bool* needreset, Bool* needrecalcxine);
 void		SISAdjustFrameHW_CRT1(ScrnInfoPtr pScrn, int x, int y);
 void		SISAdjustFrameHW_CRT2(ScrnInfoPtr pScrn, int x, int y);
 #if defined(SISDUALHEAD) || defined(SISMERGED)
 int		SiSRemoveUnsuitableModes(ScrnInfoPtr pScrn, DisplayModePtr initial,
-				const char *reason, Bool quiet);
+	const char* reason, Bool quiet);
 #endif
 #ifdef SISGAMMARAMP
 void		SISCalculateGammaRamp(ScreenPtr pScreen, ScrnInfoPtr pScrn);
@@ -873,7 +873,7 @@ extern void     SiSSetupPseudoPanel(ScrnInfoPtr pScrn);
 extern void	SiSPostSetModeTVParms(ScrnInfoPtr pScrn);
 
 extern unsigned int    SiS_DetectVGA1(ScrnInfoPtr pScrn);/*only probe VGA1.(Ivans Lee)*/
-	
+
 
 /* utility */
 extern void	SiSCtrlExtInit(ScrnInfoPtr pScrn);
@@ -881,33 +881,33 @@ extern void	SiSCtrlExtUnregister(SISPtr pSiS, int index);
 
 /* init.c, init301.c ----- (use their data types!) */
 extern unsigned short	SiS_GetModeID(int VGAEngine, unsigned int VBFlags, int HDisplay, int VDisplay,
-				int Depth, BOOLEAN FSTN, int LCDwith, int LCDheight);
+	int Depth, BOOLEAN FSTN, int LCDwith, int LCDheight);
 extern unsigned short	SiS_GetModeID_LCD(int VGAEngine, unsigned int VBFlags, int HDisplay,
-				int VDisplay, int Depth, BOOLEAN FSTN, unsigned short CustomT,
-				int LCDwith, int LCDheight, unsigned int VBFlags2);
+	int VDisplay, int Depth, BOOLEAN FSTN, unsigned short CustomT,
+	int LCDwith, int LCDheight, unsigned int VBFlags2);
 extern unsigned short	SiS_GetModeID_TV(int VGAEngine, unsigned int VBFlags, int HDisplay,
-				int VDisplay, int Depth, unsigned int VBFlags2);
+	int VDisplay, int Depth, unsigned int VBFlags2);
 extern unsigned short	SiS_GetModeID_VGA2(int VGAEngine, unsigned int VBFlags, int HDisplay,
-				int VDisplay, int Depth, unsigned int VBFlags2);
+	int VDisplay, int Depth, unsigned int VBFlags2);
 extern int		SiSTranslateToVESA(ScrnInfoPtr pScrn, int modenumber);
 extern int		SiSTranslateToOldMode(int modenumber);
-extern BOOLEAN		SiSDetermineROMLayout661(struct SiS_Private *SiS_Pr);
-extern BOOLEAN		SiSBIOSSetMode(struct SiS_Private *SiS_Pr,
-                               ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
-extern BOOLEAN		SiSSetMode(struct SiS_Private *SiS_Pr,
-                           ScrnInfoPtr pScrn, unsigned short ModeNo, BOOLEAN dosetpitch);
-extern BOOLEAN		SiSBIOSSetModeCRT1(struct SiS_Private *SiS_Pr,
-				   ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
-extern BOOLEAN		SiSBIOSSetModeCRT2(struct SiS_Private *SiS_Pr,
-				   ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
+extern BOOLEAN		SiSDetermineROMLayout661(struct SiS_Private* SiS_Pr);
+extern BOOLEAN		SiSBIOSSetMode(struct SiS_Private* SiS_Pr,
+	ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
+extern BOOLEAN		SiSSetMode(struct SiS_Private* SiS_Pr,
+	ScrnInfoPtr pScrn, unsigned short ModeNo, BOOLEAN dosetpitch);
+extern BOOLEAN		SiSBIOSSetModeCRT1(struct SiS_Private* SiS_Pr,
+	ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
+extern BOOLEAN		SiSBIOSSetModeCRT2(struct SiS_Private* SiS_Pr,
+	ScrnInfoPtr pScrn, DisplayModePtr mode, BOOLEAN IsCustom);
 extern DisplayModePtr	SiSBuildBuiltInModeList(ScrnInfoPtr pScrn, BOOLEAN includelcdmodes,
-					      BOOLEAN isfordvi, BOOLEAN fakecrt2modes, BOOLEAN IsForCRT2);
-extern void		SiS_Chrontel701xBLOn(struct SiS_Private *SiS_Pr);
-extern void		SiS_Chrontel701xBLOff(struct SiS_Private *SiS_Pr);
-extern void		SiS_SiS30xBLOn(struct SiS_Private *SiS_Pr);
-extern void		SiS_SiS30xBLOff(struct SiS_Private *SiS_Pr);
-extern void		SiS_SetPitchCRT1(struct SiS_Private *SiS_Pr, ScrnInfoPtr pScrn);
-extern void		SiS_SetPitchCRT2(struct SiS_Private *SiS_Pr, ScrnInfoPtr pScrn);
+	BOOLEAN isfordvi, BOOLEAN fakecrt2modes, BOOLEAN IsForCRT2);
+extern void		SiS_Chrontel701xBLOn(struct SiS_Private* SiS_Pr);
+extern void		SiS_Chrontel701xBLOff(struct SiS_Private* SiS_Pr);
+extern void		SiS_SiS30xBLOn(struct SiS_Private* SiS_Pr);
+extern void		SiS_SiS30xBLOff(struct SiS_Private* SiS_Pr);
+extern void		SiS_SetPitchCRT1(struct SiS_Private* SiS_Pr, ScrnInfoPtr pScrn);
+extern void		SiS_SetPitchCRT2(struct SiS_Private* SiS_Pr, ScrnInfoPtr pScrn);
 
 /* MergedFB */
 #ifdef SISMERGED

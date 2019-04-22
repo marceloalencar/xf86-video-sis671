@@ -36,13 +36,13 @@
 
 #define CS(x)   (0x8500 + (x << 2))
 
-/* 300 series, CRT1 */
+ /* 300 series, CRT1 */
 
-/* 80000000 = RGB(1) - MONO(0)
- * 40000000 = enable(1) - disable(0)
- * 20000000 = 32(1) / 16(1) bit RGB
- * 10000000 = "ghost"(1) - [other effect](0)
- */
+ /* 80000000 = RGB(1) - MONO(0)
+  * 40000000 = enable(1) - disable(0)
+  * 20000000 = 32(1) / 16(1) bit RGB
+  * 10000000 = "ghost"(1) - [other effect](0)
+  */
 
 #define sis300GetCursorStatus \
   SIS_MMIO_IN32(pSiS->IOBase, CS(0)) & 0x40000000;
@@ -125,13 +125,13 @@
   SIS_MMIO_OUT32(pSiS->IOBase,CS(0),temp); \
   }
 
-/* 300 series, CRT2 */
+  /* 300 series, CRT2 */
 
-/* 80000000 = RGB(1) - MONO(0)
- * 40000000 = enable(1) - disable(0)
- * 20000000 = 32(1) / 16(1) bit RGB
- * 10000000 = unused (always "ghosting")
- */
+  /* 80000000 = RGB(1) - MONO(0)
+   * 40000000 = enable(1) - disable(0)
+   * 20000000 = 32(1) / 16(1) bit RGB
+   * 10000000 = unused (always "ghosting")
+   */
 
 #define sis301GetCursorStatus \
   SIS_MMIO_IN32(pSiS->IOBase, CS(8)) & 0x40000000;
@@ -214,13 +214,13 @@
   SIS_MMIO_OUT32(pSiS->IOBase,CS(8),temp); \
   }
 
-/* 315/330/later series CRT1 */
+   /* 315/330/later series CRT1 */
 
-/* 80000000 = RGB(1) - MONO(0)
- * 40000000 = enable(1) - disable(0)
- * 20000000 = 32(1) / 16(1) bit RGB
- * 10000000 = "ghost"(1) - Alpha Blend(0)
- */
+   /* 80000000 = RGB(1) - MONO(0)
+	* 40000000 = enable(1) - disable(0)
+	* 20000000 = 32(1) / 16(1) bit RGB
+	* 10000000 = "ghost"(1) - Alpha Blend(0)
+	*/
 
 #define sis310GetCursorStatus \
   SIS_MMIO_IN32(pSiS->IOBase, CS(0)) & 0x40000000;
@@ -290,13 +290,13 @@
   SIS_MMIO_OUT32(pSiS->IOBase, CS(3), pSiS->HWCursorBackup[3]); \
   SIS_MMIO_OUT32(pSiS->IOBase, CS(4), pSiS->HWCursorBackup[4]);
 
-/* 315 series CRT2 */
+	/* 315 series CRT2 */
 
-/* 80000000 = RGB(1) - MONO(0)
- * 40000000 = enable(1) - disable(0)
- * 20000000 = 32(1) / 16(1) bit RGB
- * 10000000 = "ghost"(1) - Alpha Blend(0)  ?
- */
+	/* 80000000 = RGB(1) - MONO(0)
+	 * 40000000 = enable(1) - disable(0)
+	 * 20000000 = 32(1) / 16(1) bit RGB
+	 * 10000000 = "ghost"(1) - Alpha Blend(0)  ?
+	 */
 
 #define sis301GetCursorStatus310 \
   SIS_MMIO_IN32(pSiS->IOBase, CS(8)) & 0x40000000;
@@ -374,17 +374,17 @@
   SIS_MMIO_OUT32(pSiS->IOBase, CS(11), pSiS->HWCursorBackup[11]); \
   SIS_MMIO_OUT32(pSiS->IOBase, CS(12), pSiS->HWCursorBackup[12]);
 
-/* 330 series CRT2 */
+	 /* 330 series CRT2 */
 
-/* Mono cursor engine for CRT2 on SiS330 (Xabre) has bugs
- * and cannot be used! Will hang engine.
- */
+	 /* Mono cursor engine for CRT2 on SiS330 (Xabre) has bugs
+	  * and cannot be used! Will hang engine.
+	  */
 
-/* 80000000 = RGB(1) - MONO(0)
- * 40000000 = enable(1) - disable(0)
- * 20000000 = 32(1) / 16(1) bit RGB
- * 10000000 = "ghost"(1) - Alpha Blend(0)  ?
- */
+	  /* 80000000 = RGB(1) - MONO(0)
+	   * 40000000 = enable(1) - disable(0)
+	   * 20000000 = 32(1) / 16(1) bit RGB
+	   * 10000000 = "ghost"(1) - Alpha Blend(0)  ?
+	   */
 
 #define sis301EnableHWCursor330() \
   /* andSISIDXREG(SISCR,0x5b,~0x10); */ \

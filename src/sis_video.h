@@ -102,25 +102,25 @@
 static		XF86VideoAdaptorPtr SISSetupImageVideo(ScreenPtr);
 static void 	SISStopVideo(ScrnInfoPtr, pointer, Bool);
 static int 	SISSetPortAttribute(ScrnInfoPtr, Atom, INT32, pointer);
-static int 	SISGetPortAttribute(ScrnInfoPtr, Atom ,INT32 *, pointer);
+static int 	SISGetPortAttribute(ScrnInfoPtr, Atom, INT32*, pointer);
 static void 	SISQueryBestSize(ScrnInfoPtr, Bool, short, short, short,
-			short, unsigned int *,unsigned int *, pointer);
+	short, unsigned int*, unsigned int*, pointer);
 static int 	SISPutImage(ScrnInfoPtr,
-			short, short, short, short, short, short, short, short,
-			int, UChar *, short, short, Bool, RegionPtr, pointer, DrawablePtr);
+	short, short, short, short, short, short, short, short,
+	int, UChar*, short, short, Bool, RegionPtr, pointer, DrawablePtr);
 static int	SISReputImage(ScrnInfoPtr pScrn,
-			short src_x, short src_y,
-			short drw_x, short drw_y,
-			short src_w, short src_h,
-			short drw_w, short drw_h,
-			RegionPtr clipBoxes, pointer data, DrawablePtr pDraw);
+	short src_x, short src_y,
+	short drw_x, short drw_y,
+	short src_w, short src_h,
+	short drw_w, short drw_h,
+	RegionPtr clipBoxes, pointer data, DrawablePtr pDraw);
 static int 	SISQueryImageAttributes(ScrnInfoPtr,
-			int, UShort *, UShort *, int *, int *);
+	int, UShort*, UShort*, int*, int*);
 static void 	SISVideoTimerCallback(ScrnInfoPtr pScrn, Time now);
 static void     SISInitOffscreenImages(ScreenPtr pScrn);
 static void	set_dda_regs(SISPtr pSiS, float scale);
-unsigned int	SISAllocateFBMemory(ScrnInfoPtr pScrn, void **handle, int bytesize);
-void		SISFreeFBMemory(ScrnInfoPtr pScrn, void **handle);
+unsigned int	SISAllocateFBMemory(ScrnInfoPtr pScrn, void** handle, int bytesize);
+void		SISFreeFBMemory(ScrnInfoPtr pScrn, void** handle);
 void 		SISSetPortDefaults(ScrnInfoPtr pScrn, SISPortPrivPtr pPriv);
 void		SISUpdateVideoParms(SISPtr pSiS, SISPortPrivPtr pPriv);
 void		SiSUpdateXvGamma(SISPtr pSiS, SISPortPrivPtr pPriv);
@@ -130,23 +130,23 @@ extern Bool     SiSBridgeIsInSlaveMode(ScrnInfoPtr pScrn);
 static 		XF86VideoAdaptorPtr SISSetupBlitVideo(ScreenPtr);
 static void 	SISStopVideoBlit(ScrnInfoPtr, ULong, Bool);
 static int 	SISSetPortAttributeBlit(ScrnInfoPtr, Atom, INT32, ULong);
-static int 	SISGetPortAttributeBlit(ScrnInfoPtr, Atom ,INT32 *, ULong);
+static int 	SISGetPortAttributeBlit(ScrnInfoPtr, Atom, INT32*, ULong);
 static void 	SISQueryBestSizeBlit(ScrnInfoPtr, Bool, short, short, short,
-			short, unsigned int *,unsigned int *, ULong);
-static int 	SISPutImageBlit_671( ScrnInfoPtr,
-			short, short, short, short, short, short, short, short,
-			int, UChar *, short, short, Bool, RegionPtr, ULong);
-static int 	SISPutImageBlit( ScrnInfoPtr,
-			short, short, short, short, short, short, short, short,
-			int, UChar *, short, short, Bool, RegionPtr, ULong);
+	short, unsigned int*, unsigned int*, ULong);
+static int 	SISPutImageBlit_671(ScrnInfoPtr,
+	short, short, short, short, short, short, short, short,
+	int, UChar*, short, short, Bool, RegionPtr, ULong);
+static int 	SISPutImageBlit(ScrnInfoPtr,
+	short, short, short, short, short, short, short, short,
+	int, UChar*, short, short, Bool, RegionPtr, ULong);
 static int 	SISQueryImageAttributesBlit(ScrnInfoPtr,
-			int, UShort *, UShort *, int *, int *);
-extern void     SISWriteBlitPacket(SISPtr pSiS, CARD32 *packet);
+	int, UShort*, UShort*, int*, int*);
+extern void     SISWriteBlitPacket(SISPtr pSiS, CARD32* packet);
 #endif
 
 #ifdef TWDEBUG
 extern int	SISSetPortUtilAttribute(ScrnInfoPtr pScrn, Atom attribute,
-					INT32 value, SISPortPrivPtr pPriv);
+	INT32 value, SISPortPrivPtr pPriv);
 #endif
 
 
@@ -201,34 +201,34 @@ static XF86VideoFormatRec SISFormats[NUM_FORMATS] =
    {24, TrueColor}
 };
 
-static char sisxvcolorkey[] 				= "XV_COLORKEY";
-static char sisxvbrightness[] 				= "XV_BRIGHTNESS";
-static char sisxvcontrast[] 				= "XV_CONTRAST";
-static char sisxvsaturation[] 				= "XV_SATURATION";
-static char sisxvhue[] 					= "XV_HUE";
-static char sisxvautopaintcolorkey[] 			= "XV_AUTOPAINT_COLORKEY";
-static char sisxvsetdefaults[] 				= "XV_SET_DEFAULTS";
-static char sisxvswitchcrt[] 				= "XV_SWITCHCRT";
-static char sisxvtvxposition[] 				= "XV_TVXPOSITION";
-static char sisxvtvyposition[] 				= "XV_TVYPOSITION";
-static char sisxvgammared[] 				= "XV_GAMMA_RED";
-static char sisxvgammagreen[] 				= "XV_GAMMA_GREEN";
-static char sisxvgammablue[] 				= "XV_GAMMA_BLUE";
-static char sisxvdisablegfx[] 				= "XV_DISABLE_GRAPHICS";
-static char sisxvdisablegfxlr[] 			= "XV_DISABLE_GRAPHICS_LR";
-static char sisxvdisablecolorkey[] 			= "XV_DISABLE_COLORKEY";
-static char sisxvusechromakey[] 			= "XV_USE_CHROMAKEY";
-static char sisxvinsidechromakey[] 			= "XV_INSIDE_CHROMAKEY";
-static char sisxvyuvchromakey[] 			= "XV_YUV_CHROMAKEY";
-static char sisxvchromamin[] 				= "XV_CHROMAMIN";
-static char sisxvchromamax[] 				= "XV_CHROMAMAX";
+static char sisxvcolorkey[] = "XV_COLORKEY";
+static char sisxvbrightness[] = "XV_BRIGHTNESS";
+static char sisxvcontrast[] = "XV_CONTRAST";
+static char sisxvsaturation[] = "XV_SATURATION";
+static char sisxvhue[] = "XV_HUE";
+static char sisxvautopaintcolorkey[] = "XV_AUTOPAINT_COLORKEY";
+static char sisxvsetdefaults[] = "XV_SET_DEFAULTS";
+static char sisxvswitchcrt[] = "XV_SWITCHCRT";
+static char sisxvtvxposition[] = "XV_TVXPOSITION";
+static char sisxvtvyposition[] = "XV_TVYPOSITION";
+static char sisxvgammared[] = "XV_GAMMA_RED";
+static char sisxvgammagreen[] = "XV_GAMMA_GREEN";
+static char sisxvgammablue[] = "XV_GAMMA_BLUE";
+static char sisxvdisablegfx[] = "XV_DISABLE_GRAPHICS";
+static char sisxvdisablegfxlr[] = "XV_DISABLE_GRAPHICS_LR";
+static char sisxvdisablecolorkey[] = "XV_DISABLE_COLORKEY";
+static char sisxvusechromakey[] = "XV_USE_CHROMAKEY";
+static char sisxvinsidechromakey[] = "XV_INSIDE_CHROMAKEY";
+static char sisxvyuvchromakey[] = "XV_YUV_CHROMAKEY";
+static char sisxvchromamin[] = "XV_CHROMAMIN";
+static char sisxvchromamax[] = "XV_CHROMAMAX";
 #ifdef TWDEBUG
-static char sisxvsetreg[]				= "XV_SD_SETREG";
+static char sisxvsetreg[] = "XV_SD_SETREG";
 #endif
 
 #ifdef INCL_YUV_BLIT_ADAPTOR
 #if 0
-static char sisxvvsync[]				= "XV_SYNC_TO_VBLANK";
+static char sisxvvsync[] = "XV_SYNC_TO_VBLANK";
 #endif
 #endif
 
@@ -314,172 +314,172 @@ static XF86AttributeRec SISAttributes_315[] =
 
 static XF86ImageRec SISImages[NUM_IMAGES_330] =
 {
-    XVIMAGE_YUY2, /* If order is changed, SISOffscreenImages must be adapted */
-    XVIMAGE_YV12,
-    XVIMAGE_UYVY,
-    XVIMAGE_I420
-    ,
-    { /* RGB 555 */
-      PIXEL_FMT_RGB5,
-      XvRGB,
-      LSBFirst,
-      {'R','V','1','5',
-       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-      16,
-      XvPacked,
-      1,
-      15, 0x7C00, 0x03E0, 0x001F,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      {'R', 'V', 'B',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
-    },
-    { /* RGB 565 */
-      PIXEL_FMT_RGB6,
-      XvRGB,
-      LSBFirst,
-      {'R','V','1','6',
-       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-      16,
-      XvPacked,
-      1,
-      16, 0xF800, 0x07E0, 0x001F,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      {'R', 'V', 'B',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
-    },
-    {  /* YVYU */
-      PIXEL_FMT_YVYU, \
-      XvYUV, \
-      LSBFirst, \
-      {'Y','V','Y','U',
+	XVIMAGE_YUY2, /* If order is changed, SISOffscreenImages must be adapted */
+	XVIMAGE_YV12,
+	XVIMAGE_UYVY,
+	XVIMAGE_I420
+	,
+	{ /* RGB 555 */
+	  PIXEL_FMT_RGB5,
+	  XvRGB,
+	  LSBFirst,
+	  {'R','V','1','5',
+	   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+	  16,
+	  XvPacked,
+	  1,
+	  15, 0x7C00, 0x03E0, 0x001F,
+	  0, 0, 0,
+	  0, 0, 0,
+	  0, 0, 0,
+	  {'R', 'V', 'B',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
+	},
+	{ /* RGB 565 */
+	  PIXEL_FMT_RGB6,
+	  XvRGB,
+	  LSBFirst,
+	  {'R','V','1','6',
+	   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+	  16,
+	  XvPacked,
+	  1,
+	  16, 0xF800, 0x07E0, 0x001F,
+	  0, 0, 0,
+	  0, 0, 0,
+	  0, 0, 0,
+	  {'R', 'V', 'B',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
+	},
+	{  /* YVYU */
+	  PIXEL_FMT_YVYU, \
+	  XvYUV, \
+	  LSBFirst, \
+	  {'Y','V','Y','U',
 	0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      16,
-      XvPacked,
-      1,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 1, 1,
-      {'Y','V','Y','U',
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  16,
+	  XvPacked,
+	  1,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 1, 1,
+	  {'Y','V','Y','U',
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
    {   /* NV12 */
-      PIXEL_FMT_NV12,
-      XvYUV,
-      LSBFirst,
-      {'N','V','1','2',
-       0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      12,
-      XvPlanar,
-      2,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 2, 2,
-      {'Y','U','V',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_NV12,
+	  XvYUV,
+	  LSBFirst,
+	  {'N','V','1','2',
+	   0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
+	  12,
+	  XvPlanar,
+	  2,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 2, 2,
+	  {'Y','U','V',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
    {   /* NV21 */
-      PIXEL_FMT_NV21,
-      XvYUV,
-      LSBFirst,
-      {'N','V','2','1',
-       0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      12,
-      XvPlanar,
-      2,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 2, 2,
-      {'Y','V','U',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_NV21,
+	  XvYUV,
+	  LSBFirst,
+	  {'N','V','2','1',
+	   0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
+	  12,
+	  XvPlanar,
+	  2,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 2, 2,
+	  {'Y','V','U',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
 };
 
 
 typedef struct {
-    int pixelFormat;
+	int pixelFormat;
 
-    CARD16  pitch;
-    CARD16  origPitch;
+	CARD16  pitch;
+	CARD16  origPitch;
 
-    int     srcOffsetX, srcOffsetY;
+	int     srcOffsetX, srcOffsetY;
 
-    CARD8   keyOP;
-    CARD16  HUSF;
-    CARD16  VUSF;
-    CARD8   IntBit;
-    CARD8   wHPre;
+	CARD8   keyOP;
+	CARD16  HUSF;
+	CARD16  VUSF;
+	CARD8   IntBit;
+	CARD8   wHPre;
 
-    float   tap_scale, tap_scale_old;
+	float   tap_scale, tap_scale_old;
 
-    CARD16  srcW;
-    CARD16  srcH;
+	CARD16  srcW;
+	CARD16  srcH;
 
-    BoxRec  dstBox;
+	BoxRec  dstBox;
 
-    CARD32  PSY;
-    CARD32  PSV;
-    CARD32  PSU;
+	CARD32  PSY;
+	CARD32  PSV;
+	CARD32  PSU;
 
-    CARD16  SCREENheight;
+	CARD16  SCREENheight;
 
-    CARD16  lineBufSize;
+	CARD16  lineBufSize;
 
-    DisplayModePtr  currentmode;
+	DisplayModePtr  currentmode;
 
 #ifdef SISMERGED
-    CARD16  pitch2;
-    CARD16  HUSF2;
-    CARD16  VUSF2;
-    CARD8   IntBit2;
-    CARD8   wHPre2;
+	CARD16  pitch2;
+	CARD16  HUSF2;
+	CARD16  VUSF2;
+	CARD8   IntBit2;
+	CARD8   wHPre2;
 
-    float   tap_scale2, tap_scale2_old;
+	float   tap_scale2, tap_scale2_old;
 
-    CARD16  srcW2;
-    CARD16  srcH2;
+	CARD16  srcW2;
+	CARD16  srcH2;
 
-    int     srcOffsetX2, srcOffsetY2;
+	int     srcOffsetX2, srcOffsetY2;
 
-    BoxRec  dstBox2;
-    CARD32  PSY2;
-    CARD32  PSV2;
-    CARD32  PSU2;
-    CARD16  SCREENheight2;
-    CARD16  lineBufSize2;
+	BoxRec  dstBox2;
+	CARD32  PSY2;
+	CARD32  PSV2;
+	CARD32  PSU2;
+	CARD16  SCREENheight2;
+	CARD16  lineBufSize2;
 
-    DisplayModePtr  currentmode2;
+	DisplayModePtr  currentmode2;
 
-    Bool    DoFirst, DoSecond;
+	Bool    DoFirst, DoSecond;
 #endif
 
-    CARD8   bobEnable;
+	CARD8   bobEnable;
 
-    CARD8   planar;
-    CARD8   planar_shiftpitch;
+	CARD8   planar;
+	CARD8   planar_shiftpitch;
 
-    CARD8   contrastCtrl;
-    CARD8   contrastFactor;
+	CARD8   contrastCtrl;
+	CARD8   contrastFactor;
 
-    CARD16  oldLine, oldtop;
+	CARD16  oldLine, oldtop;
 
-    CARD8   (*VBlankActiveFunc)(SISPtr, SISPortPrivPtr);  
+	CARD8(*VBlankActiveFunc)(SISPtr, SISPortPrivPtr);
 #if 0
-    CARD32  (*GetScanLineFunc)(SISPtr pSiS);
+	CARD32(*GetScanLineFunc)(SISPtr pSiS);
 #endif
 
-} SISOverlayRec, *SISOverlayPtr;
+} SISOverlayRec, * SISOverlayPtr;
 
 /***********************************************/
 /*               BLITTER ADAPTOR               */
@@ -521,111 +521,111 @@ static XF86ImageRec SISImagesBlit[NUM_IMAGES_BLIT] =
    XVIMAGE_I420,
 #if 0
    { /* RGB 555 */
-      PIXEL_FMT_RGB5,
-      XvRGB,
-      LSBFirst,
-      {'R','V','1','5',
-       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-      16,
-      XvPacked,
-      1,
-      15, 0x7C00, 0x03E0, 0x001F,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      {'R', 'V', 'B',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_RGB5,
+	  XvRGB,
+	  LSBFirst,
+	  {'R','V','1','5',
+	   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+	  16,
+	  XvPacked,
+	  1,
+	  15, 0x7C00, 0x03E0, 0x001F,
+	  0, 0, 0,
+	  0, 0, 0,
+	  0, 0, 0,
+	  {'R', 'V', 'B',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
    { /* RGB 565 */
-      PIXEL_FMT_RGB6,
-      XvRGB,
-      LSBFirst,
-      {'R','V','1','6',
-       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-      16,
-      XvPacked,
-      1,
-      16, 0xF800, 0x07E0, 0x001F,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      {'R', 'V', 'B',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_RGB6,
+	  XvRGB,
+	  LSBFirst,
+	  {'R','V','1','6',
+	   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
+	  16,
+	  XvPacked,
+	  1,
+	  16, 0xF800, 0x07E0, 0x001F,
+	  0, 0, 0,
+	  0, 0, 0,
+	  0, 0, 0,
+	  {'R', 'V', 'B',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
 #endif
    {  /* YVYU */
-      PIXEL_FMT_YVYU, \
-      XvYUV, \
-      LSBFirst, \
-      {'Y','V','Y','U',
+	  PIXEL_FMT_YVYU, \
+	  XvYUV, \
+	  LSBFirst, \
+	  {'Y','V','Y','U',
 	0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      16,
-      XvPacked,
-      1,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 1, 1,
-      {'Y','V','Y','U',
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  16,
+	  XvPacked,
+	  1,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 1, 1,
+	  {'Y','V','Y','U',
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
    {   /* NV12 */
-      PIXEL_FMT_NV12,
-      XvYUV,
-      LSBFirst,
-      {'N','V','1','2',
-       0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      12,
-      XvPlanar,
-      2,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 2, 2,
-      {'Y','U','V',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_NV12,
+	  XvYUV,
+	  LSBFirst,
+	  {'N','V','1','2',
+	   0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
+	  12,
+	  XvPlanar,
+	  2,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 2, 2,
+	  {'Y','U','V',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    },
    {   /* NV21 */
-      PIXEL_FMT_NV21,
-      XvYUV,
-      LSBFirst,
-      {'N','V','2','1',
-       0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
-      12,
-      XvPlanar,
-      2,
-      0, 0, 0, 0,
-      8, 8, 8,
-      1, 2, 2,
-      1, 2, 2,
-      {'Y','V','U',0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-      XvTopToBottom
+	  PIXEL_FMT_NV21,
+	  XvYUV,
+	  LSBFirst,
+	  {'N','V','2','1',
+	   0x00,0x00,0x00,0x10,0x80,0x00,0x00,0xAA,0x00,0x38,0x9B,0x71},
+	  12,
+	  XvPlanar,
+	  2,
+	  0, 0, 0, 0,
+	  8, 8, 8,
+	  1, 2, 2,
+	  1, 2, 2,
+	  {'Y','V','U',0,
+	   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+	  XvTopToBottom
    }
 };
 
 typedef struct {
-    void *	 handle[NUM_BLIT_PORTS];
-    CARD32       bufAddr[NUM_BLIT_PORTS][2];
+	void* handle[NUM_BLIT_PORTS];
+	CARD32       bufAddr[NUM_BLIT_PORTS][2];
 
-    void *	 ScaleBufHandle[NUM_BLIT_PORTS];
-    CARD32       ScaleBufAddr[NUM_BLIT_PORTS][2];
+	void* ScaleBufHandle[NUM_BLIT_PORTS];
+	CARD32       ScaleBufAddr[NUM_BLIT_PORTS][2];
 
-    UChar        currentBuf[NUM_BLIT_PORTS];
+	UChar        currentBuf[NUM_BLIT_PORTS];
 
-    RegionRec    blitClip[NUM_BLIT_PORTS];
+	RegionRec    blitClip[NUM_BLIT_PORTS];
 
-    CARD32       videoStatus[NUM_BLIT_PORTS];
-    Time         freeTime[NUM_BLIT_PORTS];
+	CARD32       videoStatus[NUM_BLIT_PORTS];
+	Time         freeTime[NUM_BLIT_PORTS];
 
-    Bool	 vsync;
-    CARD32	 AccelCmd;
-    CARD32       VBlankTriggerCRT1, VBlankTriggerCRT2;
-} SISBPortPrivRec, *SISBPortPrivPtr;
+	Bool	 vsync;
+	CARD32	 AccelCmd;
+	CARD32       VBlankTriggerCRT1, VBlankTriggerCRT2;
+} SISBPortPrivRec, * SISBPortPrivPtr;
 
 #endif /* INCL_BLIT */
 

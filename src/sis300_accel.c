@@ -45,15 +45,15 @@
 
 #include "sis300_accel.h"
 
-/* This is the offset to the memory for each head */
+ /* This is the offset to the memory for each head */
 #define HEADOFFSET 	(pSiS->dhmOffset)
 
 #ifdef SIS_USE_EXA
-extern void SiSScratchSave(ScreenPtr pScreen, ExaOffscreenArea *area);
-extern Bool SiSUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char *src, int src_pitch);
+extern void SiSScratchSave(ScreenPtr pScreen, ExaOffscreenArea* area);
+extern Bool SiSUploadToScreen(PixmapPtr pDst, int x, int y, int w, int h, char* src, int src_pitch);
 extern Bool SiSUploadToScratch(PixmapPtr pSrc, PixmapPtr pDst);
 extern Bool SiSDownloadFromScreen(PixmapPtr pSrc, int x, int y, int w, int h,
-				char *dst, int dst_pitch);
+	char* dst, int dst_pitch);
 #endif /* EXA */
 
 extern UChar SiSGetCopyROP(int rop);
@@ -77,121 +77,122 @@ SiSSyncAccel(ScrnInfoPtr pScrn)
 {
 	SISPtr pSiS = SISPTR(pScrn);
 
-	if(!pSiS->NoAccel) SiSSync(pScrn);
+	if (!pSiS->NoAccel) SiSSync(pScrn);
 }
 
 static void
 SiSSetupForScreenToScreenCopy(ScrnInfoPtr pScrn,
-			int xdir, int ydir, int rop,
-			unsigned int planemask, int trans_color)
+	int xdir, int ydir, int rop,
+	unsigned int planemask, int trans_color)
 {
 	SISPtr  pSiS = SISPTR(pScrn);
 
 	SiSSetupDSTColorDepth(pSiS->DstColor);
 	SiSSetupSRCPitch(pSiS->scrnOffset)
-	SiSSetupDSTRect(pSiS->scrnOffset, -1)
+		SiSSetupDSTRect(pSiS->scrnOffset, -1)
 
-	if(trans_color != -1) {
-	   SiSSetupROP(0x0A)
-	   SiSSetupSRCTrans(trans_color)
-	   SiSSetupCMDFlag(TRANSPARENT_BITBLT)
-	} else {
-	   SiSSetupROP(SiSGetCopyROP(rop))
+		if (trans_color != -1) {
+			SiSSetupROP(0x0A)
+				SiSSetupSRCTrans(trans_color)
+				SiSSetupCMDFlag(TRANSPARENT_BITBLT)
+		}
+		else {
+			SiSSetupROP(SiSGetCopyROP(rop))
+		}
+	if (xdir > 0) {
+		SiSSetupCMDFlag(X_INC)
 	}
-	if(xdir > 0) {
-	   SiSSetupCMDFlag(X_INC)
-	}
-	if(ydir > 0) {
-	   SiSSetupCMDFlag(Y_INC)
+	if (ydir > 0) {
+		SiSSetupCMDFlag(Y_INC)
 	}
 }
 
 static void
 SiSSubsequentScreenToScreenCopy(ScrnInfoPtr pScrn,
-			int src_x, int src_y, int dst_x, int dst_y,
-			int width, int height)
+	int src_x, int src_y, int dst_x, int dst_y,
+	int width, int height)
 {
 	SISPtr pSiS = SISPTR(pScrn);
 	CARD32 srcbase, dstbase;
 
 	srcbase = dstbase = 0;
-	if(src_y >= 2048) {
-	   srcbase = pSiS->scrnOffset * src_y;
-	   src_y = 0;
+	if (src_y >= 2048) {
+		srcbase = pSiS->scrnOffset * src_y;
+		src_y = 0;
 	}
-	if((dst_y >= pScrn->virtualY) || (dst_y >= 2048)) {
-	   dstbase = pSiS->scrnOffset * dst_y;
-	   dst_y = 0;
+	if ((dst_y >= pScrn->virtualY) || (dst_y >= 2048)) {
+		dstbase = pSiS->scrnOffset * dst_y;
+		dst_y = 0;
 	}
 #ifdef SISDUALHEAD
-	if(pSiS->VGAEngine != SIS_530_VGA) {
-	   srcbase += HEADOFFSET;
-	   dstbase += HEADOFFSET;
+	if (pSiS->VGAEngine != SIS_530_VGA) {
+		srcbase += HEADOFFSET;
+		dstbase += HEADOFFSET;
 	}
 #endif
 	SiSSetupSRCBase(srcbase);
 	SiSSetupDSTBase(dstbase);
 
-	if(!(pSiS->CommandReg & X_INC)) {
-	   src_x += width-1;
-	   dst_x += width-1;
+	if (!(pSiS->CommandReg & X_INC)) {
+		src_x += width - 1;
+		dst_x += width - 1;
 	}
-	if(!(pSiS->CommandReg & Y_INC)) {
-	   src_y += height-1;
-	   dst_y += height-1;
+	if (!(pSiS->CommandReg & Y_INC)) {
+		src_y += height - 1;
+		dst_y += height - 1;
 	}
 	SiSSetupRect(width, height)
-	SiSSetupSRCXY(src_x, src_y)
-	SiSSetupDSTXY(dst_x, dst_y)
+		SiSSetupSRCXY(src_x, src_y)
+		SiSSetupDSTXY(dst_x, dst_y)
 
-	SiSDoCMD
+		SiSDoCMD
 }
 
 static void
 SiSSetupForSolidFill(ScrnInfoPtr pScrn,
-			int color, int rop, unsigned int planemask)
+	int color, int rop, unsigned int planemask)
 {
 	SISPtr pSiS = SISPTR(pScrn);
 
-	if(pSiS->disablecolorkeycurrent || pSiS->nocolorkey) {
-	   if((CARD32)color == pSiS->colorKey) {
-	      rop = 5;  /* NOOP */
-	   }
+	if (pSiS->disablecolorkeycurrent || pSiS->nocolorkey) {
+		if ((CARD32)color == pSiS->colorKey) {
+			rop = 5;  /* NOOP */
+		}
 	}
 	SiSSetupPATFG(color)
-	SiSSetupDSTRect(pSiS->scrnOffset, -1)
-	SiSSetupDSTColorDepth(pSiS->DstColor);
+		SiSSetupDSTRect(pSiS->scrnOffset, -1)
+		SiSSetupDSTColorDepth(pSiS->DstColor);
 	SiSSetupROP(SiSGetPatternROP(rop))
-	/* SiSSetupCMDFlag(PATFG) - is zero */
+		/* SiSSetupCMDFlag(PATFG) - is zero */
 }
 
 static void
 SiSSubsequentSolidFillRect(ScrnInfoPtr pScrn,
-			int x, int y, int w, int h)
+	int x, int y, int w, int h)
 {
 	SISPtr pSiS = SISPTR(pScrn);
 	CARD32 dstbase = 0;
 
-	if(y >= 2048) {
-	   dstbase = pSiS->scrnOffset * y;
-	   y = 0;
+	if (y >= 2048) {
+		dstbase = pSiS->scrnOffset * y;
+		y = 0;
 	}
 #ifdef SISDUALHEAD
-        if(pSiS->VGAEngine != SIS_530_VGA) {
-	   dstbase += HEADOFFSET;
-        }
+	if (pSiS->VGAEngine != SIS_530_VGA) {
+		dstbase += HEADOFFSET;
+	}
 #endif
 	SiSSetupDSTBase(dstbase)
-	SiSSetupDSTXY(x,y)
-	SiSSetupRect(w,h)
-	/* Clear commandReg because Setup can be used for Rect and Trap */
-	pSiS->CommandReg &= ~(T_XISMAJORL | T_XISMAJORR |
-			      T_L_X_INC | T_L_Y_INC |
-			      T_R_X_INC | T_R_Y_INC |
-			      TRAPAZOID_FILL);
+		SiSSetupDSTXY(x, y)
+		SiSSetupRect(w, h)
+		/* Clear commandReg because Setup can be used for Rect and Trap */
+		pSiS->CommandReg &= ~(T_XISMAJORL | T_XISMAJORR |
+			T_L_X_INC | T_L_Y_INC |
+			T_R_X_INC | T_R_Y_INC |
+			TRAPAZOID_FILL);
 	SiSSetupCMDFlag(X_INC | Y_INC | BITBLT)
 
-	SiSDoCMD
+		SiSDoCMD
 }
 
 #ifdef SIS_USE_EXA  /* ---------------------------- EXA -------------------------- */
@@ -214,45 +215,46 @@ SiSPrepareSolid(PixmapPtr pPixmap, int alu, Pixel planemask, Pixel fg)
 	CARD16 pitch;
 
 	/* Planemask not supported */
-	if((planemask & ((1 << pPixmap->drawable.depth) - 1)) !=
-				(1 << pPixmap->drawable.depth) - 1) {
-	   return FALSE;
+	if ((planemask & ((1 << pPixmap->drawable.depth) - 1)) !=
+		(1 << pPixmap->drawable.depth) - 1) {
+		return FALSE;
 	}
 
 	/* Since the 530/620 have no "dest color depth" register, I
 	 * assume that the 2D engine reads the current color depth
 	 * from the DAC.... FIXME ? */
-	if(pSiS->VGAEngine == SIS_530_VGA) {
-	   if(pPixmap->drawable.bitsPerPixel != pSiS->CurrentLayout.bitsPerPixel)
-	      return FALSE;
-	} else if((pPixmap->drawable.bitsPerPixel != 8)  &&
-		  (pPixmap->drawable.bitsPerPixel != 16) &&
-		  (pPixmap->drawable.bitsPerPixel != 32))
-	   return FALSE;
+	if (pSiS->VGAEngine == SIS_530_VGA) {
+		if (pPixmap->drawable.bitsPerPixel != pSiS->CurrentLayout.bitsPerPixel)
+			return FALSE;
+	}
+	else if ((pPixmap->drawable.bitsPerPixel != 8) &&
+		(pPixmap->drawable.bitsPerPixel != 16) &&
+		(pPixmap->drawable.bitsPerPixel != 32))
+		return FALSE;
 
 	/* Check that the pitch matches the hardware's requirements. Should
 	 * never be a problem due to pixmapPitchAlign and fbScreenInit.
 	 */
-	if((pitch = exaGetPixmapPitch(pPixmap)) & 3)
-	   return FALSE;
+	if ((pitch = exaGetPixmapPitch(pPixmap)) & 3)
+		return FALSE;
 
-	if(pSiS->disablecolorkeycurrent || pSiS->nocolorkey) {
-	   if((CARD32)fg == pSiS->colorKey) {
-	      /* NOOP - does not work: Pixmap is not neccessarily in the frontbuffer */
-	      /* alu = 5; */ /* NOOP */
-	      /* Fill it black; better than blue anyway */
-	      fg = 0;
-	   }
+	if (pSiS->disablecolorkeycurrent || pSiS->nocolorkey) {
+		if ((CARD32)fg == pSiS->colorKey) {
+			/* NOOP - does not work: Pixmap is not neccessarily in the frontbuffer */
+			/* alu = 5; */ /* NOOP */
+			/* Fill it black; better than blue anyway */
+			fg = 0;
+		}
 	}
 
 	SiSSetupPATFG(fg)
-	SiSSetupDSTRect(pitch, -1)
-	SiSSetupDSTColorDepth(dstcol[pPixmap->drawable.bitsPerPixel >> 4]);
+		SiSSetupDSTRect(pitch, -1)
+		SiSSetupDSTColorDepth(dstcol[pPixmap->drawable.bitsPerPixel >> 4]);
 	SiSSetupROP(SiSGetPatternROP(alu))
-	SiSSetupDSTBase(((CARD32)exaGetPixmapOffset(pPixmap) + HEADOFFSET))
-	/* SiSSetupCMDFlag(PATFG) - is zero */
+		SiSSetupDSTBase(((CARD32)exaGetPixmapOffset(pPixmap) + HEADOFFSET))
+		/* SiSSetupCMDFlag(PATFG) - is zero */
 
-	return TRUE;
+		return TRUE;
 }
 
 static void
@@ -262,11 +264,11 @@ SiSSolid(PixmapPtr pPixmap, int x1, int y1, int x2, int y2)
 	SISPtr pSiS = SISPTR(pScrn);
 
 	SiSSetupDSTXY(x1, y1)
-	SiSSetupRect(x2-x1, y2-y1)
+		SiSSetupRect(x2 - x1, y2 - y1)
 
-	SiSSetupCMDFlag(X_INC | Y_INC | BITBLT)
+		SiSSetupCMDFlag(X_INC | Y_INC | BITBLT)
 
-	SiSDoCMD
+		SiSDoCMD
 }
 
 static void
@@ -276,48 +278,49 @@ SiSDoneSolid(PixmapPtr pPixmap)
 
 static Bool
 SiSPrepareCopy(PixmapPtr pSrcPixmap, PixmapPtr pDstPixmap, int xdir, int ydir,
-					int alu, Pixel planemask)
+	int alu, Pixel planemask)
 {
 	ScrnInfoPtr pScrn = xf86Screens[pDstPixmap->drawable.pScreen->myNum];
 	SISPtr pSiS = SISPTR(pScrn);
 	CARD16 srcpitch, dstpitch;
 
 	/* Planemask not supported */
-	if((planemask & ((1 << pSrcPixmap->drawable.depth) - 1)) !=
-				(1 << pSrcPixmap->drawable.depth) - 1) {
-	   return FALSE;
+	if ((planemask & ((1 << pSrcPixmap->drawable.depth) - 1)) !=
+		(1 << pSrcPixmap->drawable.depth) - 1) {
+		return FALSE;
 	}
 
 	/* Since the 530/620 have no "dest color depth" register, I
 	 * assume that the 2D engine reads the current color depth
 	 * from the DAC.... FIXME ? */
-	if(pSiS->VGAEngine == SIS_530_VGA) {
-	   if(pDstPixmap->drawable.bitsPerPixel != pSiS->CurrentLayout.bitsPerPixel)
-	      return FALSE;
-	} else if((pDstPixmap->drawable.bitsPerPixel != 8)  &&
-		  (pDstPixmap->drawable.bitsPerPixel != 16) &&
-		  (pDstPixmap->drawable.bitsPerPixel != 32))
-	   return FALSE;
+	if (pSiS->VGAEngine == SIS_530_VGA) {
+		if (pDstPixmap->drawable.bitsPerPixel != pSiS->CurrentLayout.bitsPerPixel)
+			return FALSE;
+	}
+	else if ((pDstPixmap->drawable.bitsPerPixel != 8) &&
+		(pDstPixmap->drawable.bitsPerPixel != 16) &&
+		(pDstPixmap->drawable.bitsPerPixel != 32))
+		return FALSE;
 
 	/* Check that the pitch matches the hardware's requirements. Should
 	 * never be a problem due to pixmapPitchAlign and fbScreenInit.
 	 */
-	if((srcpitch = exaGetPixmapPitch(pSrcPixmap)) & 3)
-	   return FALSE;
-	if((dstpitch = exaGetPixmapPitch(pDstPixmap)) & 3)
-	   return FALSE;
+	if ((srcpitch = exaGetPixmapPitch(pSrcPixmap)) & 3)
+		return FALSE;
+	if ((dstpitch = exaGetPixmapPitch(pDstPixmap)) & 3)
+		return FALSE;
 
 	SiSSetupDSTColorDepth(dstcol[pDstPixmap->drawable.bitsPerPixel >> 4]);
 	SiSSetupSRCPitch(srcpitch)
-	SiSSetupDSTRect(dstpitch, -1)
+		SiSSetupDSTRect(dstpitch, -1)
 
-	SiSSetupROP(SiSGetCopyROP(alu))
+		SiSSetupROP(SiSGetCopyROP(alu))
 
-	if(xdir >= 0) {
-	   SiSSetupCMDFlag(X_INC)
-	}
-	if(ydir >= 0) {
-	   SiSSetupCMDFlag(Y_INC)
+		if (xdir >= 0) {
+			SiSSetupCMDFlag(X_INC)
+		}
+	if (ydir >= 0) {
+		SiSSetupCMDFlag(Y_INC)
 	}
 
 	SiSSetupSRCBase(((CARD32)exaGetPixmapOffset(pSrcPixmap) + HEADOFFSET));
@@ -332,19 +335,19 @@ SiSCopy(PixmapPtr pDstPixmap, int srcX, int srcY, int dstX, int dstY, int width,
 	ScrnInfoPtr pScrn = xf86Screens[pDstPixmap->drawable.pScreen->myNum];
 	SISPtr pSiS = SISPTR(pScrn);
 
-	if(!(pSiS->CommandReg & X_INC))  {
-	   srcX += width-1;
-	   dstX += width-1;
+	if (!(pSiS->CommandReg & X_INC)) {
+		srcX += width - 1;
+		dstX += width - 1;
 	}
-	if(!(pSiS->CommandReg & Y_INC))  {
-	   srcY += height-1;
-	   dstY += height-1;
+	if (!(pSiS->CommandReg & Y_INC)) {
+		srcY += height - 1;
+		dstY += height - 1;
 	}
 	SiSSetupRect(width, height)
-	SiSSetupSRCXY(srcX, srcY)
-	SiSSetupDSTXY(dstX, dstY)
+		SiSSetupSRCXY(srcX, srcY)
+		SiSSetupDSTXY(dstX, dstY)
 
-	SiSDoCMD
+		SiSDoCMD
 }
 
 static void
@@ -390,152 +393,157 @@ SiS300AccelInit(ScreenPtr pScreen)
 	pSiS->exa_scratch = NULL;
 #endif
 
-	if((pScrn->bitsPerPixel != 8)  &&
-	   (pScrn->bitsPerPixel != 16) &&
-	   (pScrn->bitsPerPixel != 32)) {
-	   pSiS->NoAccel = TRUE;
+	if ((pScrn->bitsPerPixel != 8) &&
+		(pScrn->bitsPerPixel != 16) &&
+		(pScrn->bitsPerPixel != 32)) {
+		pSiS->NoAccel = TRUE;
 	}
 
-	if(!pSiS->NoAccel) {
+	if (!pSiS->NoAccel) {
 #ifdef SIS_USE_EXA
-	   if(pSiS->useEXA) {
-	      if(!(pSiS->EXADriverPtr = xnfcalloc(sizeof(ExaDriverRec), 1))) {
-		 pSiS->NoAccel = TRUE;
-		 pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
-	      }
-	   }
+		if (pSiS->useEXA) {
+			if (!(pSiS->EXADriverPtr = xnfcalloc(sizeof(ExaDriverRec), 1))) {
+				pSiS->NoAccel = TRUE;
+				pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
+			}
+		}
 #endif
 	}
 
-	if(!pSiS->NoAccel) {
+	if (!pSiS->NoAccel) {
 
-	   SiSInitializeAccelerator(pScrn);
+		SiSInitializeAccelerator(pScrn);
 
-	   pSiS->InitAccel = SiSInitializeAccelerator;
-	   pSiS->SyncAccel = SiSSyncAccel;
-	   pSiS->FillRect  = SiSDGAFillRect;
-	   pSiS->BlitRect  = SiSDGABlitRect;
+		pSiS->InitAccel = SiSInitializeAccelerator;
+		pSiS->SyncAccel = SiSSyncAccel;
+		pSiS->FillRect = SiSDGAFillRect;
+		pSiS->BlitRect = SiSDGABlitRect;
 
 
 #ifdef SIS_USE_EXA	/* ----------------------- EXA ----------------------- */
-	   if(pSiS->useEXA) {
-//#if  XORG_VERSION_CURRENT <= XORG_VERSION_NUMERIC(7,0,0,0,0)
+		if (pSiS->useEXA) {
+			//#if  XORG_VERSION_CURRENT <= XORG_VERSION_NUMERIC(7,0,0,0,0)
 #if 0         
-	      if(pSiS->scrnOffset < 8192) {
-	         int obase = 0;
-	         /* data */
-		 pSiS->EXADriverPtr->card.memoryBase = pSiS->FbBase;
-		 pSiS->EXADriverPtr->card.memorySize = pSiS->maxxfbmem;
+			if (pSiS->scrnOffset < 8192) {
+				int obase = 0;
+				/* data */
+				pSiS->EXADriverPtr->card.memoryBase = pSiS->FbBase;
+				pSiS->EXADriverPtr->card.memorySize = pSiS->maxxfbmem;
 
 
-	         if(!obase) {
-	            obase = pScrn->displayWidth * pScrn->virtualY * (pScrn->bitsPerPixel >> 3);
-	         }
+				if (!obase) {
+					obase = pScrn->displayWidth * pScrn->virtualY * (pScrn->bitsPerPixel >> 3);
+				}
 
-		 pSiS->EXADriverPtr->card.offScreenBase = obase;
-		 if(pSiS->EXADriverPtr->card.memorySize > pSiS->EXADriverPtr->card.offScreenBase) {
-		    pSiS->EXADriverPtr->card.flags = EXA_OFFSCREEN_PIXMAPS;
-		 } else {
-		    pSiS->NoXvideo = TRUE;
-		    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-			"Not enough video RAM for offscreen memory manager. Xv disabled\n");
-		 }
-		 
+				pSiS->EXADriverPtr->card.offScreenBase = obase;
+				if (pSiS->EXADriverPtr->card.memorySize > pSiS->EXADriverPtr->card.offScreenBase) {
+					pSiS->EXADriverPtr->card.flags = EXA_OFFSCREEN_PIXMAPS;
+				}
+				else {
+					pSiS->NoXvideo = TRUE;
+					xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+						"Not enough video RAM for offscreen memory manager. Xv disabled\n");
+				}
+
 #if  XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(6,8,2,0,0)
-                 pSiS->EXADriverPtr->card.offscreenByteAlign = 16;	/* src/dst: double quad word boundary */
-		 pSiS->EXADriverPtr->card.offscreenPitch = 4;	
+				pSiS->EXADriverPtr->card.offscreenByteAlign = 16;	/* src/dst: double quad word boundary */
+				pSiS->EXADriverPtr->card.offscreenPitch = 4;
 #else
-		 pSiS->EXADriverPtr->card.pixmapOffsetAlign = 16;	/* src/dst: double quad word boundary */
-		 pSiS->EXADriverPtr->card.pixmapPitchAlign = 4;		/* pitch:   double word boundary      */
+				pSiS->EXADriverPtr->card.pixmapOffsetAlign = 16;	/* src/dst: double quad word boundary */
+				pSiS->EXADriverPtr->card.pixmapPitchAlign = 4;		/* pitch:   double word boundary      */
 #endif
-		 if(pSiS->VGAEngine == SIS_300_VGA) {
-		    pSiS->EXADriverPtr->card.maxX = 4095;
-		    pSiS->EXADriverPtr->card.maxY = 4095;
-		 } else {
-		    pSiS->EXADriverPtr->card.maxX = 2047;
-		    pSiS->EXADriverPtr->card.maxY = 2047;
-		 }
+				if (pSiS->VGAEngine == SIS_300_VGA) {
+					pSiS->EXADriverPtr->card.maxX = 4095;
+					pSiS->EXADriverPtr->card.maxY = 4095;
+				}
+				else {
+					pSiS->EXADriverPtr->card.maxX = 2047;
+					pSiS->EXADriverPtr->card.maxY = 2047;
+				}
 
-		 /* Sync */
-		 pSiS->EXADriverPtr->accel.WaitMarker = SiSEXASync;
+				/* Sync */
+				pSiS->EXADriverPtr->accel.WaitMarker = SiSEXASync;
 
-		 /* Solid fill */
-		 pSiS->EXADriverPtr->accel.PrepareSolid = SiSPrepareSolid;
-		 pSiS->EXADriverPtr->accel.Solid = SiSSolid;
-		 pSiS->EXADriverPtr->accel.DoneSolid = SiSDoneSolid;
+				/* Solid fill */
+				pSiS->EXADriverPtr->accel.PrepareSolid = SiSPrepareSolid;
+				pSiS->EXADriverPtr->accel.Solid = SiSSolid;
+				pSiS->EXADriverPtr->accel.DoneSolid = SiSDoneSolid;
 
-		 /* Copy */
-		 pSiS->EXADriverPtr->accel.PrepareCopy = SiSPrepareCopy;
-		 pSiS->EXADriverPtr->accel.Copy = SiSCopy;
-		 pSiS->EXADriverPtr->accel.DoneCopy = SiSDoneCopy;
+				/* Copy */
+				pSiS->EXADriverPtr->accel.PrepareCopy = SiSPrepareCopy;
+				pSiS->EXADriverPtr->accel.Copy = SiSCopy;
+				pSiS->EXADriverPtr->accel.DoneCopy = SiSDoneCopy;
 
-		 /* Composite not supported */
+				/* Composite not supported */
 
-		 /* Upload, download to/from Screen */
-		 //pSiS->EXADriverPtr->accel.UploadToScreen = SiSUploadToScreen;
-		 //pSiS->EXADriverPtr->accel.DownloadFromScreen = SiSDownloadFromScreen;
-	   }
+				/* Upload, download to/from Screen */
+				//pSiS->EXADriverPtr->accel.UploadToScreen = SiSUploadToScreen;
+				//pSiS->EXADriverPtr->accel.DownloadFromScreen = SiSDownloadFromScreen;
+			}
 #else  /*xorg>7.0*/
-	   
-	      pSiS->EXADriverPtr->exa_major = 2;
-	      pSiS->EXADriverPtr->exa_minor = 0;
 
-	      if(pSiS->scrnOffset < 8192) {
+			pSiS->EXADriverPtr->exa_major = 2;
+			pSiS->EXADriverPtr->exa_minor = 0;
 
-		 /* data */
-		 pSiS->EXADriverPtr->memoryBase = pSiS->FbBase;
-		 pSiS->EXADriverPtr->memorySize = pSiS->maxxfbmem;
-		 pSiS->EXADriverPtr->offScreenBase = pScrn->virtualX * pScrn->virtualY
-						* ((pScrn->bitsPerPixel + 7) / 8);
-		 if(pSiS->EXADriverPtr->memorySize > pSiS->EXADriverPtr->offScreenBase) {
-		    pSiS->EXADriverPtr->flags = EXA_OFFSCREEN_PIXMAPS;
-		 } else {
-		    pSiS->NoXvideo = TRUE;
-		    xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-			"Not enough video RAM for offscreen memory manager. Xv disabled\n");
-		 }
-		 pSiS->EXADriverPtr->pixmapOffsetAlign = 16;	/* src/dst: double quad word boundary */
-		 pSiS->EXADriverPtr->pixmapPitchAlign = 4;		/* pitch:   double word boundary      */
-		 if(pSiS->VGAEngine == SIS_300_VGA) {
-		    pSiS->EXADriverPtr->maxX = 4095;
-		    pSiS->EXADriverPtr->maxY = 4095;
-		 } else {
-		    pSiS->EXADriverPtr->maxX = 2047;
-		    pSiS->EXADriverPtr->maxY = 2047;
-		 }
+			if (pSiS->scrnOffset < 8192) {
 
-		 /* Sync */
-		 pSiS->EXADriverPtr->WaitMarker = SiSEXASync;
+				/* data */
+				pSiS->EXADriverPtr->memoryBase = pSiS->FbBase;
+				pSiS->EXADriverPtr->memorySize = pSiS->maxxfbmem;
+				pSiS->EXADriverPtr->offScreenBase = pScrn->virtualX * pScrn->virtualY
+					* ((pScrn->bitsPerPixel + 7) / 8);
+				if (pSiS->EXADriverPtr->memorySize > pSiS->EXADriverPtr->offScreenBase) {
+					pSiS->EXADriverPtr->flags = EXA_OFFSCREEN_PIXMAPS;
+				}
+				else {
+					pSiS->NoXvideo = TRUE;
+					xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+						"Not enough video RAM for offscreen memory manager. Xv disabled\n");
+				}
+				pSiS->EXADriverPtr->pixmapOffsetAlign = 16;	/* src/dst: double quad word boundary */
+				pSiS->EXADriverPtr->pixmapPitchAlign = 4;		/* pitch:   double word boundary      */
+				if (pSiS->VGAEngine == SIS_300_VGA) {
+					pSiS->EXADriverPtr->maxX = 4095;
+					pSiS->EXADriverPtr->maxY = 4095;
+				}
+				else {
+					pSiS->EXADriverPtr->maxX = 2047;
+					pSiS->EXADriverPtr->maxY = 2047;
+				}
 
-		 /* Solid fill */
-		 pSiS->EXADriverPtr->PrepareSolid = SiSPrepareSolid;
-		 pSiS->EXADriverPtr->Solid = SiSSolid;
-		 pSiS->EXADriverPtr->DoneSolid = SiSDoneSolid;
+				/* Sync */
+				pSiS->EXADriverPtr->WaitMarker = SiSEXASync;
 
-		 /* Copy */
-		 pSiS->EXADriverPtr->PrepareCopy = SiSPrepareCopy;
-		 pSiS->EXADriverPtr->Copy = SiSCopy;
-		 pSiS->EXADriverPtr->DoneCopy = SiSDoneCopy;
+				/* Solid fill */
+				pSiS->EXADriverPtr->PrepareSolid = SiSPrepareSolid;
+				pSiS->EXADriverPtr->Solid = SiSSolid;
+				pSiS->EXADriverPtr->DoneSolid = SiSDoneSolid;
 
-		 /* Composite not supported */
+				/* Copy */
+				pSiS->EXADriverPtr->PrepareCopy = SiSPrepareCopy;
+				pSiS->EXADriverPtr->Copy = SiSCopy;
+				pSiS->EXADriverPtr->DoneCopy = SiSDoneCopy;
 
-		 /* Upload, download to/from Screen */
-		 //pSiS->EXADriverPtr->UploadToScreen = SiSUploadToScreen;
-		 //pSiS->EXADriverPtr->DownloadFromScreen = SiSDownloadFromScreen;
+				/* Composite not supported */
 
-	      } 
+				/* Upload, download to/from Screen */
+				//pSiS->EXADriverPtr->UploadToScreen = SiSUploadToScreen;
+				//pSiS->EXADriverPtr->DownloadFromScreen = SiSDownloadFromScreen;
+
+			}
 #endif
 
-	   }   else {
+		}
+		else {
 
-		 xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-			"Virtual screen width too large for accelerator engine\n");
-		 xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-			"\t2D acceleration and Xv disabled\n");
-		 pSiS->NoAccel = TRUE;
-		 pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
+			xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+				"Virtual screen width too large for accelerator engine\n");
+			xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+				"\t2D acceleration and Xv disabled\n");
+			pSiS->NoAccel = TRUE;
+			pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
 
-	      }
+		}
 #endif /* EXA */
 
 
@@ -552,38 +560,39 @@ SiS300AccelInit(ScreenPtr pScreen)
 	 */
 
 #ifdef SIS_USE_EXA
-        if(pSiS->useEXA) {
+	if (pSiS->useEXA) {
 
-	   if(!pSiS->NoAccel) {
+		if (!pSiS->NoAccel) {
 
-	      if(!exaDriverInit(pScreen, pSiS->EXADriverPtr)) {
-		 pSiS->NoAccel = TRUE;
-		 pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
-		 return FALSE;
-	      }
+			if (!exaDriverInit(pScreen, pSiS->EXADriverPtr)) {
+				pSiS->NoAccel = TRUE;
+				pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
+				return FALSE;
+			}
 
-	      /* Reserve locked offscreen scratch area of 128K for glyph data */
-	      pSiS->exa_scratch = exaOffscreenAlloc(pScreen, 128 * 1024, 16, TRUE,
-						SiSScratchSave, pSiS);
-    
-//    #if  XORG_VERSION_CURRENT <= XORG_VERSION_NUMERIC(7,0,0,0,0)
-    #if 0
-              if(pSiS->exa_scratch) {
-		 pSiS->exa_scratch_next = pSiS->exa_scratch->offset;
-		 pSiS->EXADriverPtr->accel.UploadToScratch = SiSUploadToScratch;
-	      }
-    #else
-              if(pSiS->exa_scratch) {
-		 pSiS->exa_scratch_next = pSiS->exa_scratch->offset;
-		 pSiS->EXADriverPtr->UploadToScratch = SiSUploadToScratch;
-	      }
-    #endif
+			/* Reserve locked offscreen scratch area of 128K for glyph data */
+			pSiS->exa_scratch = exaOffscreenAlloc(pScreen, 128 * 1024, 16, TRUE,
+				SiSScratchSave, pSiS);
 
-	   } else {
+			//    #if  XORG_VERSION_CURRENT <= XORG_VERSION_NUMERIC(7,0,0,0,0)
+#if 0
+			if (pSiS->exa_scratch) {
+				pSiS->exa_scratch_next = pSiS->exa_scratch->offset;
+				pSiS->EXADriverPtr->accel.UploadToScratch = SiSUploadToScratch;
+			}
+#else
+			if (pSiS->exa_scratch) {
+				pSiS->exa_scratch_next = pSiS->exa_scratch->offset;
+				pSiS->EXADriverPtr->UploadToScratch = SiSUploadToScratch;
+			}
+#endif
 
-	      pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
+		}
+		else {
 
-	   }
+			pSiS->NoXvideo = TRUE; /* No fbmem manager -> no xv */
+
+		}
 
 	}
 #endif /* EXA */

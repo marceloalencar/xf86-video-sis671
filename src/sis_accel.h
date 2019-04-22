@@ -36,14 +36,14 @@
  */
 
 
-/* Definitions for the SIS engine communication. ------------------------------------ */
+ /* Definitions for the SIS engine communication. ------------------------------------ */
 
-/* For pre-530 chipsets only!!! */
+ /* For pre-530 chipsets only!!! */
 
-/* Engine Registers for 1st generation engines (5597/5598/6326) */
+ /* Engine Registers for 1st generation engines (5597/5598/6326) */
 const int sisReg32MMIO[] = {
-            0x8280,0x8284,0x8288,0x828C,0x8290,0x8294,
-            0x8298,0x829C,0x82A0,0x82A4,0x82A8,0x82AC
+			0x8280,0x8284,0x8288,0x828C,0x8290,0x8294,
+			0x8298,0x829C,0x82A0,0x82A4,0x82A8,0x82AC
 };
 
 #define BR(x) sisReg32MMIO[x]
@@ -54,7 +54,7 @@ const int sisReg32MMIO[] = {
  *
  */
 
-/* Command Reg 0 (0x82aa, [15:0]) */
+ /* Command Reg 0 (0x82aa, [15:0]) */
 #define sisSRCBG            0x0000   /* source select */
 #define sisSRCFG            0x0001
 #define sisSRCVIDEO         0x0002
@@ -113,7 +113,7 @@ const int sisReg32MMIO[] = {
 #define sisSETPATREGL() \
    ((ULong *)(pSiS->IOBase + BR(11)))
 
-/* trigger command */
+ /* trigger command */
 #define sisSETCMD(op) \
   { \
   ULong temp; \
@@ -172,7 +172,7 @@ const int sisReg32MMIO[] = {
 #define sisSETHEIGHTWIDTH(Height, Width) \
   SIS_MMIO_OUT32(pSiS->IOBase, BR(3), ((((Height) & 0xFFFF) << 16) | ((Width) & 0xFFFF)));
 
-/* Clipping */
+ /* Clipping */
 #define sisSETCLIPTOP(x, y) \
    SIS_MMIO_OUT32(pSiS->IOBase, BR(8), ((((y) & 0xFFFF) << 16) | ((x) & 0xFFFF)));
 

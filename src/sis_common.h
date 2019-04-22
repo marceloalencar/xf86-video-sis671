@@ -45,7 +45,7 @@ typedef struct {
 	int context;
 	unsigned long offset;
 	unsigned long size;
-	void *free;
+	void* free;
 } drm_sis_mem_t;
 
 typedef struct {
