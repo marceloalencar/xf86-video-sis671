@@ -170,459 +170,6 @@ static const CARD8 SiS6326CR[9][15] = {
 	 {0x09,0xc7,0xc7,0x0d,0xd2,0x0a,0x01,0xe0,0x10,0xb0,0x04,0xaf,0xaf,0xe1,0x1f}   /* 1600x1200-60  */
 };
 
-/* Initialize a display mode on 5597/5598, 6326 and 530/620 */
-static Bool
-SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
-{
-	SISPtr       pSiS = SISPTR(pScrn);
-	SISRegPtr    pReg = &pSiS->ModeReg;
-	UChar        temp;
-	int          mclk = pSiS->MemClock;
-	int          clock = mode->Clock;
-	int          width = mode->HDisplay;
-	int          height = mode->VDisplay;
-	int          rate = (int)SiSCalcVRate(mode);
-	int          buswidth = pSiS->BusWidth;
-	unsigned int vclk[5];
-	UShort       CRT_CPUthresholdLow, CRT_CPUthresholdHigh, CRT_ENGthreshold;
-	double       a, b, c;
-	int          d, factor, offset, fixsync = 1;
-	int          num, denum, div, sbit, scale;
-	Bool	 sis6326tvmode, sis6326himode;
-
-	/* Obs: Write values to pSiS only after this
-	 * function can no longer fail!
-	 */
-
-	 /* Save the registers for further processing */
-	(*pSiS->SiSSave)(pScrn, pReg);
-
-	/* Initialise the standard VGA registers */
-	if (!pSiS->UseVESA) {
-		if (!SiSVGAInit(pScrn, mode, fixsync)) {
-			xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "SISInit: SiSVGAInit() failed\n");
-			return FALSE;
-		}
-	}
-
-	/* Determine if chosen mode is suitable for TV on the 6326
-	 * and if the mode is one of our special hi-res modes.
-	 */
-	sis6326tvmode = FALSE;
-	sis6326himode = FALSE;
-
-#ifdef UNLOCK_ALWAYS
-	outSISIDXREG(SISSR, 0x05, 0x86);
-#endif
-
-	if (!pSiS->UseVESA) {
-		pReg->sisRegs3C4[0x06] &= 0x01;
-	}
-
-	/* set interlace */
-	offset = pSiS->CurrentLayout.displayWidth >> 2;
-	if (!(mode->Flags & V_INTERLACE)) {
-		offset >>= 1;
-	}
-	else if (!pSiS->UseVESA) {
-		pReg->sisRegs3C4[0x06] |= 0x20;
-	}
-
-	/* Enable Linear and Enhanced Gfx Mode */
-	if (!pSiS->UseVESA) {
-		pReg->sisRegs3C4[0x06] |= 0x82;
-	}
-
-	/* Enable MMIO at PCI Register 14H (D[6:5]: 11) */
-	if (pSiS->oldChipset >= OC_SIS5597) {
-		pReg->sisRegs3C4[0x0B] |= 0x60;
-	}
-	else {
-		pReg->sisRegs3C4[0x0B] |= 0x20;
-		pReg->sisRegs3C4[0x0B] &= ~0x40;
-	}
-
-	if (!pSiS->UseVESA) {
-
-		/* Enable 32bit mem access (D7), read-ahead cache (D5) */
-		pReg->sisRegs3C4[0x0C] |= 0x80;
-		if (pSiS->oldChipset > OC_SIS6225) {
-			pReg->sisRegs3C4[0x0C] |= 0x20;
-		}
-
-		/* set colordepth */
-		switch (pSiS->CurrentLayout.bitsPerPixel) {
-		case 8:
-			break;
-		case 16:
-			offset <<= 1;
-			if (pSiS->CurrentLayout.depth == 15)
-				pReg->sisRegs3C4[0x06] |= 0x04;
-			else
-				pReg->sisRegs3C4[0x06] |= 0x08;
-			break;
-		case 24:
-			offset += (offset << 1);
-			pReg->sisRegs3C4[0x06] |= 0x10;
-			pReg->sisRegs3C4[0x0B] |= 0x90;
-			break;
-		case 32:
-			return FALSE;
-			break;
-		}
-	}
-
-	/* From here, this function won't fail, so
-	 * we can start writing things to pSiS.
-	 */
-
-	 /* save screen pitch for acceleration functions */
-	pSiS->scrnOffset = pSiS->CurrentLayout.displayWidth *
-		(pSiS->CurrentLayout.bitsPerPixel >> 3);
-
-	/* Set accelerator dest color depth to 0 - not supported on 530/620 */
-	pSiS->DstColor = 0;
-
-	pSiS->sis6326tvumode = FALSE;
-
-	if (!pSiS->UseVESA) {
-
-		/* set linear framebuffer addresses */
-		switch (pScrn->videoRam) {
-		case 512:  temp = 0x00;  break;
-		case 1024: temp = 0x20;  break;
-		case 2048: temp = 0x40;  break;
-		case 4096: temp = 0x60;  break;
-		case 8192: temp = 0x80;  break;
-		default:   temp = 0x20;
-		}
-		pReg->sisRegs3C4[0x20] = (pSiS->FbAddress & 0x07F80000) >> 19;
-		pReg->sisRegs3C4[0x21] = ((pSiS->FbAddress & 0xF8000000) >> 27) | temp;
-
-		/* Set screen offset */
-		pReg->sisRegs3D4[0x13] = offset & 0xFF;
-
-		/* Set CR registers for our built-in TV and hi-res modes */
-		if ((sis6326tvmode) || (sis6326himode)) {
-
-			int index, i;
-
-			/* We need our very private data for hi-res and TV modes */
-			if (sis6326himode) {
-				if (strcmp(mode->name, "SIS1280x1024-75") == 0)
-					index = 7;
-				else
-					index = 8;
-			}
-			else {
-				if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-					switch (width) {
-					case 800:
-						if ((strcmp(mode->name, "PAL800x600U") == 0)) {
-							index = 4;
-							pSiS->sis6326tvumode = TRUE;
-						}
-						else
-							index = 0;
-						break;
-					case 720:
-						index = 5;
-						break;
-					case 640:
-					default:
-						index = 1;
-					}
-				}
-				else {
-					switch (height) {
-					case 400:
-						index = 3;
-						break;
-					case 480:
-					default:
-						if ((strcmp(mode->name, "NTSC640x480U") == 0)) {
-							index = 6;
-							pSiS->sis6326tvumode = TRUE;
-						}
-						else
-							index = 2;
-					}
-				}
-			}
-			for (i = 0; i <= 5; i++) {
-				pReg->sisRegs3D4[i] = SiS6326CR[index][i];
-			}
-			pReg->sisRegs3C4[0x12] = SiS6326CR[index][6];
-			pReg->sisRegs3D4[6] = SiS6326CR[index][7];
-			pReg->sisRegs3D4[7] = SiS6326CR[index][8];
-			pReg->sisRegs3D4[0x10] = SiS6326CR[index][9];
-			pReg->sisRegs3D4[0x11] = SiS6326CR[index][10];
-			pReg->sisRegs3D4[0x12] = SiS6326CR[index][11];
-			pReg->sisRegs3D4[0x15] = SiS6326CR[index][12];
-			pReg->sisRegs3D4[0x16] = SiS6326CR[index][13];
-			pReg->sisRegs3D4[9] &= ~0x20;
-			pReg->sisRegs3D4[9] |= (SiS6326CR[index][14] & 0x20);
-			pReg->sisRegs3C4[0x0A] = ((offset & 0xF00) >> 4) | (SiS6326CR[index][14] & 0x0f);
-
-		}
-		else {
-
-			/* Set extended vertical overflow register */
-			pReg->sisRegs3C4[0x0A] = (
-				((offset & 0xF00) >> 4) |
-				(((mode->CrtcVTotal - 2) & 0x400) >> 10) |
-				(((mode->CrtcVDisplay - 1) & 0x400) >> 9) |
-				(((mode->CrtcVBlankStart - 1) & 0x400) >> 8) |
-				(((mode->CrtcVSyncStart - fixsync) & 0x400) >> 7));
-
-			/* Set extended horizontal overflow register */
-			pReg->sisRegs3C4[0x12] &= 0xE0;
-			pReg->sisRegs3C4[0x12] |= (
-				((((mode->CrtcHTotal >> 3) - 5) & 0x100) >> 8) |
-				((((mode->CrtcHDisplay >> 3) - 1) & 0x100) >> 7) |
-				((((mode->CrtcHBlankStart >> 3) - 1) & 0x100) >> 6) |
-				((((mode->CrtcHSyncStart >> 3) - fixsync) & 0x100) >> 5) |
-				((((mode->CrtcHBlankEnd >> 3) - 1) & 0x40) >> 2));
-		}
-
-		/* enable (or disable) line compare */
-		if (mode->CrtcVDisplay >= 1024)
-			pReg->sisRegs3C4[0x38] |= 0x04;
-		else
-			pReg->sisRegs3C4[0x38] &= 0xFB;
-
-		/* We use the internal VCLK */
-		pReg->sisRegs3C4[0x38] &= 0xFC;
-
-		/* Programmable Clock */
-		pReg->sisRegs3C2 = inSISREG(SISMISCR) | 0x0C;
-
-#if 0
-		if (pSiS->oldChipset <= OC_SIS86202) {
-			/* TODO: Handle SR07 for clock selection */
-			/* 86C201 does not even have a programmable clock... */
-			/* pReg->sisRegs3C4[0x07] &= 0x??; */
-		}
-#endif
-
-		/* Set VCLK */
-		if ((sis6326tvmode) || (sis6326himode)) {
-
-			/* For our built-in modes, the calculation is not suitable */
-			if (sis6326himode) {
-				if ((strcmp(mode->name, "SIS1280x1024-75") == 0)) {
-					pReg->sisRegs3C4[0x2A] = 0x5d;	/* 1280x1024-75 */
-					pReg->sisRegs3C4[0x2B] = 0xa4;
-				}
-				else {
-					pReg->sisRegs3C4[0x2A] = 0x59;	/* 1600x1200-60 */
-					pReg->sisRegs3C4[0x2B] = 0xa3;
-				}
-				pReg->sisRegs3C4[0x13] &= ~0x40;
-			}
-			else {
-				if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-					/* PAL: 31.500 Mhz */
-					if ((strcmp(mode->name, "PAL800x600U") == 0)) {
-						pReg->sisRegs3C4[0x2A] = 0x46;
-						pReg->sisRegs3C4[0x2B] = 0x49;
-					}
-					else {
-						pReg->sisRegs3C4[0x2A] = 0xab;
-						pReg->sisRegs3C4[0x2B] = 0xe9;
-					}
-					pReg->sisRegs3C4[0x13] &= ~0x40;
-				}
-				else {
-					/* NTSC: 27.000 Mhz */
-					if ((strcmp(mode->name, "NTSC640x480U") == 0)) {
-						pReg->sisRegs3C4[0x2A] = 0x5a;
-						pReg->sisRegs3C4[0x2B] = 0x65;
-					}
-					else {
-						pReg->sisRegs3C4[0x2A] = 0x29;
-						pReg->sisRegs3C4[0x2B] = 0xe2;
-					}
-					pReg->sisRegs3C4[0x13] |= 0x40;
-				}
-			}
-
-		}
-		else if (SiS_compute_vclk(clock, &num, &denum, &div, &sbit, &scale)) {
-
-			pReg->sisRegs3C4[0x2A] = (num - 1) & 0x7f;
-			pReg->sisRegs3C4[0x2A] |= (div == 2) ? 0x80 : 0;
-			pReg->sisRegs3C4[0x2B] = ((denum - 1) & 0x1f);
-			pReg->sisRegs3C4[0x2B] |= (((scale - 1) & 3) << 5);
-
-			/* When setting VCLK, we should set SR13 first */
-			if (sbit)
-				pReg->sisRegs3C4[0x13] |= 0x40;
-			else
-				pReg->sisRegs3C4[0x13] &= 0xBF;
-
-#ifdef TWDEBUG
-			xf86DrvMsg(0, X_INFO, "2a: %x 2b: %x 13: %x clock %d\n",
-				pReg->sisRegs3C4[0x2A], pReg->sisRegs3C4[0x2B], pReg->sisRegs3C4[0x13], clock);
-#endif
-
-		}
-		else {
-
-			/* if SiS_compute_vclk cannot handle the requested clock, try sisCalcClock */
-			SiSCalcClock(pScrn, clock, 2, vclk);
-
-			pReg->sisRegs3C4[0x2A] = (vclk[SIS_VCLK_Midx] - 1) & 0x7f;
-			pReg->sisRegs3C4[0x2A] |= ((vclk[SIS_VCLK_VLDidx] == 2) ? 1 : 0) << 7;
-
-			/* D[4:0]: denumerator */
-			pReg->sisRegs3C4[0x2B] = (vclk[SIS_VCLK_Nidx] - 1) & 0x1f;
-
-			if (vclk[SIS_VCLK_Pidx] <= 4) {
-				/* postscale 1,2,3,4 */
-				pReg->sisRegs3C4[0x2B] |= (vclk[SIS_VCLK_Pidx] - 1) << 5;
-				pReg->sisRegs3C4[0x13] &= 0xBF;
-			}
-			else {
-				/* postscale 6,8 */
-				pReg->sisRegs3C4[0x2B] |= ((vclk[SIS_VCLK_Pidx] / 2) - 1) << 5;
-				pReg->sisRegs3C4[0x13] |= 0x40;
-			}
-			pReg->sisRegs3C4[0x2B] |= 0x80;   /* gain for high frequency */
-
-		}
-
-		/* High speed DAC */
-		if (clock > 135000)
-			pReg->sisRegs3C4[0x07] |= 0x02;
-
-		if (pSiS->oldChipset > OC_SIS6225) {
-			/* 1 or 2 cycle DRAM (set by option FastVram) */
-			if (pSiS->newFastVram == -1) {
-				if (pSiS->oldChipset == OC_SIS620) {
-					/* Use different default on the 620 */
-					pReg->sisRegs3C4[0x34] |= 0x40;
-					pReg->sisRegs3C4[0x34] &= ~0x80;
-				}
-				else {
-					pReg->sisRegs3C4[0x34] |= 0x80;
-					pReg->sisRegs3C4[0x34] &= ~0x40;
-				}
-			}
-			else if (pSiS->newFastVram == 1)
-				pReg->sisRegs3C4[0x34] |= 0xC0;
-			else
-				pReg->sisRegs3C4[0x34] &= ~0xC0;
-
-			if (pSiS->oldChipset == OC_SIS620) {
-				/* Enable SGRAM burst timing (= bit clear) on the 620 */
-				if (pSiS->Flags & SYNCDRAM) {
-					pReg->sisRegs3C4[0x35] &= ~0x20;
-				}
-				else {
-					pReg->sisRegs3C4[0x35] |= 0x20;
-				}
-			}
-		}
-
-	} /* VESA */
-
-	/* Logical line length */
-	pSiS->ValidWidth = TRUE;
-	pReg->sisRegs3C4[0x27] &= 0xCF;
-	if (pSiS->CurrentLayout.bitsPerPixel == 24) {
-		/* "Invalid logical width" */
-		pReg->sisRegs3C4[0x27] |= 0x30;
-		pSiS->ValidWidth = FALSE;
-	}
-	else {
-		switch (pScrn->virtualX * (pSiS->CurrentLayout.bitsPerPixel >> 3)) {
-		case 1024:
-			pReg->sisRegs3C4[0x27] |= 0x00;
-			break;
-		case 2048:
-			pReg->sisRegs3C4[0x27] |= 0x10;
-			break;
-		case 4096:
-			pReg->sisRegs3C4[0x27] |= 0x20;
-			break;
-		default:
-			/* Invalid logical width */
-			pReg->sisRegs3C4[0x27] |= 0x30;
-			pSiS->ValidWidth = FALSE;
-			break;
-		}
-	}
-
-	/* Acceleration stuff */
-	if (!pSiS->NoAccel) {
-		pReg->sisRegs3C4[0x27] |= 0x40;   /* Enable engine programming registers */
-		pReg->sisRegs3C4[0x27] &= 0x7F;
-	}
-
-
-	if (!pSiS->UseVESA) {
-		/* Set threshold values */
-		/*
-		 * CPU/CRT Threshold:                     FIFO
-		 *                           MCLK     ___________      VCLK
-		 * cpu/engine <---o       o--------->|___________| -----------> CRT
-		 *                ^       ^            ^       ^
-		 *                 \     /             |       |
-		 *                  \   /              |< gap >|
-		 *                   \ /               |       |
-		 *           selector switch   Thrsh. low     high
-		 *
-		 * CRT consumes the data in the FIFO during scanline display. When the
-		 * amount of data in the FIFO reaches the Threshold low value, the selector
-		 * switch will switch to the right, and the FIFO will be refilled with data.
-		 * When the amount of data in the FIFO reaches the Threshold high value, the
-		 * selector switch will switch to the left and allows the CPU and the chip
-		 * engines to access the video RAM.
-		 *
-		 * The Threshold low values should be increased at higher bpps, simply because
-		 * there is more data needed for the CRT. When Threshold low and high are very
-		 * close to each other, the selector switch will be activated more often, which
-		 * decreases performance.
-		 *
-		 */
-		factor = (pScrn->videoRam > 1024) ? 24 : 12;
-		a = width * height * rate * 1.40 * factor * ((pSiS->CurrentLayout.bitsPerPixel + 1) / 8);
-		b = (mclk / 1000) * 999488.0 * (buswidth / 8);
-		c = ((a / b) + 1.0) / 2;
-		d = (int)c + 2;
-
-		CRT_CPUthresholdLow = d;
-		if ((pSiS->Flags & (RAMFLAG | SYNCDRAM)) == (RAMFLAG | SYNCDRAM)) {
-			CRT_CPUthresholdLow += 2;
-		}
-		CRT_CPUthresholdHigh = CRT_CPUthresholdLow + 3;
-
-		CRT_ENGthreshold = 0x0F;
-
-		if (CRT_CPUthresholdLow > 0x0f)  CRT_CPUthresholdLow = 0x0f;
-		if (CRT_CPUthresholdHigh > 0x0f) CRT_CPUthresholdHigh = 0x0f;
-
-		pReg->sisRegs3C4[0x08] = ((CRT_CPUthresholdLow & 0x0F) << 4) |
-			(CRT_ENGthreshold & 0x0F);
-
-		pReg->sisRegs3C4[0x09] &= 0xF0;
-		pReg->sisRegs3C4[0x09] |= (CRT_CPUthresholdHigh & 0x0F);
-
-		pReg->sisRegs3C4[0x3F] &= 0xEB;
-		pReg->sisRegs3C4[0x3F] |= ((CRT_CPUthresholdHigh & 0x10) |
-			((CRT_CPUthresholdLow & 0x10) >> 2));
-
-		if (pSiS->oldChipset >= OC_SIS530A) {
-			pReg->sisRegs3C4[0x3F] &= 0xDF;
-			pReg->sisRegs3C4[0x3F] |= 0x58;
-		}
-
-	} /* VESA */
-
-	return TRUE;
-}
-
 /* Reset screen pitch (for display hardware, not
  * for accelerator engines)
  * pSiS->scrnOffset is constant throughout
@@ -689,24 +236,12 @@ SISNewInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 	if (!pSiS->NoAccel) {
 		pReg->sisRegs3C4[0x1E] |= 0x42;  /* Enable 2D accelerator */
 		pReg->sisRegs3C4[0x1E] |= 0x18;  /* Enable 3D accelerator */
-		switch (pSiS->VGAEngine) {
-		case SIS_300_VGA:
-			if (pSiS->TurboQueue) {    		/* set Turbo Queue as 512k */
-				temp = ((pScrn->videoRam / 64) - 8);    /* 8=512k, 4=256k, 2=128k, 1=64k */
-				pReg->sisRegs3C4[0x26] = temp & 0xFF;
-				pReg->sisRegs3C4[0x27] =
-					(pReg->sisRegs3C4[0x27] & 0xfc) | (((temp >> 8) & 3) | 0xF0);
-			}	/* line above new for saving D2&3 of status register */
-			break;
-		case SIS_315_VGA:
 #ifndef SISVRAMQ
-			/* See comments in sis_driver.c */
-			pReg->sisRegs3C4[0x27] = 0x1F;
-			pReg->sisRegs3C4[0x26] = 0x22;
-			pReg->sisMMIO85C0 = (pScrn->videoRam - 512) * 1024;
+		/* See comments in sis_driver.c */
+		pReg->sisRegs3C4[0x27] = 0x1F;
+		pReg->sisRegs3C4[0x26] = 0x22;
+		pReg->sisMMIO85C0 = (pScrn->videoRam - 512) * 1024;
 #endif
-			break;
-		}
 	}
 
 	return TRUE;
@@ -833,21 +368,11 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 	"307LV"		/* 9 */
 	};
 
-	switch (pSiS->VGAEngine) {
-	case SIS_300_VGA:
-	case SIS_315_VGA:
-		pSiS->ModeInit = SISNewInit;
-		break;
-	default:
-		pSiS->ModeInit = SISOldInit;
-	}
+	pSiS->ModeInit = SISNewInit;
 
 	pSiS->VBFlags = pSiS->VBFlags2 = pSiS->VBFlags3 = pSiS->VBFlags4 = 0;
 	pSiS->SiS_Pr->SiS_UseLCDA = FALSE;
 	pSiS->SiS_Pr->Backup = FALSE;
-
-	if ((pSiS->VGAEngine != SIS_300_VGA) && (pSiS->VGAEngine != SIS_315_VGA))
-		return;
 
 	inSISIDXREG(SISPART4, 0x00, temp);
 	temp &= 0x0F;
@@ -969,20 +494,12 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 			inSISIDXREG(SISCR, 0x37, temp);
 			temp = (temp >> 1) & 0x07;
 		}
-		if (pSiS->VGAEngine == SIS_300_VGA) {
-			lowerlimitlvds = 2; upperlimitlvds = 4;
-			lowerlimitch = 4; upperlimitch = 5;
-			chronteltype = 1;   chrontelidreg = 0x25;
-			upperlimitvb = upperlimitlvds;
-		}
-		else {
-			lowerlimitlvds = 2; upperlimitlvds = 3;
-			lowerlimitch = 3; upperlimitch = 3;
-			chronteltype = 2;   chrontelidreg = 0x4b;
-			upperlimitvb = upperlimitlvds;
-			if (pSiS->NewCRLayout) {
-				upperlimitvb = 4;
-			}
+		lowerlimitlvds = 2; upperlimitlvds = 3;
+		lowerlimitch = 3; upperlimitch = 3;
+		chronteltype = 2;   chrontelidreg = 0x4b;
+		upperlimitvb = upperlimitlvds;
+		if (pSiS->NewCRLayout) {
+			upperlimitvb = 4;
 		}
 
 		if ((temp >= lowerlimitlvds) && (temp <= upperlimitlvds)) {
@@ -1064,11 +581,6 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
 				"Detected Conexant video bridge - UNSUPPORTED\n");
 		}
-		if ((pSiS->VGAEngine == SIS_300_VGA) && (temp == 3)) {
-			pSiS->VBFlags2 |= VB2_TRUMPION;
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"Detected Trumpion Zurac (I/II/III) LVDS scaler\n");
-		}
 		if (temp > upperlimitvb) {
 			xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 				"Detected unknown bridge type (%d)\n", temp);
@@ -1087,38 +599,6 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 
 #if 0
 	inSISIDXREG(SISSR, 0x17, sr17);
-	if ((pSiS->VGAEngine == SIS_300_VGA) &&
-		(pSiS->Chipset != PCI_CHIP_SIS300) &&
-		(sr17 & 0x0F)) {
-
-		UChar cr32;
-		inSISIDXREG(SISCR, 0x32, cr32);
-
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			"Converting SR17 (%02x) to CR32 (%02x)\n", sr17, cr32);
-
-		if (sr17 & 0x01) {  	/* CRT1 */
-			orSISIDXREG(SISCR, 0x32, 0x20);
-			pSiS->postVBCR32 |= 0x20;
-		}
-		else {
-			andSISIDXREG(SISCR, 0x32, ~0x20);
-			pSiS->postVBCR32 &= ~0x20;
-		}
-
-		if (sr17 & 0x02) {	/* LCD */
-			orSISIDXREG(SISCR, 0x32, 0x08);
-			pSiS->postVBCR32 |= 0x08;
-		}
-		else {
-			andSISIDXREG(SISCR, 0x32, ~0x08);
-			pSiS->postVBCR32 &= ~0x08;
-		}
-
-		/* No Hivision, no DVI here */
-		andSISIDXREG(SISCR, 0x32, ~0xc0);
-		pSiS->postVBCR32 &= ~0xc0;
-	}
 #endif
 
 	/* Try to find out if the BIOS uses LCDA for low resolution and

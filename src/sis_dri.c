@@ -312,15 +312,7 @@ SISDRIScreenInit(ScreenPtr pScreen)
 	pSIS->pDRIInfo = pDRIInfo;
 
 	pDRIInfo->drmDriverName = SISKernelDriverName;
-	if (pSIS->VGAEngine == SIS_300_VGA) {
-		pDRIInfo->clientDriverName = SISClientDriverNameSiS300;
-	}
-	else {
-		if (pSIS->Chipset == PCI_CHIP_SIS671)
-			pDRIInfo->clientDriverName = SISClientDriverNameSiS671;
-		else
-			pDRIInfo->clientDriverName = SISClientDriverNameSiS315;
-	}
+	pDRIInfo->clientDriverName = SISClientDriverNameSiS671;
 
 #ifdef SISHAVECREATEBUSID
 	if (xf86LoaderCheckSymbol("DRICreatePCIBusID")) {
@@ -487,18 +479,11 @@ SISDRIScreenInit(ScreenPtr pScreen)
 			break;
 		}
 
-		switch (pSIS->VGAEngine) {
 #ifdef SIS315DRI
-		case SIS_315_VGA:
 			/* Default to 1X agp mode in SIS315 */
 			agpmodemask = ~0x00000002;
 			break;
 #endif
-		case SIS_300_VGA:
-			/* TODO: default value is 2x? */
-			agpmodemask = ~0x0;
-			break;
-		}
 
 		if (drmAgpEnable(pSIS->drmSubFD, drmAgpGetMode(pSIS->drmSubFD) & agpmodemask) < 0) {
 			xf86DrvMsg(pScreen->myNum, X_ERROR, "[drm] Failed to enable AGP, AGP disabled\n");
@@ -594,53 +579,28 @@ SISDRIScreenInit(ScreenPtr pScreen)
 			break;
 		}
 
-		switch (pSIS->VGAEngine) {
 #ifdef SIS315DRI
-		case SIS_315_VGA:
-			pSIS->agpVtxBufSize = AGP_VTXBUF_SIZE; /* = 2MB */
-			pSIS->agpVtxBufAddr = pSIS->agpAddr;
-			pSIS->agpVtxBufBase = pSIS->agpVtxBufAddr - pSIS->agpAddr + pSIS->agpBase;
-			pSIS->agpVtxBufFree = 0;
+		pSIS->agpVtxBufSize = AGP_VTXBUF_SIZE; /* = 2MB */
+		pSIS->agpVtxBufAddr = pSIS->agpAddr;
+		pSIS->agpVtxBufBase = pSIS->agpVtxBufAddr - pSIS->agpAddr + pSIS->agpBase;
+		pSIS->agpVtxBufFree = 0;
 
-			pSISDRI->AGPVtxBufOffset = pSIS->agpVtxBufAddr - pSIS->agpAddr;
-			pSISDRI->AGPVtxBufSize = pSIS->agpVtxBufSize;
-
-#ifndef SISHAVEDRMWRITE
-			drmSiSAgpInit(pSIS->drmSubFD, AGP_VTXBUF_SIZE, (pSIS->agpSize - AGP_VTXBUF_SIZE));
-#else
-			{
-				drm_sis_agp_t agp;
-
-				agp.offset = AGP_VTXBUF_SIZE;
-				agp.size = pSIS->agpSize - AGP_VTXBUF_SIZE;
-				drmCommandWrite(pSIS->drmSubFD, DRM_SIS_AGP_INIT, &agp, sizeof(agp));
-			}
-
-#endif
-			break;
-#endif
-		case SIS_300_VGA:
-			pSIS->agpCmdBufSize = AGP_CMDBUF_SIZE;
-			pSIS->agpCmdBufAddr = pSIS->agpAddr;
-			pSIS->agpCmdBufBase = pSIS->agpCmdBufAddr - pSIS->agpAddr + pSIS->agpBase;
-			pSIS->agpCmdBufFree = 0;
-
-			pSISDRI->AGPCmdBufOffset = pSIS->agpCmdBufAddr - pSIS->agpAddr;
-			pSISDRI->AGPCmdBufSize = pSIS->agpCmdBufSize;
+		pSISDRI->AGPVtxBufOffset = pSIS->agpVtxBufAddr - pSIS->agpAddr;
+		pSISDRI->AGPVtxBufSize = pSIS->agpVtxBufSize;
 
 #ifndef SISHAVEDRMWRITE
-			drmSiSAgpInit(pSIS->drmSubFD, AGP_CMDBUF_SIZE, (pSIS->agpSize - AGP_CMDBUF_SIZE));
+		drmSiSAgpInit(pSIS->drmSubFD, AGP_VTXBUF_SIZE, (pSIS->agpSize - AGP_VTXBUF_SIZE));
 #else
-			{
-				drm_sis_agp_t agp;
+		{
+			drm_sis_agp_t agp;
 
-				agp.offset = AGP_CMDBUF_SIZE;
-				agp.size = pSIS->agpSize - AGP_CMDBUF_SIZE;
-				drmCommandWrite(pSIS->drmSubFD, DRM_SIS_AGP_INIT, &agp, sizeof(agp));
-			}
-#endif
-			break;
+			agp.offset = AGP_VTXBUF_SIZE;
+			agp.size = pSIS->agpSize - AGP_VTXBUF_SIZE;
+			drmCommandWrite(pSIS->drmSubFD, DRM_SIS_AGP_INIT, &agp, sizeof(agp));
 		}
+
+#endif
+#endif
 	} while (0);
 
 	/* Eventually grab and enable IRQ */
@@ -675,56 +635,40 @@ SISDRIScreenInit(ScreenPtr pScreen)
 	*/
 	pSIS->numSurfaces = 0;
 	pSIS->MC_AgpAllocHandle = 0;
-	switch (pSIS->ChipType) {
-	case SIS_741:
-	case SIS_662:
-	case SIS_671:
-		pSIS->numSurfaces = 6;
-		break;
-	default:
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO, "[MC] Sorry, we don't support XvMC on this chip.\n");
-		break;
-	}
-	if (pSIS->numSurfaces) {
-		drm_handle_t agpHandle;
-		pSIS->MC_AgpAlloc.Start = pSIS->agpWantedSize;
-		if (pSIS->numSurfaces == 6) {
-			pSIS->MC_AgpAlloc.Size = 7 * 1024 * 1024 + 4096;
-			/*pSIS->MC.Start = pSIS->FbMapSize - 7 * 1024 * 1024*/;
-		}
-		if (pSIS->numSurfaces == 8) {
-			pSIS->MC_AgpAlloc.Size = 9 * 1024 * 1024 + 4096;
-			/*pSIS->MC.Start = pSIS->FbMapSize - 8 * 1024 * 1024 */;
-		}
-		drmAgpAlloc(pSIS->drmSubFD, pSIS->MC_AgpAlloc.Size, 0, &pSIS->MC_AgpAlloc.Start,
-			(drmAddress)& agpHandle);
+	pSIS->numSurfaces = 6;
 
-		pSIS->MC_AgpAllocHandle = agpHandle;
+	drm_handle_t agpHandle;
+	pSIS->MC_AgpAlloc.Start = pSIS->agpWantedSize;
+	pSIS->MC_AgpAlloc.Size = 7 * 1024 * 1024 + 4096;
+	/*pSIS->MC.Start = pSIS->FbMapSize - 7 * 1024 * 1024*/;
+	drmAgpAlloc(pSIS->drmSubFD, pSIS->MC_AgpAlloc.Size, 0, &pSIS->MC_AgpAlloc.Start,
+		(drmAddress)& agpHandle);
 
-		if (agpHandle != DRM_AGP_NO_HANDLE) {
-			if (drmAgpBind(pSIS->drmSubFD, agpHandle, pSIS->agpWantedSize) == 0) {
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"[MC] GART: Allocated %dKB for HWMC\n", (pSIS->MC_AgpAlloc.Size / 1024));
-				pSIS->MC_AgpAlloc.End = pSIS->MC_AgpAlloc.Start + pSIS->MC_AgpAlloc.Size;
-				pSIS->MC_AgpAlloc.DRM_Success = TRUE; /* Karma@080304 Check DRM Enbale */
-			}
-			else {
-				xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "[MC] GART: HWMC bind failed\n");
-				pSIS->MC_AgpAlloc.Start = 0;
-				pSIS->MC_AgpAlloc.Size = 0;
-				pSIS->MC_AgpAlloc.End = 0;
-				pSIS->MC_AgpAlloc.DRM_Success = FALSE; /* Karma@080304 Check DRM Enbale */
-			}
+	pSIS->MC_AgpAllocHandle = agpHandle;
+
+	if (agpHandle != DRM_AGP_NO_HANDLE) {
+		if (drmAgpBind(pSIS->drmSubFD, agpHandle, pSIS->agpWantedSize) == 0) {
+			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
+				"[MC] GART: Allocated %dKB for HWMC\n", (pSIS->MC_AgpAlloc.Size / 1024));
+			pSIS->MC_AgpAlloc.End = pSIS->MC_AgpAlloc.Start + pSIS->MC_AgpAlloc.Size;
+			pSIS->MC_AgpAlloc.DRM_Success = TRUE; /* Karma@080304 Check DRM Enbale */
 		}
 		else {
-			xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "[MC] GART: HWMC alloc failed\n");
+			xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "[MC] GART: HWMC bind failed\n");
 			pSIS->MC_AgpAlloc.Start = 0;
 			pSIS->MC_AgpAlloc.Size = 0;
 			pSIS->MC_AgpAlloc.End = 0;
 			pSIS->MC_AgpAlloc.DRM_Success = FALSE; /* Karma@080304 Check DRM Enbale */
 		}
-		pSIS->xvmcContext = 0;
 	}
+	else {
+		xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "[MC] GART: HWMC alloc failed\n");
+		pSIS->MC_AgpAlloc.Start = 0;
+		pSIS->MC_AgpAlloc.Size = 0;
+		pSIS->MC_AgpAlloc.End = 0;
+		pSIS->MC_AgpAlloc.DRM_Success = FALSE; /* Karma@080304 Check DRM Enbale */
+	}
+	pSIS->xvmcContext = 0;
 #endif
 
 	if (!(SISInitVisualConfigs(pScreen))) {
@@ -781,35 +725,15 @@ SISDRIFinishScreenInit(ScreenPtr pScreen)
 		saPriv->CtxOwner = -1;
 		CmdQ_Lock = &(saPriv->CmdQ_Lock);
 
-		switch (pSiS->VGAEngine) {
-
 #ifdef SIS315DRI
-		case SIS_315_VGA:
-			saPriv->AGPVtxBufNext = 0;
+		saPriv->AGPVtxBufNext = 0;
 
-			saPriv->QueueLength = pSiS->cmdQueueSize;
-			saPriv->sharedWPoffset = *(pSiS->cmdQ_SharedWritePort);
-			saPriv->agpCmdBufWriteOffset = 0xFFFFFFFF;
-			pSiS->cmdQ_SharedWritePortBackup = pSiS->cmdQ_SharedWritePort;
-			pSiS->cmdQ_SharedWritePort = &(saPriv->sharedWPoffset);
-
-			break;
+		saPriv->QueueLength = pSiS->cmdQueueSize;
+		saPriv->sharedWPoffset = *(pSiS->cmdQ_SharedWritePort);
+		saPriv->agpCmdBufWriteOffset = 0xFFFFFFFF;
+		pSiS->cmdQ_SharedWritePortBackup = pSiS->cmdQ_SharedWritePort;
+		pSiS->cmdQ_SharedWritePort = &(saPriv->sharedWPoffset);
 #endif
-
-		case SIS_300_VGA:
-			saPriv->AGPCmdBufNext = 0;
-
-			/* Delegate our shared pointer to current queue length */
-			saPriv->QueueLength = *(pSiS->cmdQueueLenPtr);
-			pSiS->cmdQueueLenPtrBackup = pSiS->cmdQueueLenPtr;
-			pSiS->cmdQueueLenPtr = &(saPriv->QueueLength);
-
-			/* frame control */
-			saPriv->FrameCount = 0;
-			*(CARD32*)(pSiS->IOBase + 0x8a2c) = 0;
-			SiSIdle
-				break;
-		}
 	}
 
 	return DRIFinishScreenInit(pScreen);
@@ -821,25 +745,14 @@ SISDRICloseScreen(ScreenPtr pScreen)
 	ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 	SISPtr pSIS = SISPTR(pScrn);
 
-	switch (pSIS->VGAEngine) {
 #ifdef SIS315DRI
-	case SIS_315_VGA:
-		if (pSIS->cmdQ_SharedWritePortBackup) {
-			/* Re-instate our shared offset to current queue position */
-			pSIS->cmdQ_SharedWritePort_2D = *(pSIS->cmdQ_SharedWritePort);
-			pSIS->cmdQ_SharedWritePort = pSIS->cmdQ_SharedWritePortBackup;
-			pSIS->cmdQ_SharedWritePortBackup = 0;
-		}
-		break;
-#endif
-	case SIS_300_VGA:
-		if (pSIS->cmdQueueLenPtrBackup) {
-			/* Re-instate our shared pointer to current queue length */
-			pSIS->cmdQueueLenPtr = pSIS->cmdQueueLenPtrBackup;
-			*(pSIS->cmdQueueLenPtr) = 0;
-		}
-		break;
+	if (pSIS->cmdQ_SharedWritePortBackup) {
+		/* Re-instate our shared offset to current queue position */
+		pSIS->cmdQ_SharedWritePort_2D = *(pSIS->cmdQ_SharedWritePort);
+		pSIS->cmdQ_SharedWritePort = pSIS->cmdQ_SharedWritePortBackup;
+		pSIS->cmdQ_SharedWritePortBackup = 0;
 	}
+#endif
 
 	if (pSIS->irqEnabled) {
 		xf86DrvMsg(pScreen->myNum, X_INFO, "[drm] Removing IRQ handler\n");
@@ -932,17 +845,9 @@ SISDRISwapContext(ScreenPtr pScreen, DRISyncType syncType,
 	 * TODO: do this only if X-Server get lock. If kernel supports delayed
 	 * signal, needless to do this
 	 */
-	switch (pSiS->VGAEngine) {
 #ifdef SIS315DRI
-	case SIS_315_VGA:
-		/* ? */
-		break;
+	/* ? */
 #endif
-	case SIS_300_VGA:
-		*(pSiS->IOBase + 0x8B50) = 0xff;
-		*(CARD32*)(pSiS->IOBase + 0x8B60) = 0xffffffff;
-		break;
-	}
 }
 
 static void
@@ -952,16 +857,9 @@ SISDRIInitBuffers(WindowPtr pWin, RegionPtr prgn, CARD32 index)
 	ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 	SISPtr pSiS = SISPTR(pScrn);
 
-	switch (pSiS->VGAEngine) {
 #ifdef SIS315DRI
-	case SIS_315_VGA:
-		SiS315Idle
-			break;
+	SiS315Idle
 #endif
-	case SIS_300_VGA:
-		SiSIdle
-			break;
-	}
 }
 
 static void
@@ -972,16 +870,9 @@ SISDRIMoveBuffers(WindowPtr pParent, DDXPointRec ptOldOrg,
 	ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 	SISPtr pSiS = SISPTR(pScrn);
 
-	switch (pSiS->VGAEngine) {
 #ifdef SIS315DRI
-	case SIS_315_VGA:
-		SiS315Idle
-			break;
+	SiS315Idle
 #endif
-	case SIS_300_VGA:
-		SiSIdle
-			break;
-	}
 }
 
 #if 0

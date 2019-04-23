@@ -186,79 +186,6 @@ static int sisESSPresent(ScrnInfoPtr pScrn)
 	return flags;
 }
 
-
-
-/* For old chipsets, 5597, 6326, 530/620 */
-static void
-sisOldSetup(ScrnInfoPtr pScrn)
-{
-	SISPtr pSiS = SISPTR(pScrn);
-	int    ramsize[8] = { 1,  2,  4, 0, 0,  2,  4,  8 };
-	int    buswidth[8] = { 32, 64, 64, 0, 0, 32, 32, 64 };
-	int    clockTable[4] = { 66, 75, 83, 100 };
-	int    ramtype[4] = { 5, 0, 1, 3 };
-	int    config, temp, i;
-	UChar  sr23, sr33, sr37;
-#if 0
-	UChar  newsr13, newsr28, newsr29;
-#endif
-
-
-	if (pSiS->oldChipset <= OC_SIS6225) {
-		inSISIDXREG(SISSR, 0x0F, temp);
-		pScrn->videoRam = (1 << (temp & 0x03)) * 1024;
-		if (pScrn->videoRam > 4096) pScrn->videoRam = 4096;
-		pSiS->BusWidth = 32;
-	}
-	else {
-		inSISIDXREG(SISSR, 0x0C, temp);
-		config = ((temp & 0x10) >> 2) | ((temp & 0x06) >> 1);
-		pScrn->videoRam = ramsize[config] * 1024;
-		pSiS->BusWidth = buswidth[config];
-	}
-
-	pSiS->MemClock = SiSMclk(pSiS);
-
-	pSiS->Flags &= ~(SYNCDRAM | RAMFLAG);
-	if (pSiS->oldChipset >= OC_SIS82204) {
-		inSISIDXREG(SISSR, 0x23, sr23);
-		inSISIDXREG(SISSR, 0x33, sr33);
-		if (pSiS->oldChipset >= OC_SIS530A) sr33 &= ~0x08;
-		if (sr33 & 0x09) {				/* 5597: Sync DRAM timing | One cycle EDO ram;   */
-			pSiS->Flags |= (sr33 & SYNCDRAM);	/* 6326: Enable SGRam timing | One cycle EDO ram */
-			pSiS->Flags |= RAMFLAG;			/* 530:  Enable SGRAM timing | reserved (0)      */
-		}
-		else if ((pSiS->oldChipset < OC_SIS530A) && (sr23 & 0x20)) {
-			pSiS->Flags |= SYNCDRAM;		/* 5597, 6326: EDO DRAM enabled */
-		}						/* 530/620:    reserved (0)     */
-	}
-
-	pSiS->Flags &= ~(ESS137xPRESENT);
-
-	pSiS->Flags &= ~(SECRETFLAG);
-	if (pSiS->oldChipset >= OC_SIS5597) {
-		inSISIDXREG(SISSR, 0x37, sr37);
-		if (sr37 & 0x80) pSiS->Flags |= SECRETFLAG;
-	}
-
-	pSiS->Flags &= ~(A6326REVAB);
-
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"Memory clock: %3.3f MHz\n",
-		pSiS->MemClock / 1000.0);
-
-	if (pSiS->oldChipset > OC_SIS6225) {
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"DRAM bus width: %d bit\n",
-			pSiS->BusWidth);
-	}
-
-#ifdef TWDEBUG
-	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		"oldChipset = %d, Flags %x\n", pSiS->oldChipset, pSiS->Flags);
-#endif
-}
-
 /* For 550, 65x, 740, 661, 741, 660, 760, 761, 670, 770 */
 static void
 sis550Setup(ScrnInfoPtr pScrn)
@@ -390,14 +317,7 @@ SiSSetup(ScrnInfoPtr pScrn)
 	pSiS->SiS76xLFBSize = pSiS->SiS76xUMASize = 0;
 	pSiS->UMAsize = pSiS->LFBsize = 0;
 
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS671: /* 671, 771 */
-		sis550Setup(pScrn);
-		break;
-	default:
-		sisOldSetup(pScrn);
-		break;
-	}
+	sis550Setup(pScrn);
 }
 
 

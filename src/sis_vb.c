@@ -394,11 +394,6 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 
 	if (pSiS->VBFlags & CRT2_LCD) {
 		inSISIDXREG(SISCR, 0x36, CR36);
-		if (pSiS->VGAEngine == SIS_300_VGA) {
-			if (pSiS->VBFlags2 & VB2_301) {
-				if ((CR36 & 0x0f) < 0x0f) CR36 &= 0xf7;
-			}
-		}
 		if (pSiS->PRGB != -1) {
 			tmp = 0x37;
 			if ((pSiS->VGAEngine == SIS_315_VGA) &&
@@ -495,14 +490,6 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 						return;
 					}
 				}
-				else if (pSiS->VGAEngine == SIS_300_VGA) {
-					xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-						"BIOS provided invalid panel size, assuming 1024x768, RGB18\n");
-					setSISIDXREG(SISCR, 0x36, 0xf0, 0x02);
-					setSISIDXREG(SISCR, 0x37, 0xee, 0x01);
-					CR36 = 0x02;
-					inSISIDXREG(SISCR, 0x37, CR37);
-				}
 			}
 			/*1366x768x60Hz,jump out VB_LCD_CUSTOM, we must clean current CR36. Ivans@090109*/
 			if (pSiS->EnablePanel_1366x768 && ((CR36 & 0x0f == 0x0f))) {
@@ -521,13 +508,7 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 					(CR37 & 0x01) ? 18 : 24);
 			}
 			else {
-				if (pSiS->VGAEngine == SIS_300_VGA) {
-					pSiS->VBLCDFlags |= SiS300_LCD_Type[(CR36 & 0x0f)].VBLCD_lcdflag;
-					pSiS->LCDheight = SiS300_LCD_Type[(CR36 & 0x0f)].LCDheight;
-					pSiS->LCDwidth = SiS300_LCD_Type[(CR36 & 0x0f)].LCDwidth;
-					if (CR37 & 0x10) pSiS->VBLCDFlags |= VB_LCD_EXPANDING;
-				}
-				else if ((pSiS->ChipType >= SIS_661) || (pSiS->ROM661New)) {
+				if ((pSiS->ChipType >= SIS_661) || (pSiS->ROM661New)) {
 					/*1366x768x60hz. can't refer from CR36. Ivans@090109*/
 					if (pSiS->EnablePanel_1366x768) {
 						pSiS->VBLCDFlags |= SiS661_LCD_Type[(0x10)].VBLCD_lcdflag;
@@ -694,14 +675,7 @@ void SISTVPreInit(ScrnInfoPtr pScrn, Bool quiet)
 		pSiS->VBFlags |= (TV_CHYPBPR525I | TV_NTSC);
 
 	if (pSiS->VBFlags & (TV_SCART | TV_SVIDEO | TV_AVIDEO)) {
-		if (pSiS->VGAEngine == SIS_300_VGA) {
-			/* Should be SR38, but this does not work. */
-			if (SR16 & 0x20)
-				pSiS->VBFlags |= TV_PAL;
-			else
-				pSiS->VBFlags |= TV_NTSC;
-		}
-		else if (pSiS->NewCRLayout) {
+		if (pSiS->NewCRLayout) {
 			if (pSiS->ChipType < SIS_661) {
 				if (SR38 & 0x01) {
 					pSiS->VBFlags |= TV_PAL;
@@ -918,16 +892,7 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 	biosflag = 2;
 
 	if (pSiS->SiS_Pr->UseROM) {
-		if (pSiS->VGAEngine == SIS_300_VGA) {
-			if (pSiS->VBFlags2 & VB2_301) {
-				inSISIDXREG(SISPART4, 0x01, myflag);
-				if (!(myflag & 0x04)) {
-					vga2 = GETROMWORD(0xf8); svhs = GETROMWORD(0xfa); cvbs = GETROMWORD(0xfc);
-				}
-			}
-			biosflag = pSiS->BIOS[0xfe];
-		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS671) {
+		if (pSiS->Chipset == PCI_CHIP_SIS671) {
 			if (pSiS->ROM661New) {
 				biosflag = 2;
 				if (pSiS->ChipType >= SIS_761) {
@@ -2452,7 +2417,7 @@ void SiS_SetTVxposoffset(ScrnInfoPtr pScrn, int val)
 	if (pSiSEnt) pSiSEnt->tvxpos = val;
 #endif
 
-	if (pSiS->VGAEngine == SIS_300_VGA || pSiS->VGAEngine == SIS_315_VGA) {
+	if (pSiS->VGAEngine == SIS_315_VGA) {
 
 		if (pSiS->VBFlags & CRT2_TV) {
 
@@ -2571,7 +2536,7 @@ void SiS_SetTVyposoffset(ScrnInfoPtr pScrn, int val)
 	if (pSiSEnt) pSiSEnt->tvypos = val;
 #endif
 
-	if (pSiS->VGAEngine == SIS_300_VGA || pSiS->VGAEngine == SIS_315_VGA) {
+	if (pSiS->VGAEngine == SIS_315_VGA) {
 
 		if (pSiS->VBFlags & CRT2_TV) {
 
@@ -2678,7 +2643,7 @@ void SiS_SetTVxscale(ScrnInfoPtr pScrn, int val)
 	if (pSiSEnt) pSiSEnt->tvxscale = val;
 #endif
 
-	if (pSiS->VGAEngine == SIS_300_VGA || pSiS->VGAEngine == SIS_315_VGA) {
+	if (pSiS->VGAEngine == SIS_315_VGA) {
 
 		if ((pSiS->VBFlags & CRT2_TV) && (pSiS->VBFlags2 & VB2_SISBRIDGE)) {
 
@@ -2774,7 +2739,7 @@ void SiS_SetTVyscale(ScrnInfoPtr pScrn, int val)
 	if (pSiSEnt) pSiSEnt->tvyscale = val;
 #endif
 
-	if (pSiS->VGAEngine == SIS_300_VGA || pSiS->VGAEngine == SIS_315_VGA) {
+	if (pSiS->VGAEngine == SIS_315_VGA) {
 
 		if ((pSiS->VBFlags & CRT2_TV) && (pSiS->VBFlags2 & VB2_SISBRIDGE)) {
 
@@ -3098,13 +3063,8 @@ void SiS_SetTVyscale(ScrnInfoPtr pScrn, int val)
 				inSISIDXREG(SISPART1, 0x0a, temp1);
 				inSISIDXREG(SISPART1, 0x0c, temp2);
 				vgahde = ((temp2 & 0xf0) << 4) | temp1;
-				if (pSiS->VGAEngine == SIS_300_VGA) {
-					vgahde -= 12;
-				}
-				else {
-					vgahde -= 16;
-					if (hdclk) vgahde <<= 1;
-				}
+				vgahde -= 16;
+				if (hdclk) vgahde <<= 1;
 
 				vgaht = SiSTVVScale[srindex].reg[0];
 				temp1 = vgaht;
@@ -3114,20 +3074,14 @@ void SiS_SetTVyscale(ScrnInfoPtr pScrn, int val)
 				setSISIDXREG(SISPART1, 0x09, 0x0f, ((temp1 >> 4) & 0xf0));
 
 				temp2 = (vgaht - vgahde) >> 2;
-				if (pSiS->VGAEngine == SIS_300_VGA) {
-					temp1 = vgahde + 12 + temp2;
-					temp2 = temp1 + (temp2 << 1);
-				}
-				else {
-					temp1 = vgahde;
-					if (hdclk) {
-						temp1 >>= 1;
-						temp2 >>= 1;
-					}
+				temp1 = vgahde;
+				if (hdclk) {
+					temp1 >>= 1;
 					temp2 >>= 1;
-					temp1 = temp1 + 16 + temp2;
-					temp2 = temp1 + temp2;
 				}
+				temp2 >>= 1;
+				temp1 = temp1 + 16 + temp2;
+				temp2 = temp1 + temp2;
 				outSISIDXREG(SISPART1, 0x0b, (temp1 & 0xff));
 				setSISIDXREG(SISPART1, 0x0c, 0xf0, ((temp1 >> 8) & 0x0f));
 				outSISIDXREG(SISPART1, 0x0d, (temp2 & 0xff));
@@ -3137,7 +3091,7 @@ void SiS_SetTVyscale(ScrnInfoPtr pScrn, int val)
 				if (pSiS->VGAEngine == SIS_315_VGA) temp1--;
 				outSISIDXREG(SISPART1, 0x0e, (temp1 & 0xff));
 				setSISIDXREG(SISPART1, 0x12, 0xf8, ((temp1 >> 8) & 0x07));
-				if ((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->ChipType >= SIS_661)) {
+				if ((pSiS->ChipType >= SIS_661)) {
 					temp1 = (vgavt + SiSTVVScale[srindex].RealVDE) >> 1;
 					temp2 = ((vgavt - SiSTVVScale[srindex].RealVDE) >> 4) + temp1 + 1;
 				}

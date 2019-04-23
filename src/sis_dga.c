@@ -184,11 +184,7 @@ SISSetupDGAMode(
 			currentMode->flags |= DGA_PIXMAP_AVAILABLE;
 		if (!pSiS->NoAccel) {
 			currentMode->flags |= DGA_FILL_RECT | DGA_BLIT_RECT;
-			if ((pSiS->VGAEngine == SIS_300_VGA) ||
-				(pSiS->VGAEngine == SIS_315_VGA) ||
-				(pSiS->VGAEngine == SIS_530_VGA)) {
-				currentMode->flags |= DGA_BLIT_RECT_TRANS;
-			}
+			currentMode->flags |= DGA_BLIT_RECT_TRANS;
 		}
 		if (pMode->Flags & V_DBLSCAN)
 			currentMode->flags |= DGA_DOUBLESCAN;
@@ -289,23 +285,12 @@ SISDGAMakeModes(ScrnInfoPtr pScrn, int* num, Bool quiet)
 			? 0 : pScrn->displayWidth),
 		0xf800, 0x07e0, 0x001f, TrueColor, quiet);
 
-	/* 24 */
-	if ((pSiS->VGAEngine == SIS_530_VGA) || (pSiS->VGAEngine == SIS_OLD_VGA)) {
-		modes = SISSetupDGAMode(pScrn, modes, num, 24, 24,
-			(pScrn->bitsPerPixel == 24),
-			((pScrn->bitsPerPixel != 24)
-				? 0 : pScrn->displayWidth),
-			0xff0000, 0x00ff00, 0x0000ff, TrueColor, quiet);
-	}
-
 	/* 32 */
-	if (pSiS->VGAEngine != SIS_OLD_VGA) {
-		modes = SISSetupDGAMode(pScrn, modes, num, 32, 24,
-			(pScrn->bitsPerPixel == 32),
-			((pScrn->bitsPerPixel != 32)
-				? 0 : pScrn->displayWidth),
-			0xff0000, 0x00ff00, 0x0000ff, TrueColor, quiet);
-	}
+	modes = SISSetupDGAMode(pScrn, modes, num, 32, 24,
+		(pScrn->bitsPerPixel == 32),
+		((pScrn->bitsPerPixel != 32)
+			? 0 : pScrn->displayWidth),
+		0xff0000, 0x00ff00, 0x0000ff, TrueColor, quiet);
 
 	return modes;
 }
@@ -321,14 +306,7 @@ SISDGAInit(ScreenPtr pScreen)
 	pSiS->numDGAModes = num;
 
 	if (num) {
-		if ((pSiS->VGAEngine == SIS_300_VGA) ||
-			(pSiS->VGAEngine == SIS_315_VGA) ||
-			(pSiS->VGAEngine == SIS_530_VGA)) {
-			return DGAInit(pScreen, &SISDGAFuncs3xx, pSiS->DGAModes, num);
-		}
-		else {
-			return DGAInit(pScreen, &SISDGAFuncs, pSiS->DGAModes, num);
-		}
+		return DGAInit(pScreen, &SISDGAFuncs3xx, pSiS->DGAModes, num);
 	}
 	else {
 		xf86DrvMsg(pScrn->scrnIndex, X_WARNING,

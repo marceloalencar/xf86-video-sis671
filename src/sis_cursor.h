@@ -358,14 +358,6 @@
   SIS_MMIO_OUT32(pSiS->IOBase, CS(12), pSiS->HWCursorBackup[12]);
 
 #define sis301SetCursorAddress310(address) \
-  if(pSiS->ChipType == SIS_315H) { \
-     if(address & 0x10000) { \
-        address &= ~0x10000; \
-	orSISIDXREG(SISSR, 0x37, 0x80); \
-     } else { \
-        andSISIDXREG(SISSR, 0x37, 0x7f); \
-     } \
-  } \
   pSiS->HWCursorBackup[8] &= 0xF0F00000; \
   pSiS->HWCursorBackup[8] |= address; \
   SIS_MMIO_OUT32(pSiS->IOBase, CS(8),  pSiS->HWCursorBackup[8]);  \

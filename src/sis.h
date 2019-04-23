@@ -559,26 +559,7 @@ typedef unsigned char  UChar;
 
 /* pSiS->VGAEngine - VGA engine types */
 #define UNKNOWN_VGA 0
-#define SIS_530_VGA 1
-#define SIS_OLD_VGA 2
-#define SIS_300_VGA 3
 #define SIS_315_VGA 4   /* Includes all later chips */
-#define SIS_342_VGA 5   /*671 and 771 version A and B */
-
-/* pSiS->oldChipset */
-#define OC_UNKNOWN   0
-#define OC_SIS86201  1
-#define OC_SIS86202  2
-#define OC_SIS6205A  3
-#define OC_SIS6205B  4
-#define OC_SIS82204  5
-#define OC_SIS6205C  6
-#define OC_SIS6225   7
-#define OC_SIS5597   8
-#define OC_SIS6326   9
-#define OC_SIS530A  11
-#define OC_SIS530B  12 /* 620 in 620-WDR */
-#define OC_SIS620   13
 
 /* Chrontel type */
 #define CHRONTEL_700x 0
@@ -993,7 +974,6 @@ typedef struct {
 	int			ChipRev;
 	int			VGAEngine;	/* see above */
 	CARD32		EngineType3D;
-	int			oldChipset;	/* Type of old chipset */
 	ULong		ChipFlags;
 	ULong		SiS_SD_Flags, SiS_SD2_Flags, SiS_SD3_Flags, SiS_SD4_Flags;
 
@@ -1618,11 +1598,9 @@ extern void  SiSSetup(ScrnInfoPtr pScrn);
 extern void  SISVGAPreInit(ScrnInfoPtr pScrn);
 extern Bool  SiSHWCursorInit(ScreenPtr pScreen);
 extern Bool  SiSAccelInit(ScreenPtr pScreen);
-extern Bool  SiS300AccelInit(ScreenPtr pScreen);
 extern Bool  SiS530AccelInit(ScreenPtr pScreen);
 extern Bool  SiS315AccelInit(ScreenPtr pScreen);
 extern void  SISInitVideo(ScreenPtr pScreen);
-extern void  SIS6326InitVideo(ScreenPtr pScreen);
 extern Bool  SISDGAInit(ScreenPtr pScreen);
 extern Bool  SISDGAReInit(ScrnInfoPtr pScrn);
 

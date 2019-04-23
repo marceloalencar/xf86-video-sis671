@@ -9963,66 +9963,38 @@ SiS_InitDDCRegs(struct SiS_Private* SiS_Pr, unsigned int VBFlags, int VGAEngine,
 	}
 #endif
 
-	if (VGAEngine == SIS_300_VGA) {		/* 300 series */
+	/* here we simplify: 0 = CRT1, 1 = CRT2 (VGA, LCD) */
 
-		if (myadaptnum != 0) {
-			flag = 0;
-			if (VBFlags2 & VB2_SISBRIDGE) {
-				SiS_Pr->SiS_DDC_Port = SiS_Pr->SiS_Part4Port;
-				SiS_Pr->SiS_DDC_Index = 0x0f;
-			}
+	if (VBFlags2 & VB2_SISBRIDGE) {
+		if (myadaptnum == 2) {
+			myadaptnum = 1;
 		}
-
-		if (!(VBFlags2 & VB2_301)) {
-			if ((cr32 & 0x80) && (checkcr32)) {
-				if (myadaptnum >= 1) {
-					if (!(cr32 & 0x08)) {
-						myadaptnum = 1;
-						if (!(cr32 & 0x10)) return 0xFFFF;
-					}
-				}
-			}
-		}
-
-		temp = 4 - (myadaptnum * 2);
-		if (flag) temp = 0;
-
 	}
-	else {						/* 315/330 series */
 
-/* here we simplify: 0 = CRT1, 1 = CRT2 (VGA, LCD) */
-
+	if (myadaptnum == 1) {
+		flag = 0;
 		if (VBFlags2 & VB2_SISBRIDGE) {
-			if (myadaptnum == 2) {
-				myadaptnum = 1;
-			}
+			SiS_Pr->SiS_DDC_Port = SiS_Pr->SiS_Part4Port;
+			SiS_Pr->SiS_DDC_Index = 0x0f;
 		}
-
-		if (myadaptnum == 1) {
-			flag = 0;
-			if (VBFlags2 & VB2_SISBRIDGE) {
-				SiS_Pr->SiS_DDC_Port = SiS_Pr->SiS_Part4Port;
-				SiS_Pr->SiS_DDC_Index = 0x0f;
-			}
-		}
-
-		if ((cr32 & 0x80) && (checkcr32)) {
-			if (myadaptnum >= 1) {
-				if (!(cr32 & 0x08)) {
-					myadaptnum = 1;
-					if (!(cr32 & 0x10)) return 0xFFFF;
-				}
-			}
-		}
-
-		temp = myadaptnum;
-		if (myadaptnum == 1) {
-			temp = 0;
-			if (VBFlags2 & VB2_LVDS) flag = 0xff;
-		}
-
-		if (flag) temp = 0;
 	}
+
+	if ((cr32 & 0x80) && (checkcr32)) {
+		if (myadaptnum >= 1) {
+			if (!(cr32 & 0x08)) {
+				myadaptnum = 1;
+				if (!(cr32 & 0x10)) return 0xFFFF;
+			}
+		}
+	}
+
+	temp = myadaptnum;
+	if (myadaptnum == 1) {
+		temp = 0;
+		if (VBFlags2 & VB2_LVDS) flag = 0xff;
+	}
+
+	if (flag) temp = 0;
 
 	SiS_Pr->SiS_DDC_Data = 0x02 << temp;
 	SiS_Pr->SiS_DDC_Clk = 0x01 << temp;
@@ -10244,14 +10216,6 @@ SiS_HandleDDC(struct SiS_Private* SiS_Pr, unsigned int VBFlags, int VGAEngine,
 
 	sr1f = SiS_GetReg(SiS_Pr->SiS_P3c4, 0x1f);
 	SiS_SetRegANDOR(SiS_Pr->SiS_P3c4, 0x1f, 0x3f, 0x04);
-	if (VGAEngine == SIS_300_VGA) {
-		cr17 = SiS_GetReg(SiS_Pr->SiS_P3d4, 0x17) & 0x80;
-		if (!cr17) {
-			SiS_SetRegOR(SiS_Pr->SiS_P3d4, 0x17, 0x80);
-			SiS_SetReg(SiS_Pr->SiS_P3c4, 0x00, 0x01);
-			SiS_SetReg(SiS_Pr->SiS_P3c4, 0x00, 0x03);
-		}
-	}
 	if ((sr1f) || (!cr17)) {
 		for (result = 0; result < 10; result++) {
 			SiS_WaitRetrace1(SiS_Pr);
@@ -10281,9 +10245,6 @@ SiS_HandleDDC(struct SiS_Private* SiS_Pr, unsigned int VBFlags, int VGAEngine,
 		}
 	}
 	SiS_SetReg(SiS_Pr->SiS_P3c4, 0x1f, sr1f);
-	if (VGAEngine == SIS_300_VGA) {
-		SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x17, 0x7f, cr17);
-	}
 	return result;
 }
 

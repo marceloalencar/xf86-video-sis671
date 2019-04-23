@@ -697,51 +697,28 @@ SiS_GetPanelID(struct SiS_Private* SiS_Pr)
 		0xc199, 0xc0aa, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000
 	};
 
-	if (SiS_Pr->ChipType < SIS_315H) {
 
-		tempbx = SiS_GetReg(SiS_Pr->SiS_P3c4, 0x18);
-		if (!(tempbx & 0x10)) {
-			if (SiS_Pr->SiS_IF_DEF_LVDS == 1) {
-				tempbx = 0;
-				temp = SiS_GetReg(SiS_Pr->SiS_P3c4, 0x38);
-				if (temp & 0x40) tempbx |= 0x08;
-				if (temp & 0x20) tempbx |= 0x02;
-				if (temp & 0x01) tempbx |= 0x01;
-				temp = SiS_GetReg(SiS_Pr->SiS_P3c4, 0x39);
-				if (temp & 0x80) tempbx |= 0x04;
-			}
-			else {
-				return FALSE;
-			}
-		}
-		tempbx = PanelTypeTable300[(tempbx & 0x0f)] | LCDSync;
-		SiS_SetReg(SiS_Pr->SiS_P3d4, 0x36, tempbx);
-		SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x37, ~(LCDSyncBit | LCDRGB18Bit), (tempbx >> 8));
+	if (SiS_Pr->ChipType >= SIS_661) return FALSE;
 
+	tempax = (SiS_GetReg(SiS_Pr->SiS_P3c4, 0x1a) & 0x1e) >> 1;
+	if (SiS_Pr->SiS_IF_DEF_LVDS == 1) {
+		if (tempax == 0) return FALSE;
+		tempbx = PanelTypeTable310LVDS[tempax - 1];
+		temp = tempax & 0xff;
 	}
 	else {
-
-		if (SiS_Pr->ChipType >= SIS_661) return FALSE;
-
-		tempax = (SiS_GetReg(SiS_Pr->SiS_P3c4, 0x1a) & 0x1e) >> 1;
-		if (SiS_Pr->SiS_IF_DEF_LVDS == 1) {
-			if (tempax == 0) return FALSE;
-			tempbx = PanelTypeTable310LVDS[tempax - 1];
-			temp = tempax & 0xff;
-		}
-		else {
-			tempbx = PanelTypeTable31030x[tempax];
-			temp = tempbx & 0xff;
-		}
-		// PCF?
-		//   SiS_SetReg(SiS_Pr->SiS_P3d4,0x36,temp);
-		tempbx >>= 8;
-		SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x37, ~(LCDSyncBit | LCDRGB18Bit), (tempbx & 0xc1));
-		if (SiS_Pr->SiS_VBType & VB_SISVB) {
-			SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x39, 0xfb, (tempbx & 0x04));
-		}
-
+		tempbx = PanelTypeTable31030x[tempax];
+		temp = tempbx & 0xff;
 	}
+	// PCF?
+	//   SiS_SetReg(SiS_Pr->SiS_P3d4,0x36,temp);
+	tempbx >>= 8;
+	SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x37, ~(LCDSyncBit | LCDRGB18Bit), (tempbx & 0xc1));
+	if (SiS_Pr->SiS_VBType & VB_SISVB) {
+		SiS_SetRegANDOR(SiS_Pr->SiS_P3d4, 0x39, 0xfb, (tempbx & 0x04));
+	}
+
+	
 	return TRUE;
 }
 
@@ -1766,10 +1743,7 @@ SiS_SetGroup2_C_ELV(struct SiS_Private* SiS_Pr, unsigned short ModeNo, unsigned 
 	if (SiS_Pr->SiS_VBInfo & SetCRT2ToTV) {
 		SiS_CalcXTapScaler(SiS_Pr, SiS_Pr->SiS_VGAVDE, SiS_Pr->SiS_VDE, 4, FALSE);
 	}
-	temp = 0x10;
-	if (SiS_Pr->ChipType >= SIS_761) {
-		temp = 0;
-	}
+	temp = 0;
 	if (SiS_Pr->SiS_VBInfo & SetCRT2ToTV) temp |= 0x04;
 	SiS_SetRegANDOR(SiS_Pr->SiS_Part2Port, 0x4e, 0xeb, temp);
 }

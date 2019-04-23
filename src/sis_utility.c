@@ -323,10 +323,6 @@ SISSwitchCRT1Status(ScrnInfoPtr pScrn, int onoff, Bool quiet)
 
 	  /* Do NOT use this to switch from CRT1_LCDA to CRT2_LCD */
 
-	  /* Only on 300+ series */
-	if ((pSiS->VGAEngine != SIS_300_VGA) && (pSiS->VGAEngine != SIS_315_VGA))
-		return FALSE;
-
 #ifdef SISDUALHEAD
 	if (pSiS->DualHeadMode)
 		return FALSE;
@@ -473,9 +469,6 @@ SISRedetectCRT2Devices(ScrnInfoPtr pScrn)
 	 * output devices is performed.
 	 */
 
-	if ((pSiS->VGAEngine != SIS_300_VGA) && (pSiS->VGAEngine != SIS_315_VGA))
-		return FALSE;
-
 #ifdef SISDUALHEAD
 	if (pSiS->DualHeadMode)
 		return FALSE;
@@ -529,10 +522,6 @@ SISSwitchCRT2Type(ScrnInfoPtr pScrn, ULong newvbflags, ULong newvbflags3, Bool q
 	  * Update: We allow this if currently a "clone" display mode
 	  * is active.
 	  */
-
-	  /* Only on 300+ series */
-	if ((pSiS->VGAEngine != SIS_300_VGA) && (pSiS->VGAEngine != SIS_315_VGA))
-		return FALSE;
 
 	/* Only if there is a video bridge */
 	if (!(pSiS->VBFlags2 & VB2_VIDEOBRIDGE))
@@ -2295,10 +2284,6 @@ SiSCtrlExtInit(ScrnInfoPtr pScrn)
 	ExtensionEntry* myext;
 	xSiSCtrlScreenTable* myctrl;
 	unsigned int version, revision;
-
-	if ((pSiS->VGAEngine != SIS_300_VGA) &&
-		(pSiS->VGAEngine != SIS_315_VGA))
-		return;
 
 	pSiS->SCLogQuiet = FALSE;
 

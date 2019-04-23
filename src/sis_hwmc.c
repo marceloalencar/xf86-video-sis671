@@ -223,16 +223,6 @@ void SiSInitMC(ScreenPtr pScreen)
 	SISPtr pSIS = SISPTR(pScrn);
 	int i;
 
-	switch (pSIS->ChipType) {
-	case SIS_741:
-	case SIS_662:
-	case SIS_671:
-		break;
-	default:
-		xf86DrvMsg(pScreen->myNum, X_INFO, "[MC] %s: This chip does not support XvMC.\n", __FUNCTION__);
-		return;
-	}
-
 	/* Clear the Surface Allocation */
 	for (i = 0; i < SIS_MAX_SURFACES; i++) {
 		pSIS->surfaceAllocation[i] = 0;
@@ -339,26 +329,8 @@ int SiSXvMCCreateContext(ScrnInfoPtr pScrn, XvMCContextPtr pContext,
 	}
 
 	/* identify chip type */
-	switch (pSiS->ChipType) {
-	case SIS_741:
-		contextRec->ChipID = 741;
-		PitchAlignmentMask = 7;
-		break;
-	case SIS_662:
-		contextRec->ChipID = 662;
-		PitchAlignmentMask = 63;
-		break;
-	case SIS_671:
-		contextRec->ChipID = 671;
-		PitchAlignmentMask = 63;
-		break;
-	default:
-		xf86DrvMsg(pScrn->scrnIndex, X_ERROR, " [MC] XvMC is not supposted on this chip! Stop.\n");
-		free(*priv);
-		*num_priv = 0;
-		return BadValue;
-	}
-
+	contextRec->ChipID = 671;
+	PitchAlignmentMask = 63;
 
 	/* calculate the size of Frame buffer per surface*/
 	src_pitch = (pContext->width + PitchAlignmentMask) & ~PitchAlignmentMask;
@@ -463,15 +435,7 @@ int SiSXvMCCreateSubpicture(ScrnInfoPtr pScrn, XvMCSubpicturePtr pSubp,
 
 
 	/* Allocate the buffer of Subpicture */
-	switch (pSIS->ChipType) {
-	case SIS_741:
-		PitchShift = 15;
-		break;
-	case SIS_662:
-	case SIS_671:
-		PitchShift = 63;
-		break;
-	}
+	PitchShift = 63;
 	pSIS->SubpictBuffSize = pSubp->width * ((pSubp->height + PitchShift) & ~PitchShift);
 	if (pSIS->SubpictBuffOffset == 0 &&
 		(!(pSIS->SubpictBuffOffset = SISAllocateFBMemory(pScrn, &pSIS->SubpictBuffHandle,

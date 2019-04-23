@@ -153,11 +153,9 @@
                 CmdQueLen--;
 
 #define SiSSetupDSTColorDepth(bpp) \
-                if(pSiS->VGAEngine != SIS_530_VGA) { \
-                   if (CmdQueLen <= 0)  SiSIdle;\
-                   SIS_MMIO_OUT16(pSiS->IOBase, BR(1)+2, bpp);\
-                   CmdQueLen--; \
-		}
+                if (CmdQueLen <= 0)  SiSIdle;\
+                SIS_MMIO_OUT16(pSiS->IOBase, BR(1)+2, bpp);\
+                CmdQueLen--; \
 
 #define SiSSetupRect(w,h) \
                 if (CmdQueLen <= 0)  SiSIdle;\
@@ -227,14 +225,8 @@
                 if (CmdQueLen <= 1)  SiSIdle;\
                 SIS_MMIO_OUT32(pSiS->IOBase, BR(15), pSiS->CommandReg); \
 		CmdQueLen--; \
-		if(pSiS->VGAEngine != SIS_530_VGA) { \
-                   SIS_MMIO_OUT32(pSiS->IOBase, BR(16), 0);\
-                   CmdQueLen--; \
-		} else { \
-		   unsigned long temp; \
-		   temp = SIS_MMIO_IN32(pSiS->IOBase, BR(16)); \
-		   (void) temp; \
-		} \
+                SIS_MMIO_OUT32(pSiS->IOBase, BR(16), 0);\
+                CmdQueLen--; \
 
 /* Line */
 #define SiSSetupX0Y0(x,y) \

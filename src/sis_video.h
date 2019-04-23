@@ -52,7 +52,6 @@
  *
  * Help for reading the code:
  * 315/550/650/740/M650/651/330/661/741/76x/340 = SIS_315_VGA
- * 300/630/730                                  = SIS_300_VGA
  * For chipsets with 2 overlays, hasTwoOverlays will be true
  *
  * Notes on display modes:

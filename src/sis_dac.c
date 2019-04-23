@@ -698,9 +698,6 @@ SiS315Restore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	for (i = 0x19; i < 0x5C; i++) {
 		outSISIDXREG(SISCR, i, sisReg->sisRegs3D4[i]);
 	}
-	if (pSiS->ChipType < SIS_661) {
-		outSISIDXREG(SISCR, 0x79, sisReg->sisRegs3D4[0x79]);
-	}
 	outSISIDXREG(SISCR, pSiS->myCR63, sisReg->sisRegs3D4[pSiS->myCR63]);
 
 	/* Leave PCI_IO_ENABLE on if accelerators are on (Is this required?) */
@@ -836,9 +833,7 @@ SiS301Save(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	int     Part1max, Part2max, Part3max, Part4max;
 
 	/* Highest register number to save/restore */
-	if (pSiS->VGAEngine == SIS_300_VGA) Part1max = 0x1d;
-	else Part1max = 0x2e;  /* 0x23, but we also need 2d-2e */
-
+	Part1max = 0x2e;  /* 0x23, but we also need 2d-2e */
 	Part2max = 0x45;
 	Part3max = 0x3e;
 	Part4max = 0x1b;
@@ -857,9 +852,7 @@ SiS301Restore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	int     Part1max, Part2max, Part3max, Part4max;
 
 	/* Highest register number to save/restore */
-	if (pSiS->VGAEngine == SIS_300_VGA) Part1max = 0x1d;
-	else Part1max = 0x23;
-
+	Part1max = 0x23;
 	Part2max = 0x45;
 	Part3max = 0x3e;
 	Part4max = 0x1b;
@@ -1085,9 +1078,6 @@ SiSLVDSChrontelRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	SiSSetLVDSetc(pSiS->SiS_Pr, 0);
 	SiS_GetVBType(pSiS->SiS_Pr);
 	SiS_DisableBridge(pSiS->SiS_Pr);
-	if (pSiS->ChipType == SIS_730) {
-		outSISIDXREG(SISPART1, 0x00, 0x80);
-	}
 	SiS_UnLockCRT2(pSiS->SiS_Pr);
 
 	if (pSiS->VBFlags2 & VB2_CHRONTEL) {
@@ -1109,12 +1099,7 @@ SiSLVDSChrontelRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	outSISIDXREG(SISPART1, 0x05, 0x00);
 	outSISIDXREG(SISPART1, 0x06, 0x00);
 	outSISIDXREG(SISPART1, 0x00, sisReg->VBPart1[0]);
-	if (pSiS->VGAEngine == SIS_300_VGA) {
-		outSISIDXREG(SISPART1, 0x01, (sisReg->VBPart1[1] | 0x80));
-	}
-	else {
-		outSISIDXREG(SISPART1, 0x01, sisReg->VBPart1[1]);
-	}
+	outSISIDXREG(SISPART1, 0x01, sisReg->VBPart1[1]);
 
 	if ((!(sisReg->sisRegs3D4[0x30] & 0x03)) &&
 		(sisReg->sisRegs3D4[0x31] & 0x20)) {      /* disable CRT2 */
@@ -1123,12 +1108,7 @@ SiSLVDSChrontelRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	}
 
 	/* Restore Part1 */
-	if (pSiS->VGAEngine == SIS_300_VGA) {
-		outSISIDXREG(SISPART1, 0x02, (sisReg->VBPart1[2] | 0x40));
-	}
-	else {
-		outSISIDXREG(SISPART1, 0x02, sisReg->VBPart1[2]);
-	}
+	outSISIDXREG(SISPART1, 0x02, sisReg->VBPart1[2]);
 	SetBlock(SISPART1, 0x03, 0x23, &(sisReg->VBPart1[0x03]));
 	if (pSiS->VGAEngine == SIS_315_VGA) {
 		SetBlock(SISPART1, 0x2C, 0x2E, &(sisReg->VBPart1[0x2C]));
@@ -1179,54 +1159,23 @@ SiSMclk(SISPtr pSiS)
 	int mclk = 0;
 	UChar Num, Denum, Base;
 
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS671:
+	/* Numerator */
+	inSISIDXREG(SISSR, 0x28, Num);
+	mclk = 14318 * ((Num & 0x7f) + 1);
 
-		/* Numerator */
-		inSISIDXREG(SISSR, 0x28, Num);
-		mclk = 14318 * ((Num & 0x7f) + 1);
+	/* Denumerator */
+	inSISIDXREG(SISSR, 0x29, Denum);
+	mclk = mclk / ((Denum & 0x1f) + 1);
 
-		/* Denumerator */
-		inSISIDXREG(SISSR, 0x29, Denum);
-		mclk = mclk / ((Denum & 0x1f) + 1);
+	/* Divider */
+	if ((Num & 0x80) != 0)  mclk *= 2;
 
-		/* Divider */
-		if ((Num & 0x80) != 0)  mclk *= 2;
-
-		/* Post-Scaler */
-		if ((Denum & 0x80) == 0) {
-			mclk = mclk / (((Denum & 0x60) >> 5) + 1);
-		}
-		else {
-			mclk = mclk / ((((Denum & 0x60) >> 5) + 1) * 2);
-		}
-		break;
-
-	default:
-		/* Numerator */
-		inSISIDXREG(SISSR, 0x28, Num);
-		mclk = 14318 * ((Num & 0x7f) + 1);
-
-		/* Denumerator */
-		inSISIDXREG(SISSR, 0x29, Denum);
-		mclk = mclk / ((Denum & 0x1f) + 1);
-
-		/* Divider. Doesn't work on older cards */
-		if (pSiS->oldChipset >= OC_SIS5597) {
-			if (Num & 0x80) mclk *= 2;
-		}
-
-		/* Post-scaler. Values' meaning depends on SR13 bit 7  */
-		inSISIDXREG(SISSR, 0x13, Base);
-		if ((Base & 0x80) == 0) {
-			mclk = mclk / (((Denum & 0x60) >> 5) + 1);
-		}
-		else {
-			/* Values 00 and 01 are reserved */
-			if ((Denum & 0x60) == 0x40)  mclk /= 6;
-			if ((Denum & 0x60) == 0x60)  mclk /= 8;
-		}
-		break;
+	/* Post-Scaler */
+	if ((Denum & 0x80) == 0) {
+		mclk = mclk / (((Denum & 0x60) >> 5) + 1);
+	}
+	else {
+		mclk = mclk / ((((Denum & 0x60) >> 5) + 1) * 2);
 	}
 
 	return(mclk);
@@ -1300,13 +1249,7 @@ SiSEstimateCRT2Clock(ScrnInfoPtr pScrn, Bool FakeForCRT2)
 	}
 	else if (pSiS->VBFlags & CRT2_TV) {
 		if (pSiS->VBFlags2 & VB2_CHRONTEL) {
-			switch (pSiS->VGAEngine) {
-			case SIS_300_VGA:
-				return 50000;	/* 700x: <= 800x600 */
-			case SIS_315_VGA:
-			default:
-				return 70000;  /* 701x: <= 1024x768 */
-			}
+			return 70000;  /* 701x: <= 1024x768 */
 		}
 		else if (pSiS->VBFlags2 & VB2_SISBRIDGE) {
 			if (pSiS->SiS_SD_Flags & (SiS_SD_SUPPORTYPBPR | SiS_SD_SUPPORTHIVISION)) {
@@ -1349,169 +1292,159 @@ SiSMemBandWidth(ScrnInfoPtr pScrn, Bool IsForCRT2, Bool quiet)
 #endif
 	static const char* maxpixstr = "Maximum pixel clock at %d bpp is %g MHz\n";
 
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS671:
-		switch (pSiS->Chipset) {
-		case PCI_CHIP_SIS671:
-			magic = magicINT[bus / 64];
-			max = 680000; /* ? */
-			break;
+	magic = magicINT[bus / 64];
+	max = 680000; /* ? */
+
+	PDEBUG(ErrorF("mclk: %d, bus: %d, magic: %g, bpp: %d\n",
+		mclk, bus, magic, bpp));
+
+	total = mclk * bus / bpp;
+
+	if (!quiet) {
+		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+			"Memory bandwidth at %d bpp is %g MHz\n", bpp, total / 1000);
+	}
+
+	if ((pSiS->VBFlags & CRT2_ENABLE) && (!pSiS->CRT1off)) {
+
+		maxcrt2 = 135000;
+		if (pSiS->VBFlags2 & (VB2_301B | VB2_302B)) maxcrt2 = 162000;
+		else if (pSiS->VBFlags2 & VB2_301C)       maxcrt2 = 203000;
+		else if (pSiS->VBFlags2 & VB2_307T)       maxcrt2 = 203000; /* TODO */
+		/* if(pSiS->VBFlags2 & VB2_30xBDH)       maxcrt2 = 100000;
+			Ignore 301B-DH here; seems the current version is like
+			301B anyway */
+
+		crt2used = 0.0;
+		crt2clock = SiSEstimateCRT2Clock(pScrn, IsForCRT2);
+		if (crt2clock) {
+			crt2used = crt2clock + 2000;
 		}
-
-		PDEBUG(ErrorF("mclk: %d, bus: %d, magic: %g, bpp: %d\n",
-			mclk, bus, magic, bpp));
-
-		total = mclk * bus / bpp;
-
-		if (!quiet) {
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"Memory bandwidth at %d bpp is %g MHz\n", bpp, total / 1000);
-		}
-
-		if ((pSiS->VBFlags & CRT2_ENABLE) && (!pSiS->CRT1off)) {
-
-			maxcrt2 = 135000;
-			if (pSiS->VBFlags2 & (VB2_301B | VB2_302B)) maxcrt2 = 162000;
-			else if (pSiS->VBFlags2 & VB2_301C)       maxcrt2 = 203000;
-			else if (pSiS->VBFlags2 & VB2_307T)       maxcrt2 = 203000; /* TODO */
-			/* if(pSiS->VBFlags2 & VB2_30xBDH)       maxcrt2 = 100000;
-			   Ignore 301B-DH here; seems the current version is like
-			   301B anyway */
-
-			crt2used = 0.0;
-			crt2clock = SiSEstimateCRT2Clock(pScrn, IsForCRT2);
-			if (crt2clock) {
-				crt2used = crt2clock + 2000;
-			}
-			DHM = FALSE;
-			GetForCRT1 = FALSE;
+		DHM = FALSE;
+		GetForCRT1 = FALSE;
 
 #ifdef SISDUALHEAD
-			if ((pSiS->DualHeadMode) && (pSiSEnt)) {
-				DHM = TRUE;
-				if (pSiS->SecondHead) GetForCRT1 = TRUE;
-			}
+		if ((pSiS->DualHeadMode) && (pSiSEnt)) {
+			DHM = TRUE;
+			if (pSiS->SecondHead) GetForCRT1 = TRUE;
+		}
 #endif
 #ifdef SISMERGED
-			if (pSiS->MergedFB && IsForCRT2) {
-				DHM = TRUE;
-				GetForCRT1 = FALSE;
-			}
+		if (pSiS->MergedFB && IsForCRT2) {
+			DHM = TRUE;
+			GetForCRT1 = FALSE;
+		}
 #endif
 
-			if (DHM) {
+		if (DHM) {
 
-				if (!GetForCRT1) {
+			if (!GetForCRT1) {
 
-					/* First head = CRT2 */
-
-					if (crt2clock) {
-						/* We use the mem bandwidth as max clock; this
-						 * might exceed the 70% limit a bit, but that
-						 * does not matter; we take care of that limit
-						 * when we calc CRT1. Overall, we might use up
-						 * to 85% of the memory bandwidth, which seems
-						 * enough to use accel and video.
-						 * The "* macic" is just to compensate the
-						 * calculation below.
-						*/
-						total = crt2used * magic;
-
-					}
-					else {
-						/*  We don't know about the second head's
-						 *  depth yet. So we assume it uses the
-						 *  same. But since the maximum dotclock
-						 *  is limited on CRT2, we can assume a
-						 *  maximum here.
-						 */
-						if ((total / 2) > (maxcrt2 + 2000)) {
-							total = (maxcrt2 + 2000) * magic;
-							crt2used = maxcrt2 + 2000;
-						}
-						else {
-							total /= 2;
-							crt2used = total;
-						}
-
-					}
-
-					if (!quiet) {
-						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-							"Bandwidth reserved for CRT2 is %g MHz\n",
-							crt2used / 1000);
-					}
-
-				}
-				else {
-#ifdef SISDUALHEAD
-					/* Second head = CRT1 */
-
-					/*     Now We know about the first head's depth,
-					 *     so we can calculate more accurately.
-					 */
-
-					if (crt2clock) {
-						total -= (crt2used * pSiSEnt->pScrn_1->bitsPerPixel / bpp);
-						if (!quiet) {
-							xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-								"Bandwidth reserved for CRT2 at %d bpp is %g Mhz\n",
-								bpp,
-								(crt2used * pSiSEnt->pScrn_1->bitsPerPixel / bpp) / 1000);
-						}
-					}
-					else {
-						total -= (pSiSEnt->maxUsedClock * pSiSEnt->pScrn_1->bitsPerPixel / bpp);
-						if (!quiet) {
-							xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-								"Bandwidth reserved for CRT2 at %d bpp is %d Mhz\n",
-								bpp,
-								(pSiSEnt->maxUsedClock * pSiSEnt->pScrn_1->bitsPerPixel / bpp) / 1000);
-						}
-					}
-
-					if (!quiet) {
-						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-							"Bandwidth available for CRT1 is %g MHz\n", total / 1000);
-					}
-#endif
-				}
-
-			}
-			else {
+				/* First head = CRT2 */
 
 				if (crt2clock) {
-					total -= crt2used;
+					/* We use the mem bandwidth as max clock; this
+						* might exceed the 70% limit a bit, but that
+						* does not matter; we take care of that limit
+						* when we calc CRT1. Overall, we might use up
+						* to 85% of the memory bandwidth, which seems
+						* enough to use accel and video.
+						* The "* macic" is just to compensate the
+						* calculation below.
+					*/
+					total = crt2used * magic;
+
 				}
 				else {
+					/*  We don't know about the second head's
+						*  depth yet. So we assume it uses the
+						*  same. But since the maximum dotclock
+						*  is limited on CRT2, we can assume a
+						*  maximum here.
+						*/
 					if ((total / 2) > (maxcrt2 + 2000)) {
-						total -= (maxcrt2 + 2000);
+						total = (maxcrt2 + 2000) * magic;
 						crt2used = maxcrt2 + 2000;
 					}
 					else {
 						total /= 2;
 						crt2used = total;
 					}
+
 				}
 
 				if (!quiet) {
 					xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-						"Bandwidth reserved for CRT2 is %g Mhz\n", crt2used / 1000);
+						"Bandwidth reserved for CRT2 is %g MHz\n",
+						crt2used / 1000);
+				}
+
+			}
+			else {
+#ifdef SISDUALHEAD
+				/* Second head = CRT1 */
+
+				/*     Now We know about the first head's depth,
+					*     so we can calculate more accurately.
+					*/
+
+				if (crt2clock) {
+					total -= (crt2used * pSiSEnt->pScrn_1->bitsPerPixel / bpp);
+					if (!quiet) {
+						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+							"Bandwidth reserved for CRT2 at %d bpp is %g Mhz\n",
+							bpp,
+							(crt2used * pSiSEnt->pScrn_1->bitsPerPixel / bpp) / 1000);
+					}
+				}
+				else {
+					total -= (pSiSEnt->maxUsedClock * pSiSEnt->pScrn_1->bitsPerPixel / bpp);
+					if (!quiet) {
+						xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+							"Bandwidth reserved for CRT2 at %d bpp is %d Mhz\n",
+							bpp,
+							(pSiSEnt->maxUsedClock * pSiSEnt->pScrn_1->bitsPerPixel / bpp) / 1000);
+					}
+				}
+
+				if (!quiet) {
 					xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
 						"Bandwidth available for CRT1 is %g MHz\n", total / 1000);
 				}
+#endif
+			}
 
+		}
+		else {
+
+			if (crt2clock) {
+				total -= crt2used;
+			}
+			else {
+				if ((total / 2) > (maxcrt2 + 2000)) {
+					total -= (maxcrt2 + 2000);
+					crt2used = maxcrt2 + 2000;
+				}
+				else {
+					total /= 2;
+					crt2used = total;
+				}
+			}
+
+			if (!quiet) {
+				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+					"Bandwidth reserved for CRT2 is %g Mhz\n", crt2used / 1000);
+				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
+					"Bandwidth available for CRT1 is %g MHz\n", total / 1000);
 			}
 
 		}
 
-		total /= magic;
-		if (total > (max / 2)) total = max / 2;
-		return(int)(total);
-
-	default:
-		return(135000);
 	}
+
+	total /= magic;
+	if (total > (max / 2)) total = max / 2;
+	return(int)(total);
 }
 
 /* Load the palette. We do this for all supported color depths
@@ -1674,8 +1607,6 @@ SISLoadPalette(ScrnInfoPtr pScrn, int numColors, int* indices, LOCO * colors,
 			}
 		}
 
-		if (pSiS->ChipType == SIS_770)		andSISIDXREG(SISSR, 0x07, ~0x04);
-
 #ifdef SISDUALHEAD
 	}
 #endif
@@ -1684,7 +1615,6 @@ SISLoadPalette(ScrnInfoPtr pScrn, int numColors, int* indices, LOCO * colors,
 	if ((!pSiS->DualHeadMode) || (!pSiS->SecondHead)) {
 #endif
 		switch (pSiS->VGAEngine) {
-		case SIS_300_VGA:
 		case SIS_315_VGA:
 			if (pSiS->VBFlags & CRT2_ENABLE) {
 				/* Only the SiS bridges support a CRT2 palette */
@@ -1815,19 +1745,8 @@ SISDACPreInit(ScrnInfoPtr pScrn)
 
 	pSiS->MaxClock = SiSMemBandWidth(pScrn, IsForCRT2, FALSE);
 
-	switch (pSiS->VGAEngine) {
-	case SIS_315_VGA:
-		pSiS->SiSSave = SiS315Save;
-		pSiS->SiSRestore = SiS315Restore;
-		break;
-	case SIS_300_VGA:
-		pSiS->SiSSave = SiS300Save;
-		pSiS->SiSRestore = SiS300Restore;
-		break;
-	default:
-		pSiS->SiSSave = SiSSave;
-		pSiS->SiSRestore = SiSRestore;
-	}
+	pSiS->SiSSave = SiS315Save;
+	pSiS->SiSRestore = SiS315Restore;
 }
 
 static void

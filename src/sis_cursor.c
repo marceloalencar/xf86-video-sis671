@@ -341,16 +341,7 @@ SiSUseHWCursorARGB(ScreenPtr pScreen, CursorPtr pCurs)
 	if (pSiS->MiscFlags & MISC_NORGBHWCURSOR)
 		return FALSE;
 
-	switch (pSiS->VGAEngine) {
-	case SIS_300_VGA:
-		maxsize = 32;
-		break;
-	case SIS_315_VGA:
-		maxsize = 64;
-		break;
-	default:
-		return FALSE;
-	}
+	maxsize = 64;
 
 	if ((size > maxsize) || (pCurs->bits->width > maxsize))
 		return FALSE;
@@ -398,7 +389,6 @@ SiSSetCursorPositionMerged(ScrnInfoPtr pScrn1, int x, int y)
 	y2 = y - pScrn2->frameY0;
 
 	maxpreset = 63;
-	if ((pSiS->VGAEngine == SIS_300_VGA) && (pSiS->UseHWARGBCursor)) maxpreset = 31;
 
 	if (mode1->Flags & V_DBLSCAN) {
 		y1 *= 2;
@@ -449,18 +439,10 @@ SiSSetCursorPositionMerged(ScrnInfoPtr pScrn1, int x, int y)
 		y2 = 2000; y2_preset = 0;
 	}
 
-	if (pSiS->VGAEngine == SIS_300_VGA) {
-		sis300SetCursorPositionX(x1, x1_preset)
-			sis300SetCursorPositionY(y1, y1_preset)
-			sis301SetCursorPositionX(x2 + 13, x2_preset)
-			sis301SetCursorPositionY(y2, y2_preset)
-	}
-	else {
 		sis310SetCursorPositionX(x1, x1_preset)
 			sis310SetCursorPositionY(y1, y1_preset)
 			sis301SetCursorPositionX310(x2 + 17, x2_preset)
 			sis301SetCursorPositionY310(y2, y2_preset)
-	}
 }
 #endif
 
@@ -1272,80 +1254,30 @@ SiSHWCursorInit(ScreenPtr pScreen)
 	pSiS->CursorInfoPtr = infoPtr;
 	pSiS->UseHWARGBCursor = FALSE;
 
-	switch (pSiS->VGAEngine) {
-	case SIS_300_VGA:
-		infoPtr->MaxWidth = 64;
-		infoPtr->MaxHeight = 64;
-		infoPtr->UseHWCursor = SiSNewUseHWCursor;
-		infoPtr->ShowCursor = SiS300ShowCursor;
-		infoPtr->HideCursor = SiS300HideCursor;
-		infoPtr->SetCursorPosition = SiS300SetCursorPosition;
-		infoPtr->SetCursorColors = SiS300SetCursorColors;
-		infoPtr->LoadCursorImage = SiS300LoadCursorImage;
+	infoPtr->MaxWidth = 64;
+	infoPtr->MaxHeight = 64;
+	infoPtr->UseHWCursor = SiSNewUseHWCursor;
+	infoPtr->ShowCursor = SiS310ShowCursor;
+	infoPtr->HideCursor = SiS310HideCursor;
+	infoPtr->SetCursorPosition = SiS310SetCursorPosition;
+	infoPtr->SetCursorColors = SiS310SetCursorColors;
+	infoPtr->LoadCursorImage = SiS310LoadCursorImage;
 #if (XF86_VERSION_CURRENT >= XF86_VERSION_NUMERIC(4,2,99,0,0)) && defined(ARGB_CURSOR) && defined(SIS_ARGB_CURSOR)
-		if (pSiS->OptUseColorCursor) {
-			infoPtr->UseHWCursorARGB = SiSUseHWCursorARGB;
-			infoPtr->LoadCursorARGB = SiS300LoadCursorImageARGB;
-		}
+	if (pSiS->OptUseColorCursor) {
+		infoPtr->UseHWCursorARGB = SiSUseHWCursorARGB;
+		infoPtr->LoadCursorARGB = SiS310LoadCursorImageARGB;
+	}
 #endif
-		infoPtr->Flags =
-			HARDWARE_CURSOR_TRUECOLOR_AT_8BPP |
-			HARDWARE_CURSOR_INVERT_MASK |
-			HARDWARE_CURSOR_BIT_ORDER_MSBFIRST |
-			HARDWARE_CURSOR_AND_SOURCE_WITH_MASK |
-			HARDWARE_CURSOR_SWAP_SOURCE_AND_MASK |
-			HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64;
+	infoPtr->Flags =
+		HARDWARE_CURSOR_TRUECOLOR_AT_8BPP |
+		HARDWARE_CURSOR_INVERT_MASK |
+		HARDWARE_CURSOR_BIT_ORDER_MSBFIRST |
+		HARDWARE_CURSOR_AND_SOURCE_WITH_MASK |
+		HARDWARE_CURSOR_SWAP_SOURCE_AND_MASK |
+		HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64;
 
-		if (pSiS->ChipFlags & SiSCF_NoCurHide) {
-			infoPtr->Flags |= HARDWARE_CURSOR_UPDATE_UNHIDDEN;
-		}
-		break;
-
-	case SIS_315_VGA:
-		infoPtr->MaxWidth = 64;
-		infoPtr->MaxHeight = 64;
-		infoPtr->UseHWCursor = SiSNewUseHWCursor;
-		infoPtr->ShowCursor = SiS310ShowCursor;
-		infoPtr->HideCursor = SiS310HideCursor;
-		infoPtr->SetCursorPosition = SiS310SetCursorPosition;
-		infoPtr->SetCursorColors = SiS310SetCursorColors;
-		infoPtr->LoadCursorImage = SiS310LoadCursorImage;
-#if (XF86_VERSION_CURRENT >= XF86_VERSION_NUMERIC(4,2,99,0,0)) && defined(ARGB_CURSOR) && defined(SIS_ARGB_CURSOR)
-		if (pSiS->OptUseColorCursor) {
-			infoPtr->UseHWCursorARGB = SiSUseHWCursorARGB;
-			infoPtr->LoadCursorARGB = SiS310LoadCursorImageARGB;
-		}
-#endif
-		infoPtr->Flags =
-			HARDWARE_CURSOR_TRUECOLOR_AT_8BPP |
-			HARDWARE_CURSOR_INVERT_MASK |
-			HARDWARE_CURSOR_BIT_ORDER_MSBFIRST |
-			HARDWARE_CURSOR_AND_SOURCE_WITH_MASK |
-			HARDWARE_CURSOR_SWAP_SOURCE_AND_MASK |
-			HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_64;
-
-		if (pSiS->ChipFlags & SiSCF_NoCurHide) {
-			infoPtr->Flags |= HARDWARE_CURSOR_UPDATE_UNHIDDEN;
-		}
-		break;
-
-	default:
-		infoPtr->MaxWidth = 64;
-		infoPtr->MaxHeight = 64;
-		infoPtr->UseHWCursor = SiSUseHWCursor;
-		infoPtr->SetCursorPosition = SiSSetCursorPosition;
-		infoPtr->ShowCursor = SiSShowCursor;
-		infoPtr->HideCursor = SiSHideCursor;
-		infoPtr->SetCursorColors = SiSSetCursorColors;
-		infoPtr->LoadCursorImage = SiSLoadCursorImage;
-		infoPtr->Flags =
-			HARDWARE_CURSOR_TRUECOLOR_AT_8BPP |
-			HARDWARE_CURSOR_INVERT_MASK |
-			HARDWARE_CURSOR_BIT_ORDER_MSBFIRST |
-			HARDWARE_CURSOR_AND_SOURCE_WITH_MASK |
-			HARDWARE_CURSOR_NIBBLE_SWAPPED |
-			HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_1;
-		break;
+	if (pSiS->ChipFlags & SiSCF_NoCurHide) {
+		infoPtr->Flags |= HARDWARE_CURSOR_UPDATE_UNHIDDEN;
 	}
 
 	return (xf86InitCursor(pScreen, infoPtr));

@@ -113,12 +113,6 @@ typedef struct {
 	int 	 tvxpos, tvypos;
 	Bool 	 updatetvxpos, updatetvypos;
 
-	Bool	 is661741760;
-	Bool	 is760;
-	Bool	 is340;
-	Bool	 is761;
-	Bool	 is670;
-
 } SISPortPrivRec, * SISPortPrivPtr;
 
 #endif
