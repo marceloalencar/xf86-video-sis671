@@ -505,13 +505,7 @@ SISResetVideo(ScrnInfoPtr pScrn)
 	/* (On 550, this selects transparency, for others see below) */
 	setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x00, 0xF0);
 
-	if (pSiS->Chipset == PCI_CHIP_SIS330) {
-
-		/* Disable contrast enhancement */
-		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x00, 0x10);
-
-	}
-	else if (pPriv->is661741760) {
+	if (pPriv->is661741760) {
 
 		/* Disable contrast enhancement */
 		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x00, 0x10);
@@ -524,22 +518,6 @@ SISResetVideo(ScrnInfoPtr pScrn)
 		else { /* 661, 741 */
 			setvideoregmask(pSiS, Index_VI_V_Buf_Start_Over, 0x2c, 0x3c);
 		}
-
-	}
-	else if (pSiS->Chipset == PCI_CHIP_SIS340) {
-
-		/* Disable contrast enhancement (?) */
-		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x00, 0x10);
-		/* Threshold high */
-		setvideoregmask(pSiS, 0xb5, 0x00, 0x01);
-		setvideoregmask(pSiS, 0xb6, 0x00, 0x01);
-		/* Enable horizontal, disable vertical 4-tap DDA scaler */
-		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x40, 0xc0);
-		set_dda_regs(pSiS, 1.0);
-		/* Enable software-flip */
-		setvideoregmask(pSiS, Index_VI_Key_Overlay_OP, 0x20, 0x20);
-		/* "Disable video processor" */
-		setsrregmask(pSiS, 0x3f, 0x00, 0x02);
 
 	}
 	else if (pPriv->is761) {
@@ -2780,20 +2758,6 @@ set_hue(SISPtr pSiS, CARD8 hue)
 }
 
 static __inline void
-set_disablegfx(SISPtr pSiS, Bool mybool, SISOverlayPtr pOverlay)
-{
-	/* This is not supported on M65x, 65x (x>0) or later */
-	/* For CRT1 ONLY!!! */
-	if ((!(pSiS->ChipFlags & SiSCF_Is65x)) &&
-		(pSiS->Chipset != PCI_CHIP_SIS660) &&
-		(pSiS->Chipset != PCI_CHIP_SIS340) &&
-		(pSiS->Chipset != PCI_CHIP_SIS670)) {
-		setvideoregmask(pSiS, Index_VI_Control_Misc2, mybool ? 0x04 : 0x00, 0x04);
-		if (mybool) pOverlay->keyOP = VI_ROP_Always;
-	}
-}
-
-static __inline void
 set_disablegfxlr(SISPtr pSiS, Bool mybool, SISOverlayPtr pOverlay)
 {
 	setvideoregmask(pSiS, Index_VI_Control_Misc1, mybool ? 0x01 : 0x00, 0x01);
@@ -3772,12 +3736,6 @@ MIRROR:
 	 * (Since disabled overlays don't get treated in this
 	 * loop, we omit respective checks here)
 	 */
-	if (!iscrt2) {
-		set_disablegfx(pSiS, pPriv->disablegfx, overlay);
-	}
-	else if (!pSiS->hasTwoOverlays) {
-		set_disablegfx(pSiS, FALSE, overlay);
-	}
 	set_disablegfxlr(pSiS, pPriv->disablegfxlr, overlay);
 
 

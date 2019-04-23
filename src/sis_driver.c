@@ -1030,12 +1030,6 @@ SiSReadROM(ScrnInfoPtr pScrn)
 				int    biossize = BIOS_SIZE;
 
 				switch (pSiS->ChipType) {
-				case SIS_315:    mypciid = PCI_CHIP_SIS315;
-					readpci = TRUE;
-					break;
-				case SIS_315PRO: mypciid = PCI_CHIP_SIS315PRO;
-					readpci = TRUE;
-					break;
 				case SIS_300:
 				case SIS_315H:
 				case SIS_330:
@@ -1278,24 +1272,6 @@ SiSDetermineChrontelGPIO(ScrnInfoPtr pScrn)
 	 */
 
 	pSiS->SiS_Pr->SiS_ChSW = FALSE;
-	if (pSiS->Chipset == PCI_CHIP_SIS630) {
-		int i = 0;
-		do {
-			if (mychswtable[i].subsysVendor == PCI_SUB_VENDOR_ID(pSiS->PciInfo) &&
-				mychswtable[i].subsysCard == PCI_SUB_DEVICE_ID(pSiS->PciInfo)) {
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"PCI subsystem ID found in list for Chrontel/GPIO setup:\n");
-				xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-					"\tVendor/Card: %s %s (ID %04x)\n",
-					mychswtable[i].vendorName,
-					mychswtable[i].cardName,
-					PCI_SUB_DEVICE_ID(pSiS->PciInfo));
-				pSiS->SiS_Pr->SiS_ChSW = TRUE;
-				break;
-			}
-			i++;
-		} while (mychswtable[i].subsysVendor != 0);
-	}
 }
 
 /* Handle custom timing */
@@ -2642,46 +2618,6 @@ SiSDuplicateMode(DisplayModePtr source)
 	return dest;
 }
 
-
-static void
-SiS6326AddHiresAndTVModes(ScrnInfoPtr pScrn)
-{
-	SISPtr pSiS = SISPTR(pScrn);
-
-	if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-		if (pScrn->bitsPerPixel == 8) {
-			SiS6326SIS1600x1200_60Mode.next = pScrn->monitor->Modes;
-			pScrn->monitor->Modes = &SiS6326SIS1600x1200_60Mode;
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"Adding mode \"SIS1600x1200-60\" (depth 8 only)\n");
-		}
-		if (pScrn->bitsPerPixel <= 16) {
-			SiS6326SIS1280x1024_75Mode.next = pScrn->monitor->Modes;
-			pScrn->monitor->Modes = &SiS6326SIS1280x1024_75Mode;
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"Adding mode \"SIS1280x1024-75\" (depths 8, 15 and 16 only)\n");
-		}
-		if ((pSiS->SiS6326Flags & SIS6326_HASTV) &&
-			(pSiS->SiS6326Flags & SIS6326_TVDETECTED)) {
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"Adding %s TV modes to mode list:\n",
-				(pSiS->SiS6326Flags & SIS6326_TVPAL) ? "PAL" : "NTSC");
-			if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-				SiS6326PAL800x600Mode.next = pScrn->monitor->Modes;
-				pScrn->monitor->Modes = &SiS6326PAL640x480Mode;
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"\t\"PAL800x600\" \"PAL800x600U\" \"PAL720x540\" \"PAL640x480\"\n");
-			}
-			else {
-				SiS6326NTSC640x480Mode.next = pScrn->monitor->Modes;
-				pScrn->monitor->Modes = &SiS6326NTSC640x400Mode;
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"\t\"NTSC640x480\" \"NTSC640x480U\" \"NTSC640x400\"\n");
-			}
-		}
-	}
-}
-
 /* Build a list of the VESA modes the BIOS reports as valid */
 static void
 SiSBuildVesaModeList(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock * vbe)
@@ -3726,41 +3662,13 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 
 	from = X_PROBED;
 	if (pSiS->pEnt->device->videoRam != 0) {
-		if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-			pScrn->videoRam = pSiS->pEnt->device->videoRam;
-			from = X_CONFIG;
-		}
-		else {
 			xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
 				"Option \"VideoRAM\" ignored\n");
-		}
 	}
 
 	pSiS->RealVideoRam = pScrn->videoRam;
 
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) &&
-		(pScrn->videoRam > 4096) &&
-		(from != X_CONFIG)) {
-		pScrn->videoRam = 4096;
-		xf86DrvMsg(pScrn->scrnIndex, from,
-			"SiS6326: Detected %d KB VideoRAM, limiting to %d KB\n",
-			pSiS->RealVideoRam, pScrn->videoRam);
-	}
-	else {
-		xf86DrvMsg(pScrn->scrnIndex, from, "VideoRAM: %d KB\n", pScrn->videoRam);
-	}
-
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) &&
-		(pScrn->videoRam > 4096)) {
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			"SiS6326 engines do not support more than 4096KB RAM, therefore\n");
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			"TurboQueue, HWCursor, 2D acceleration and XVideo are disabled.\n");
-		pSiS->TurboQueue = FALSE;
-		pSiS->HWCursor = FALSE;
-		pSiS->NoXvideo = TRUE;
-		pSiS->NoAccel = TRUE;
-	}
+	xf86DrvMsg(pScrn->scrnIndex, from, "VideoRAM: %d KB\n", pScrn->videoRam);
 
 	pSiS->FbMapSize = pSiS->availMem = pScrn->videoRam * 1024;
 
@@ -3863,14 +3771,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 		}
 		else if (pSiS->HWCursor) {
 			pSiS->availMem -= pSiS->CursorSize;
-		}
-		if (pSiS->Chipset == PCI_CHIP_SIS530) {
-			/* Check if Flat Panel is enabled */
-			inSISIDXREG(SISSR, 0x0e, tempreg);
-			if (!(tempreg & 0x04)) pSiS->availMem -= pSiS->CursorSize;
-
-			/* Set up mask for MMIO register */
-			pSiS->CmdQueLenMask = (pSiS->TurboQueue) ? 0x1FFF : 0x00FF;
 		}
 		else {
 			/* TQ is never used on 6326/5597, because the accelerator
@@ -4611,10 +4511,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 					"Option TVStandard ignored for YPbPr, HiVision and Chrontel-SCART\n");
 			}
 		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-			pSiS->SiS6326Flags &= ~SIS6326_TVPAL;
-			if (pSiS->OptTVStand) pSiS->SiS6326Flags |= SIS6326_TVPAL;
-		}
 	}
 
 	if ((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA)) {
@@ -4631,19 +4527,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 			pSiS->VBFlags |= TV_PAL;
 			pSiS->OptTVStand = 1;
 			pSiS->NonDefaultPAL = pSiS->NonDefaultNTSC = -1;
-		}
-	}
-
-
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-		if (pSiS->sis6326tvplug != -1) {
-			pSiS->SiS6326Flags &= ~(SIS6326_TVSVIDEO | SIS6326_TVCVBS);
-			pSiS->SiS6326Flags |= SIS6326_TVDETECTED;
-			if (pSiS->sis6326tvplug == 1) 	pSiS->SiS6326Flags |= SIS6326_TVCVBS;
-			else 				pSiS->SiS6326Flags |= SIS6326_TVSVIDEO;
-			xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
-				"SiS6326 TV plug type detection overruled by %s\n",
-				(pSiS->SiS6326Flags & SIS6326_TVCVBS) ? "COMPOSITE" : "SVIDEO");
 		}
 	}
 
@@ -4921,9 +4804,6 @@ SISPreInit(ScrnInfoPtr pScrn, int flags)
 
 	/* Replace default mode list */
 	SiSReplaceModeList(pScrn, clockRanges, FALSE);
-
-	/* Add our built-in hi-res and TV modes on the 6326 */
-	SiS6326AddHiresAndTVModes(pScrn);
 
 	/* Fixup HorizSync, VertRefresh ranges */
 	crt1freqoverruled = SiSFixupHVRanges(pScrn, 1, FALSE);
@@ -6596,38 +6476,6 @@ static void
 
 		SiSVGARestore(pScrn, sisReg, flags);
 
-		/* Restore TV. This is rather complicated, but if we don't do it,
-			* TV output will flicker terribly
-			*/
-		if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-			if (sisReg->sis6326tv[0] & 0x04) {
-				UChar tmp;
-				int val;
-
-				orSISIDXREG(SISSR, 0x01, 0x20);
-				tmp = SiS6326GetTVReg(pScrn, 0x00);
-				tmp &= ~0x04;
-				while (!(inSISREG(SISINPSTAT) & 0x08));  /* Wait while NOT vb */
-				SiS6326SetTVReg(pScrn, 0x00, tmp);
-				for (val = 0; val < 2; val++) {
-					while (!(inSISREG(SISINPSTAT) & 0x08));  /* Wait while NOT vb */
-					while (inSISREG(SISINPSTAT) & 0x08);     /* wait while vb     */
-				}
-				SiS6326SetTVReg(pScrn, 0x00, sisReg->sis6326tv[0]);
-				tmp = inSISREG(SISINPSTAT);
-				outSISREG(SISAR, 0x20);
-				tmp = inSISREG(SISINPSTAT);
-				while (inSISREG(SISINPSTAT) & 0x01);
-				while (!(inSISREG(SISINPSTAT) & 0x01));
-				andSISIDXREG(SISSR, 0x01, ~0x20);
-				for (val = 0; val < 10; val++) {
-					while (!(inSISREG(SISINPSTAT) & 0x08));  /* Wait while NOT vb */
-					while (inSISREG(SISINPSTAT) & 0x08);     /* wait while vb     */
-				}
-				andSISIDXREG(SISSR, 0x01, ~0x20);
-			}
-		}
-
 		sisRestoreExtRegisterLock(pSiS, sisReg->sisRegs3C4[5], sisReg->sisRegs3D4[0x80]);
 
 		SiSVGAProtect(pScrn, FALSE);
@@ -6751,14 +6599,7 @@ static void
 
 	}
 	else {
-
-		if (pSiS->Chipset != PCI_CHIP_SIS300) {
-			switch (pSiS->VGAEngine) {
-			case SIS_300_VGA: temp = 0x35; break;
-			case SIS_315_VGA: temp = 0x38; break;
-			}
-			if (temp) inSISIDXREG(SISCR, temp, CR38);
-		}
+		inSISIDXREG(SISCR, 0x38, CR38);
 		if (pSiS->VGAEngine == SIS_315_VGA) {
 			inSISIDXREG(SISCR, 0x79, CR79);
 			CR38 &= ~0x3b;   			/* Clear LCDA/DualEdge and YPbPr bits */
@@ -7522,13 +7363,6 @@ static void
 			(pSiS->VBFlags & CRT2_ENABLE) &&
 			!IsInSlaveMode)
 			pSiS->MiscFlags |= MISC_NORGBHWCURSOR;
-		if (pSiS->Chipset == PCI_CHIP_SIS550) {
-#ifdef SISDUALHEAD
-			if ((!pSiS->DualHeadMode) || (!pSiS->SecondHead))
-#endif
-				if ((pSiS->FSTN || pSiS->DSTN) && (pSiS->VBFlags & CRT2_LCD))
-					pSiS->MiscFlags |= (MISC_NOMONOHWCURSOR | MISC_NORGBHWCURSOR);
-		}
 		break;
 	}
 
@@ -8138,10 +7972,6 @@ static Bool
 				SiSVGARestore(pScrn, sisReg, SISVGA_SR_MODE);
 
 				(*pSiS->SiSRestore)(pScrn, sisReg);
-
-				if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-					SiS6326PostSetMode(pScrn, &pSiS->ModeReg);
-				}
 
 #ifdef TWDEBUG
 				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
@@ -9242,16 +9072,6 @@ static Bool
 					"Default Xv adaptor is Video %s\n",
 					pSiS->XvDefAdaptorBlit ? "Blitter" : "Overlay");
 			}
-
-		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS530 ||
-			pSiS->Chipset == PCI_CHIP_SIS6326 ||
-			pSiS->Chipset == PCI_CHIP_SIS5597) {
-
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"Using SiS5597/5598/6326/530/620 HW Xv\n");
-
-			SIS6326InitVideo(pScreen);
 
 		}
 		else { /* generic Xv */

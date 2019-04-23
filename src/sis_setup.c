@@ -210,16 +210,6 @@ sisOldSetup(ScrnInfoPtr pScrn)
 		if (pScrn->videoRam > 4096) pScrn->videoRam = 4096;
 		pSiS->BusWidth = 32;
 	}
-	else if (pSiS->Chipset == PCI_CHIP_SIS5597) {
-		inSISIDXREG(SISSR, 0x2F, temp);
-		pScrn->videoRam = ((temp & 0x07) + 1) * 256;
-		inSISIDXREG(SISSR, 0x0C, temp);
-		if (temp & 0x06) {
-			pScrn->videoRam *= 2;
-			pSiS->BusWidth = 64;
-		}
-		else  pSiS->BusWidth = 32;
-	}
 	else {
 		inSISIDXREG(SISSR, 0x0C, temp);
 		config = ((temp & 0x10) >> 2) | ((temp & 0x06) >> 1);
@@ -227,63 +217,7 @@ sisOldSetup(ScrnInfoPtr pScrn)
 		pSiS->BusWidth = buswidth[config];
 	}
 
-	if (pSiS->Chipset == PCI_CHIP_SIS530) {
-
-		inSISIDXREG(SISSR, 0x0D, temp);
-		pSiS->Flags &= ~(UMA);
-		if (temp & 0x01) {
-			pSiS->Flags |= UMA;  		/* Shared fb mode */
-			inSISIDXREG(SISSR, 0x10, temp);
-			pSiS->MemClock = clockTable[temp & 0x03] * 1000;
-		}
-		else {
-			pSiS->MemClock = SiSMclk(pSiS); /* Local fb mode */
-		}
-
-	}
-	else if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-
-		inSISIDXREG(SISSR, 0x0e, temp);
-
-		i = temp & 0x03;
-
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"DRAM type: %s\n",
-			dramTypeStr[ramtype[i]]);
-
-		temp = (temp >> 5) & 0x07;
-		i = SiS6326MCLKIndex[i][temp];
-		pSiS->MemClock = SiS6326MCLK[i].mclk;
-#if 0
-		/* Correct invalid MCLK settings by old BIOSes */
-		newsr13 = SiS6326MCLK[i].sr13;
-		newsr28 = SiS6326MCLK[i].sr28;
-		newsr29 = SiS6326MCLK[i].sr29;
-		if ((pSiS->ChipRev == 0x92) ||
-			(pSiS->ChipRev == 0xd1) ||
-			(pSiS->ChipRev == 0xd2)) {
-			if (pSiS->MemClock == 60) {
-				newsr28 = 0xae;
-				newsr29 = 0xc4;
-			}
-		}
-#endif
-		pSiS->MemClock *= 1000;
-#if 0
-		inSISIDXREG(SISSR, 0x13, temp);
-		temp &= 0x80;
-		temp |= (newsr13 & 0x80);
-		outSISIDXREG(SISSR, 0x13, temp);
-		outSISIDXREG(SISSR, 0x28, newsr28);
-		outSISIDXREG(SISSR, 0x29, newsr29);
-#endif
-
-	}
-	else {
-
-		pSiS->MemClock = SiSMclk(pSiS);
-
-	}
+	pSiS->MemClock = SiSMclk(pSiS);
 
 	pSiS->Flags &= ~(SYNCDRAM | RAMFLAG);
 	if (pSiS->oldChipset >= OC_SIS82204) {
@@ -300,21 +234,6 @@ sisOldSetup(ScrnInfoPtr pScrn)
 	}
 
 	pSiS->Flags &= ~(ESS137xPRESENT);
-	if (pSiS->Chipset == PCI_CHIP_SIS530) {
-		if (pSiS->oldChipset == OC_SIS530A) {
-			pSiS->Flags |= sisESSPresent(pScrn);
-		}
-		if (pSiS->Flags & ESS137xPRESENT) {
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"SiS530/620: Found ESS device\n");
-		}
-
-
-		if (pSiS->Flags & ESS137xPRESENT) {
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"SiS530/620: Found ESS device\n");
-		}
-	}
 
 	pSiS->Flags &= ~(SECRETFLAG);
 	if (pSiS->oldChipset >= OC_SIS5597) {
@@ -323,12 +242,6 @@ sisOldSetup(ScrnInfoPtr pScrn)
 	}
 
 	pSiS->Flags &= ~(A6326REVAB);
-	if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-		if (((pSiS->ChipRev & 0x0f) == 0x0a) ||
-			((pSiS->ChipRev & 0x0f) == 0x0b)) {
-			pSiS->Flags |= A6326REVAB;
-		}
-	}
 
 	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
 		"Memory clock: %3.3f MHz\n",
@@ -344,286 +257,6 @@ sisOldSetup(ScrnInfoPtr pScrn)
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		"oldChipset = %d, Flags %x\n", pSiS->oldChipset, pSiS->Flags);
 #endif
-}
-
-static void
-sis300Setup(ScrnInfoPtr pScrn)
-{
-	SISPtr    pSiS = SISPTR(pScrn);
-	const int bus[4] = { 32, 64, 128, 32 };
-	const int adaptermclk[8] = { 66,  83, 100, 133,
-									100, 100, 100, 100 };
-	const int adaptermclk300[8] = { 125, 125, 125, 100,
-									100, 100, 100, 100 };
-	unsigned int config, pciconfig, sr3a, ramtype;
-	UChar        temp;
-	int		 cpubuswidth;
-	MessageType	 from = X_PROBED;
-
-	pSiS->MemClock = SiSMclk(pSiS);
-
-	inSISIDXREG(SISSR, 0x14, config);
-	cpubuswidth = bus[config >> 6];
-
-	inSISIDXREG(SISSR, 0x3A, sr3a);
-	ramtype = (sr3a & 0x03) + 4;
-
-	pSiS->IsPCIExpress = FALSE;
-
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS300:
-		pScrn->videoRam = ((config & 0x3F) + 1) * 1024;
-		pSiS->LFBsize = pScrn->videoRam;
-		pSiS->BusWidth = cpubuswidth;
-		pSiS->IsAGPCard = ((sr3a & 0x30) == 0x30) ? FALSE : TRUE;
-		break;
-	case PCI_CHIP_SIS540:
-	case PCI_CHIP_SIS630:
-		pSiS->IsAGPCard = TRUE;
-		pciconfig = sis_pci_read_host_bridge_u8(0x63);
-		if (pciconfig & 0x80) {
-			pScrn->videoRam = (1 << (((pciconfig & 0x70) >> 4) + 21)) / 1024;
-			pSiS->BusWidth = 64;
-			pciconfig = sis_pci_read_host_bridge_u8(0x64);
-			if ((pciconfig & 0x30) == 0x30) {
-				pSiS->BusWidth = 128;
-				pScrn->videoRam <<= 1;
-			}
-			ramtype = sis_pci_read_host_bridge_u8(0x65);
-			ramtype &= 0x03;
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"Shared Memory Area is on DIMM%d\n", ramtype);
-			ramtype = sis_pci_read_host_bridge_u8(0x60 + ramtype);
-			if (ramtype & 0x80) ramtype = 9;
-			else               ramtype = 4;
-			pSiS->UMAsize = pScrn->videoRam;
-		}
-		else {
-			xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-				"Shared Memory Area is disabled - awaiting doom\n");
-			pScrn->videoRam = ((config & 0x3F) + 1) * 1024;
-			pSiS->UMAsize = pScrn->videoRam;
-			pSiS->BusWidth = 64;
-			ramtype = 4;
-			from = X_INFO;
-		}
-		break;
-	default:
-		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
-			"Internal error: sis300setup() called with invalid chipset!\n");
-		pSiS->BusWidth = 64;
-		from = X_INFO;
-	}
-
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"DRAM type: %s\n",
-		dramTypeStr[ramtype]);
-
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"Memory clock: %3.3f MHz\n",
-		pSiS->MemClock / 1000.0);
-
-	if (pSiS->Chipset == PCI_CHIP_SIS300) {
-		if (pSiS->ChipRev > 0x13) {
-			inSISIDXREG(SISSR, 0x3A, temp);
-			xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-				"(Adapter assumes MCLK being %d Mhz)\n",
-				adaptermclk300[(temp & 0x07)]);
-		}
-	}
-	else {
-		inSISIDXREG(SISSR, 0x1A, temp);
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"(Adapter assumes MCLK being %d Mhz)\n",
-			adaptermclk[(temp & 0x07)]);
-	}
-
-	xf86DrvMsg(pScrn->scrnIndex, from,
-		"DRAM bus width: %d bit\n",
-		pSiS->BusWidth);
-}
-
-/* For 315, 315H, 315PRO/E, 330, 340 */
-static void
-sis315Setup(ScrnInfoPtr pScrn)
-{
-	SISPtr  pSiS = SISPTR(pScrn);
-	int     busSDR[4] = { 64, 64, 128, 128 };
-	int     busDDR[4] = { 32, 32,  64,  64 };
-	int     busDDRA[4] = { 64 + 32, 64 + 32 , (64 + 32) * 2, (64 + 32) * 2 };
-	unsigned int config, config1, config2, sr3a, cr5f;
-	char* dramTypeStr315[] = {
-	"Single channel 1 rank SDR SDRAM",
-	"Single channel 1 rank SDR SGRAM",
-	"Single channel 1 rank DDR SDRAM",
-	"Single channel 1 rank DDR SGRAM",
-	"Single channel 2 rank SDR SDRAM",
-	"Single channel 2 rank SDR SGRAM",
-	"Single channel 2 rank DDR SDRAM",
-	"Single channel 2 rank DDR SGRAM",
-	"Asymmetric SDR SDRAM",
-	"Asymmetric SDR SGRAM",
-	"Asymmetric DDR SDRAM",
-	"Asymmetric DDR SGRAM",
-	"Dual channel SDR SDRAM",
-	"Dual channel SDR SGRAM",
-	"Dual channel DDR SDRAM",
-	"Dual channel DDR SGRAM"
-	};
-	char* dramTypeStr330[] = {
-	"Single Channel SDR SDRAM",
-	"",
-	"Single Channel DDR SDRAM",
-	"",
-	"--unknown--",
-	"",
-	"--unknown--",
-	"",
-	"Asymetric Dual Channel SDR SDRAM",
-	"",
-	"Asymetric Dual Channel DDR SDRAM",
-	"",
-	"Dual channel SDR SDRAM",
-	"",
-	"Dual channel DDR SDRAM",
-	""
-	};
-	char* dramTypeStr340[] = {
-	"Single channel DDR SDRAM",
-	"Single channel DDR2 SDRAM",
-	"Single channel DDR2x SDRAM",
-	"",
-	"Dual channel DDR SDRAM",
-	"Dual channel DDR2 SDRAM",
-	"Dual channel DDR2x SDRAM",
-	"",
-	"Dual channel DDR SDRAM",
-	"Dual channel DDR2 SDRAM",
-	"Dual channel DDR2x SDRAM",
-	"",
-	"Quad channel DDR SDRAM",
-	"Quad channel DDR2 SDRAM",
-	"Quad channel DDR2x SDRAM",
-	""
-	};
-
-	inSISIDXREG(SISSR, 0x14, config);
-	config1 = (config & 0x0C) >> 2;
-
-	inSISIDXREG(SISSR, 0x3a, sr3a);
-	config2 = sr3a & 0x03;
-
-	inSISIDXREG(SISCR, 0x5f, cr5f);
-
-	pScrn->videoRam = (1 << ((config & 0xf0) >> 4)) * 1024;
-
-	pSiS->IsPCIExpress = FALSE;
-
-	switch (pSiS->Chipset) {
-
-	case PCI_CHIP_SIS340:
-
-		pSiS->IsAGPCard = TRUE;
-
-		if (pSiS->ChipRev == 2) {
-			if (config1 & 0x01) config1 = 0x02;
-			else               config1 = 0x00;
-		}
-		if (config1 == 0x02)      pScrn->videoRam <<= 1; /* dual rank */
-		else if (config1 == 0x03) pScrn->videoRam <<= 2; /* quad rank */
-
-		inSISIDXREG(SISSR, 0x39, config2);
-		config2 &= 0x02;
-		if (!config2) {
-			inSISIDXREG(SISSR, 0x3a, config2);
-			config2 = (config2 & 0x02) >> 1;
-		}
-
-		pSiS->BusWidth = (config & 0x02) ? 64 : 32;
-
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"DRAM type: %s\n", dramTypeStr340[(config1 * 4) + (config2 & 0x03)]);
-
-		pSiS->MemClock = SiSMclk(pSiS);
-
-		pSiS->MemClock *= 2; /* at least DDR */
-
-		break;
-
-	case PCI_CHIP_SIS330:
-
-		pSiS->IsAGPCard = TRUE;
-
-		if (config1) pScrn->videoRam <<= 1;
-
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"DRAM type: %s\n", dramTypeStr330[(config1 * 4) + (config2 & 0x02)]);
-
-		pSiS->MemClock = SiSMclk(pSiS);
-
-		if (config2 & 0x02) {
-			pSiS->MemClock *= 2;
-			if (config1 == 0x02) {
-				pSiS->BusWidth = busDDRA[0];
-			}
-			else {
-				pSiS->BusWidth = busDDR[(config & 0x02)];
-			}
-		}
-		else {
-			if (config1 == 0x02) {
-				pSiS->BusWidth = busDDRA[2];
-			}
-			else {
-				pSiS->BusWidth = busSDR[(config & 0x02)];
-			}
-		}
-
-		break;
-
-	default: /* 315 */
-
-		pSiS->IsAGPCard = ((sr3a & 0x30) == 0x30) ? FALSE : TRUE;
-
-		if (cr5f & 0x10) pSiS->ChipFlags |= SiSCF_Is315E;
-
-		/* If SINGLE_CHANNEL_2_RANK or DUAL_CHANNEL_1_RANK -> mem * 2 */
-		if ((config1 == 0x01) || (config1 == 0x03)) pScrn->videoRam <<= 1;
-
-		/* If DDR asymetric -> mem * 1,5 */
-		if (config1 == 0x02) pScrn->videoRam += pScrn->videoRam / 2;
-
-		xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-			"DRAM type: %s\n", dramTypeStr315[(config1 * 4) + config2]);
-
-		pSiS->MemClock = SiSMclk(pSiS);
-
-		/* If DDR -> memclock * 2 */
-		if (config2 & 0x02) pSiS->MemClock *= 2;
-
-		if (config1 == 0x02)
-			pSiS->BusWidth = busDDRA[(config & 0x03)];
-		else if (config2 & 0x02)
-			pSiS->BusWidth = busDDR[(config & 0x03)];
-		else
-			pSiS->BusWidth = busSDR[(config & 0x03)];
-
-		if (pSiS->ChipFlags & SiSCF_Is315E) {
-			inSISIDXREG(SISSR, 0x15, config);
-			if (config & 0x10) pSiS->BusWidth = 32;
-		}
-
-	}
-
-	pSiS->LFBsize = pScrn->videoRam;
-
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"Memory clock: %3.3f MHz\n",
-		pSiS->MemClock / 1000.0);
-
-	xf86DrvMsg(pScrn->scrnIndex, X_PROBED,
-		"DRAM bus width: %d bit\n",
-		pSiS->BusWidth);
 }
 
 /* For 550, 65x, 740, 661, 741, 660, 760, 761, 670, 770 */
@@ -706,14 +339,8 @@ sis550Setup(ScrnInfoPtr pScrn)
 		inSISIDXREG(SISSR, 0x14, config);
 		pScrn->videoRam = (((config & 0x3F) + 1) * 4) * 1024;
 		pSiS->UMAsize = pScrn->videoRam;
-		if (pSiS->Chipset == PCI_CHIP_SIS650) {
-			ramtype = (((config & 0x80) >> 7) << 2) + 4;
-			pSiS->BusWidth = 64;   /* (config & 0x40) ? 128 : 64; */
-		}
-		else {
-			ramtype = 4;
-			pSiS->BusWidth = 64;
-		}
+		ramtype = 4;
+		pSiS->BusWidth = 64;
 	}
 
 	/* These (might) need special attention: Memory controller in CPU, hence

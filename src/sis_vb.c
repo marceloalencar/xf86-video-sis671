@@ -614,9 +614,6 @@ void SISTVPreInit(ScrnInfoPtr pScrn, Bool quiet)
 	inSISIDXREG(SISSR, 0x38, SR38);
 
 	switch (pSiS->VGAEngine) {
-	case SIS_300_VGA:
-		if (pSiS->Chipset == PCI_CHIP_SIS630) temp = 0x35;
-		break;
 	case SIS_315_VGA:
 		temp = 0x38;
 		break;
@@ -701,30 +698,6 @@ void SISTVPreInit(ScrnInfoPtr pScrn, Bool quiet)
 			/* Should be SR38, but this does not work. */
 			if (SR16 & 0x20)
 				pSiS->VBFlags |= TV_PAL;
-			else
-				pSiS->VBFlags |= TV_NTSC;
-		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS550) {
-			inSISIDXREG(SISCR, 0x7a, CR79);
-			if (CR79 & 0x08) {
-				inSISIDXREG(SISCR, 0x79, CR79);
-				CR79 >>= 5;
-			}
-			if (CR79 & 0x01) {
-				pSiS->VBFlags |= TV_PAL;
-				if (CR38 & 0x40)      pSiS->VBFlags |= TV_PALM;
-				else if (CR38 & 0x80) pSiS->VBFlags |= TV_PALN;
-			}
-			else
-				pSiS->VBFlags |= TV_NTSC;
-		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS650) {
-			inSISIDXREG(SISCR, 0x79, CR79);
-			if (CR79 & 0x20) {
-				pSiS->VBFlags |= TV_PAL;
-				if (CR38 & 0x40)      pSiS->VBFlags |= TV_PALM;
-				else if (CR38 & 0x80) pSiS->VBFlags |= TV_PALN;
-			}
 			else
 				pSiS->VBFlags |= TV_NTSC;
 		}
@@ -943,12 +916,6 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 		svhs_c = 0x0408; cvbs_c = 0x0808;
 	}
 	biosflag = 2;
-
-	if (pSiS->Chipset == PCI_CHIP_SIS300) {
-		inSISIDXREG(SISSR, 0x3b, myflag);
-		if (!(myflag & 0x01)) vga2 = vga2_c = 0;
-	}
-
 
 	if (pSiS->SiS_Pr->UseROM) {
 		if (pSiS->VGAEngine == SIS_300_VGA) {
@@ -2573,54 +2540,6 @@ void SiS_SetTVxposoffset(ScrnInfoPtr pScrn, int val)
 		}
 
 	}
-	else if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-
-		if (pSiS->SiS6326Flags & SIS6326_TVDETECTED) {
-
-			UChar tmp;
-			UShort temp1, temp2, temp3;
-
-			tmp = SiS6326GetTVReg(pScrn, 0x00);
-			if (tmp & 0x04) {
-
-				temp1 = pSiS->tvx1;
-				temp2 = pSiS->tvx2;
-				temp3 = pSiS->tvx3;
-				if ((val >= -16) && (val <= 16)) {
-					if (val > 0) {
-						temp1 += (val * 4);
-						temp2 += (val * 4);
-						while ((temp1 > 0x0fff) || (temp2 > 0x0fff)) {
-							temp1 -= 4;
-							temp2 -= 4;
-						}
-					}
-					else {
-						val = -val;
-						temp3 += (val * 4);
-						while (temp3 > 0x03ff) {
-							temp3 -= 4;
-						}
-					}
-				}
-				SiS6326SetTVReg(pScrn, 0x3a, (temp1 & 0xff));
-				tmp = SiS6326GetTVReg(pScrn, 0x3c);
-				tmp &= 0xf0;
-				tmp |= ((temp1 & 0x0f00) >> 8);
-				SiS6326SetTVReg(pScrn, 0x3c, tmp);
-				SiS6326SetTVReg(pScrn, 0x26, (temp2 & 0xff));
-				tmp = SiS6326GetTVReg(pScrn, 0x27);
-				tmp &= 0x0f;
-				tmp |= ((temp2 & 0x0f00) >> 4);
-				SiS6326SetTVReg(pScrn, 0x27, tmp);
-				SiS6326SetTVReg(pScrn, 0x12, (temp3 & 0xff));
-				tmp = SiS6326GetTVReg(pScrn, 0x13);
-				tmp &= ~0xC0;
-				tmp |= ((temp3 & 0x0300) >> 2);
-				SiS6326SetTVReg(pScrn, 0x13, tmp);
-			}
-		}
-	}
 }
 
 int SiS_GetTVxposoffset(ScrnInfoPtr pScrn)
@@ -2727,51 +2646,6 @@ void SiS_SetTVyposoffset(ScrnInfoPtr pScrn, int val)
 
 		}
 
-	}
-	else if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-
-		if (pSiS->SiS6326Flags & SIS6326_TVDETECTED) {
-
-			UChar tmp;
-			int temp1, limit;
-
-			tmp = SiS6326GetTVReg(pScrn, 0x00);
-			if (tmp & 0x04) {
-
-				if ((val >= -16) && (val <= 16)) {
-					temp1 = (UShort)pSiS->tvy1;
-					limit = (pSiS->SiS6326Flags & SIS6326_TVPAL) ? 625 : 525;
-					if (val > 0) {
-						temp1 += (val * 4);
-						if (temp1 > limit) temp1 -= limit;
-					}
-					else {
-						val = -val;
-						temp1 -= (val * 2);
-						if (temp1 <= 0) temp1 += (limit - 1);
-					}
-					SiS6326SetTVReg(pScrn, 0x11, (temp1 & 0xff));
-					tmp = SiS6326GetTVReg(pScrn, 0x13);
-					tmp &= ~0x30;
-					tmp |= ((temp1 & 0x300) >> 4);
-					SiS6326SetTVReg(pScrn, 0x13, tmp);
-					if (temp1 == 1)                                 tmp = 0x10;
-					else {
-						if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-							if ((temp1 <= 3) || (temp1 >= (limit - 2)))  tmp = 0x08;
-							else if (temp1 < 22)		 	     tmp = 0x02;
-							else 					     tmp = 0x04;
-						}
-						else {
-							if ((temp1 <= 5) || (temp1 >= (limit - 4)))  tmp = 0x08;
-							else if (temp1 < 19)			     tmp = 0x02;
-							else 					     tmp = 0x04;
-						}
-					}
-					SiS6326SetTVReg(pScrn, 0x21, tmp);
-				}
-			}
-		}
 	}
 }
 

@@ -291,16 +291,6 @@ SiSLoadCursorImage(ScrnInfoPtr pScrn, UChar * src)
 	/* copy D[21:18] into the top bits of SR38 */
 	setSISIDXREG(SISSR, 0x38, 0x0f, ((cursor_addr & 0xF00) >> 4));
 
-	if (pSiS->Chipset == PCI_CHIP_SIS530) {
-		/* store the D[22] to SR3E */
-		if (cursor_addr & 0x1000) {
-			orSISIDXREG(SISSR, 0x3E, 0x04);
-		}
-		else {
-			andSISIDXREG(SISSR, 0x3E, ~0x04);
-		}
-	}
-
 	/* set HW cursor pattern, use pattern 0xF */
 	/* disable the hardware cursor side pattern */
 	setSISIDXREG(SISSR, 0x1E, 0xF7, 0xF0);
@@ -1081,11 +1071,6 @@ SiS310LoadCursorImage(ScrnInfoPtr pScrn, UChar * src)
 					SISWaitRetraceCRT2(pScrn);
 					sis301SwitchToMONOCursor310();
 				}
-			}
-		}
-		else if (pSiS->Chipset == PCI_CHIP_SIS315H) {
-			if (pSiS->VBFlags & DISPTYPE_CRT1) {
-				SISWaitRetraceCRT1(pScrn);
 			}
 		}
 	}

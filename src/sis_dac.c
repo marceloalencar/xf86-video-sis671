@@ -260,112 +260,63 @@ SiSCalcClock(ScrnInfoPtr pScrn, int clock, int max_VLD, unsigned int* vclk)
 
 	target = clock * 1000;
 
-	if (pSiS->Chipset == PCI_CHIP_SIS5597 || pSiS->Chipset == PCI_CHIP_SIS6326) {
+	for (PSNx = 0; PSNx <= MAX_PSN; PSNx++) {
 
-		int low_N = 2;
-		int high_N = 5;
+		int low_N, high_N;
+		double FrefVLDPSN;
 
-		PSN = 1;
-		P = 1;
-		if (target < MAX_VCO_5597 / 2)  P = 2;
-		if (target < MAX_VCO_5597 / 3)  P = 3;
-		if (target < MAX_VCO_5597 / 4)  P = 4;
-		if (target < MAX_VCO_5597 / 6)  P = 6;
-		if (target < MAX_VCO_5597 / 8)  P = 8;
+		PSN = !PSNx ? 1 : 4;
 
-		Fvco = P * target;
+		low_N = 2;
+		high_N = 32;
 
-		for (N = low_N; N <= high_N; N++) {
+		for (VLD = 1; VLD <= max_VLD; VLD++) {
 
-			double M_desired = Fvco / Fref * N;
+			FrefVLDPSN = (double)Fref * VLD / PSN;
 
-			if (M_desired > M_max * max_VLD)
-				continue;
+			for (N = low_N; N <= high_N; N++) {
 
-			if (M_desired > M_max) {
-				M = M_desired / 2 + 0.5;
-				VLD = 2;
-			}
-			else {
-				M = Fvco / Fref * N + 0.5;
-				VLD = 1;
-			}
+				double tmp = FrefVLDPSN / N;
 
-			Fout = (double)Fref * (M * VLD) / (N * P);
+				for (P = 1; P <= 4; P++) {
 
-			error = (target - Fout) / target;
-			aerror = (error < 0) ? -error : error;
-			if (aerror < abest) {
-				abest = aerror;
-				bestM = M;
-				bestN = N;
-				bestP = P;
-				bestPSN = PSN;
-				bestVLD = VLD;
-			}
-		}
+					double Fvco_desired = target * P;
+					double M_desired = Fvco_desired / tmp;
 
-	}
-	else {
+					/* Which way will M_desired be rounded?
+						* Do all three just to be safe.
+						*/
+					int M_low = M_desired - 1;
+					int M_hi = M_desired + 1;
 
-		for (PSNx = 0; PSNx <= MAX_PSN; PSNx++) {
+					if (M_hi < M_min || M_low > M_max)
+						continue;
 
-			int low_N, high_N;
-			double FrefVLDPSN;
+					if (M_low < M_min)
+						M_low = M_min;
 
-			PSN = !PSNx ? 1 : 4;
+					if (M_hi > M_max)
+						M_hi = M_max;
 
-			low_N = 2;
-			high_N = 32;
+					for (M = M_low; M <= M_hi; M++) {
 
-			for (VLD = 1; VLD <= max_VLD; VLD++) {
+						Fvco = tmp * M;
+						if (Fvco <= MIN_VCO) continue;
+						if (Fvco > MAX_VCO)  break;
 
-				FrefVLDPSN = (double)Fref * VLD / PSN;
+						Fout = Fvco / P;
 
-				for (N = low_N; N <= high_N; N++) {
+						error = (target - Fout) / target;
 
-					double tmp = FrefVLDPSN / N;
+						aerror = (error < 0) ? -error : error;
 
-					for (P = 1; P <= 4; P++) {
-
-						double Fvco_desired = target * P;
-						double M_desired = Fvco_desired / tmp;
-
-						/* Which way will M_desired be rounded?
-						 * Do all three just to be safe.
-						 */
-						int M_low = M_desired - 1;
-						int M_hi = M_desired + 1;
-
-						if (M_hi < M_min || M_low > M_max)
-							continue;
-
-						if (M_low < M_min)
-							M_low = M_min;
-
-						if (M_hi > M_max)
-							M_hi = M_max;
-
-						for (M = M_low; M <= M_hi; M++) {
-
-							Fvco = tmp * M;
-							if (Fvco <= MIN_VCO) continue;
-							if (Fvco > MAX_VCO)  break;
-
-							Fout = Fvco / P;
-
-							error = (target - Fout) / target;
-
-							aerror = (error < 0) ? -error : error;
-
-							if (aerror < abest) {
-								abest = aerror;
-								bestM = M;
-								bestN = N;
-								bestP = P;
-								bestPSN = PSN;
-								bestVLD = VLD;
-							}
+						if (aerror < abest) {
+							abest = aerror;
+							bestM = M;
+							bestN = N;
+							bestP = P;
+							bestPSN = PSN;
+							bestVLD = VLD;
 						}
 					}
 				}
@@ -390,17 +341,7 @@ SiSSave(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	sisSaveUnlockExtRegisterLock(pSiS, NULL, NULL);
 #endif
 
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS5597:
-		max = 0x3C;
-		break;
-	case PCI_CHIP_SIS6326:
-	case PCI_CHIP_SIS530:
-		max = 0x3F;
-		break;
-	default:
-		max = 0x37;
-	}
+	max = 0x37;
 
 	/* Save extended SR registers */
 	for (i = 0x00; i <= max; i++) {
@@ -423,18 +364,6 @@ SiSSave(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	inSISIDXREG(SISCR, 0x80, sisReg->sisRegs3D4[0x80]);
 
 	sisReg->sisRegs3C2 = inSISREG(SISMISCR);	 /* Misc */
-
-	/* Save TV registers */
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-		outSISIDXREG(SISCR, 0x80, 0x86);
-		for (i = 0x00; i <= 0x44; i++) {
-			sisReg->sis6326tv[i] = SiS6326GetTVReg(pScrn, i);
-#ifdef TWDEBUG
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"VR%02X - %02X \n", i, sisReg->sis6326tv[i]);
-#endif
-		}
-	}
 }
 
 static void
@@ -448,25 +377,7 @@ SiSRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	sisSaveUnlockExtRegisterLock(pSiS, NULL, NULL);
 #endif
 
-	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS5597:
-		max = 0x3C;
-		break;
-	case PCI_CHIP_SIS6326:
-	case PCI_CHIP_SIS530:
-		max = 0x3F;
-		break;
-	default:
-		max = 0x37;
-	}
-
-	/* Disable TV on 6326 before restoring */
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-		outSISIDXREG(SISCR, 0x80, 0x86);
-		tmp = SiS6326GetTVReg(pScrn, 0x00);
-		tmp &= ~0x04;
-		SiS6326SetTVReg(pScrn, 0x00, tmp);
-	}
+	max = 0x37;
 
 	/* Restore other extended SR registers */
 	for (i = 0x06; i <= max; i++) {
@@ -493,27 +404,6 @@ SiSRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 
 	/* Restore TV registers */
 	pSiS->SiS6326Flags &= ~SIS6326_TVON;
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-		for (i = 0x01; i <= 0x44; i++) {
-			SiS6326SetTVReg(pScrn, i, sisReg->sis6326tv[i]);
-#ifdef TWDEBUG
-			xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-				"VR%02x restored to %02x\n",
-				i, sisReg->sis6326tv[i]);
-#endif
-		}
-		tmp = SiS6326GetXXReg(pScrn, 0x13);
-		SiS6326SetXXReg(pScrn, 0x13, 0xfa);
-		tmp = SiS6326GetXXReg(pScrn, 0x14);
-		SiS6326SetXXReg(pScrn, 0x14, 0xc8);
-		if (!(sisReg->sisRegs3C4[0x0D] & 0x04)) {
-			tmp = SiS6326GetXXReg(pScrn, 0x13);
-			SiS6326SetXXReg(pScrn, 0x13, 0xf6);
-			tmp = SiS6326GetXXReg(pScrn, 0x14);
-			SiS6326SetXXReg(pScrn, 0x14, 0xbf);
-		}
-		if (sisReg->sis6326tv[0] & 0x04) pSiS->SiS6326Flags |= SIS6326_TVON;
-	}
 }
 
 /* Save SiS 300 series register contents */
@@ -547,18 +437,6 @@ SiS300Save(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 
 	/* Save Misc register */
 	sisReg->sisRegs3C2 = inSISREG(SISMISCR);
-
-	/* Save FQBQ and GUI timer settings */
-	if (pSiS->Chipset == PCI_CHIP_SIS630) {
-		sisReg->sisRegsPCI50 = sis_pci_read_host_bridge_u32(0x50);
-		sisReg->sisRegsPCIA0 = sis_pci_read_host_bridge_u32(0xA0);
-#ifdef TWDEBUG
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			"PCI Config 50 = %lx\n", sisReg->sisRegsPCI50);
-		xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-			"PCI Config A0 = %lx\n", sisReg->sisRegsPCIA0);
-#endif
-	}
 
 	/* Save panel link/video bridge registers */
 #ifndef TWDEBUG
@@ -616,16 +494,6 @@ SiS300Restore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	/* Restore extended CR registers */
 	for (i = 0x19; i < 0x40; i++) {
 		outSISIDXREG(SISCR, i, sisReg->sisRegs3D4[i]);
-	}
-
-	if (pSiS->Chipset != PCI_CHIP_SIS300) {
-		UChar val;
-		inSISIDXREG(SISCR, 0x1A, val);
-		if (val == sisReg->sisRegs3D4[0x19])
-			outSISIDXREG(SISCR, 0x1A, sisReg->sisRegs3D4[0x19]);
-		inSISIDXREG(SISCR, 0x19, val);
-		if (val == sisReg->sisRegs3D4[0x1A])
-			outSISIDXREG(SISCR, 0x19, sisReg->sisRegs3D4[0x1A]);
 	}
 
 	/* Set (and leave) PCI_IO_ENABLE on if accelerators are on */
@@ -687,26 +555,6 @@ SiS300Restore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 
 	/* Restore Misc register */
 	outSISREG(SISMISCW, sisReg->sisRegs3C2);
-
-	/* Restore FQBQ and GUI timer settings */
-	if (pSiS->Chipset == PCI_CHIP_SIS630) {
-		temp1 = sis_pci_read_host_bridge_u32(0x50);
-		temp2 = sis_pci_read_host_bridge_u32(0xA0);
-		if (sis_pci_read_host_bridge_u32(0x00) == 0x06301039) {
-			temp1 &= 0xf0ffffff;
-			temp1 |= (sisReg->sisRegsPCI50 & ~0xf0ffffff);
-			temp2 &= 0xf0ffffff;
-			temp2 |= (sisReg->sisRegsPCIA0 & ~0xf0ffffff);
-		}
-		else {  /* 730 */
-			temp1 &= 0xfffff9ff;
-			temp1 |= (sisReg->sisRegsPCI50 & ~0xfffff9ff);
-			temp2 &= 0x00ffffff;
-			temp2 |= (sisReg->sisRegsPCIA0 & ~0x00ffffff);
-		}
-		SIS_PCI_WRITE_LONG(pSiS->PciInfo, 0x50, temp1);
-		SIS_PCI_WRITE_LONG(pSiS->PciInfo, 0xA0, temp2);
-	}
 
 	/* Restore panel link/video bridge registers */
 	if (!(pSiS->UseVESA)) {

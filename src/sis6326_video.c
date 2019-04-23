@@ -416,52 +416,6 @@ SIS6326ResetVideo(ScrnInfoPtr pScrn)
 	/* Initialize the overlay ----------------------------------- */
 
 	switch (pSiS->Chipset) {
-	case PCI_CHIP_SIS5597:
-		/* Disable overlay (D[1]) & capture (D[0]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x03);
-
-		/* What do these do? (Datasheet names these bits "reserved") */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x18);
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x0c);
-
-		/* Select YUV format (D[6]) and "gfx + video" mode (D[4]), odd polarity? (D[7]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x40, 0xD0);
-		/* No interrupt, no filter, disable dithering */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc1, 0x00, 0x7A);
-		/* Disable Brooktree support (D[6]) and system memory framebuffer (D[7]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc3, 0x00, 0xC0);
-		/* Disable video decimation (has a really strange effect if enabled) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc6, 0x00, 0x80);
-		break;
-	case PCI_CHIP_SIS6326:
-		/* Disable overlay (D[1]) & capture (D[0]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x03);
-
-		/* What do these do? (Datasheet names these bits "reserved") */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x18);
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x0c);
-
-		/* Select YUV format (D[6]) and "gfx + video" mode (D[4]), odd polarity? (D[7]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x40, 0xD0);
-		/* No interrupt, no filter, disable dithering */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc1, 0x00, 0x7A);
-		/* Disable VMI (D[4:3]), Brooktree support (D[6]) and system memory framebuffer (D[7]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc3, 0x00, 0xF8);
-		/* Disable video decimation */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc6, 0x00, 0x80);
-		break;
-	case PCI_CHIP_SIS530:
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc4, 0x40, 0x40);
-		/* Disable overlay (D[1]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x02);
-
-		/* What do D[3:2] do? (Datasheet names these bits "reserved") */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x18);
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x00, 0x0c);
-
-		/* Select YUV format (D[6]) and "gfx + video" mode (D[4]) */
-		setvideoregmask(pSiS, Index_VI6326_Control_Misc0, 0x40, 0x50);
-		break;
 	default:
 		xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
 			"Internal error: SiS6326ResetVideo() called with invalid chipset (%x)\n",
@@ -524,13 +478,6 @@ SIS6326SetupImageVideo(ScreenPtr pScreen)
 	SISPtr pSiS = SISPTR(pScrn);
 	XF86VideoAdaptorPtr adapt;
 	SISPortPrivPtr pPriv;
-
-#if XF86_VERSION_CURRENT < XF86_VERSION_NUMERIC(4,1,99,1,0)
-	XAAInfoRecPtr pXAA = pSiS->AccelInfoPtr;
-
-	if (!pXAA || !pXAA->FillSolidRects)
-		return NULL;
-#endif
 
 	if (!(adapt = calloc(1, sizeof(XF86VideoAdaptorRec) +
 		sizeof(SISPortPrivRec) +
@@ -928,12 +875,6 @@ set_contrast_data(SISPtr pSiS, int value)
 	setvideoreg(pSiS, Index_VI6326_Contrast_Factor, temp);
 }
 
-static __inline void
-set_disablegfx(SISPtr pSiS, Bool mybool)
-{
-	setvideoregmask(pSiS, Index_VI6326_Control_Misc0, mybool ? 0x10 : 0x00, 0x10);
-}
-
 static void
 set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index)
 {
@@ -1071,9 +1012,6 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 			(pOverlay->dstBox.y2 - pOverlay->dstBox.y1));
 		set_contrast(pSiS, pPriv->contrast);
 	}
-
-	/* enable/disable graphics display around overlay */
-	set_disablegfx(pSiS, pPriv->disablegfx);
 
 	/* set format */
 	set_format(pSiS, pOverlay);

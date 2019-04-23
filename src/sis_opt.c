@@ -621,24 +621,10 @@ SiSOptions(ScrnInfoPtr pScrn)
 
 	/* Chipset dependent defaults */
 
-	if (pSiS->Chipset == PCI_CHIP_SIS530) {
-		/* TQ still broken on 530/620? */
-		pSiS->TurboQueue = FALSE;
-	}
-
-	if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-		pSiS->newFastVram = 1;
-	}
-
 	if (pSiS->ChipType == SIS_315H ||
 		pSiS->ChipType == SIS_315) {
 		/* Cursor engine seriously broken */
 		pSiS->HWCursor = FALSE;
-	}
-
-	if (pSiS->Chipset == PCI_CHIP_SIS550) {
-		/* Alpha blending not supported */
-		pSiS->doRender = FALSE;
 	}
 
 	/* DRI only supported on 300 series,
@@ -684,17 +670,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 			((pSiS->oldChipset == OC_SIS620) ? "enabled (for read only)" :
 				"enabled (for write only)") :
 				(pSiS->newFastVram ? "enabled (for read and write)" : disabledstr));
-	}
-
-	/* HostBus (5597/5598 only)
-	 */
-	if (pSiS->Chipset == PCI_CHIP_SIS5597) {
-		from = X_DEFAULT;
-		if (xf86GetOptValBool(pSiS->Options, OPTION_HOSTBUS, &pSiS->HostBus)) {
-			from = X_CONFIG;
-		}
-		xf86DrvMsg(pScrn->scrnIndex, from, "SiS5597/5598 VGA-to-CPU host bus %s\n",
-			pSiS->HostBus ? enabledstr : disabledstr);
 	}
 
 	/* MaxXFBMem
@@ -1126,15 +1101,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 			xf86DrvMsg(pScrn->scrnIndex, from, "Hotkey display switching is %s%s\n",
 				pSiS->AllowHotkey ? enabledstr : disabledstr,
 				ival ? " in dual head mode" : "");
-			if (pSiS->Chipset == PCI_CHIP_SIS630 ||
-				pSiS->Chipset == PCI_CHIP_SIS650 ||
-				pSiS->Chipset == PCI_CHIP_SIS660 ||
-				pSiS->Chipset == PCI_CHIP_SIS670) {
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"WARNING: Using the Hotkey might freeze your machine, regardless\n");
-				xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-					"         whether enabled or disabled. This is no driver bug.\n");
-			}
 
 			/* UseROMData (300/315/330 series and later only)
 			 * This option is enabling/disabling usage of some machine
@@ -1315,18 +1281,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 				else if ((!xf86NameCmp(strptr, "NONE")) ||
 					SiS_StrIsBoolOff(strptr))
 					pSiS->ForceCRT2Type = 0;
-				else if ((!xf86NameCmp(strptr, "DSTN")) && (pSiS->Chipset == PCI_CHIP_SIS550)) {
-					if (pSiS->ForceCRT1Type == CRT1_VGA) {
-						pSiS->ForceCRT2Type = CRT2_LCD;
-						pSiS->DSTN = TRUE;
-					}
-				}
-				else if ((!xf86NameCmp(strptr, "FSTN")) && (pSiS->Chipset == PCI_CHIP_SIS550)) {
-					if (pSiS->ForceCRT1Type == CRT1_VGA) {
-						pSiS->ForceCRT2Type = CRT2_LCD;
-						pSiS->FSTN = TRUE;
-					}
-				}
 				else if (!xf86NameCmp(strptr, "HIVISION")) {
 					pSiS->ForceCRT2Type = CRT2_TV;
 					pSiS->ForceTVType = TV_HIVISION;
@@ -1637,61 +1591,7 @@ SiSOptions(ScrnInfoPtr pScrn)
 
 		}
 
-
-		/* TVStandard (300/315/330/later series and 6326 w/ TV only)
-	 * This option is for overriding the autodetection of
-	 * the BIOS/Jumper option for PAL / NTSC
-	 */
-		if ((pSiS->VGAEngine == SIS_300_VGA) ||
-			(pSiS->VGAEngine == SIS_315_VGA) ||
-			((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV))) {
-			strptr = (char*)xf86GetOptValString(pSiS->Options, OPTION_TVSTANDARD);
-			if (strptr != NULL) {
-				if (!xf86NameCmp(strptr, "PAL"))
-					pSiS->OptTVStand = 1;
-				else if ((!xf86NameCmp(strptr, "PALM")) ||
-					(!xf86NameCmp(strptr, "PAL-M"))) {
-					pSiS->OptTVStand = 1;
-					pSiS->NonDefaultPAL = 1;
-				}
-				else if ((!xf86NameCmp(strptr, "PALN")) ||
-					(!xf86NameCmp(strptr, "PAL-N"))) {
-					pSiS->OptTVStand = 1;
-					pSiS->NonDefaultPAL = 0;
-				}
-				else if ((!xf86NameCmp(strptr, "NTSCJ")) ||
-					(!xf86NameCmp(strptr, "NTSC-J"))) {
-					pSiS->OptTVStand = 0;
-					pSiS->NonDefaultNTSC = 1;
-				}
-				else if (!xf86NameCmp(strptr, "NTSC"))
-					pSiS->OptTVStand = 0;
-				else {
-					SiS_PrintBadOpt(pScrn, strptr, OPTION_TVSTANDARD);
-					xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-						"%s \"PAL\", \"PALM\", \"PALN\", \"NTSC\", \"NTSCJ\"\n", validparm);
-				}
-
-				if (pSiS->OptTVStand != -1) {
-					static const char* tvstdstr = "TV standard shall be %s\n";
-					if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-						pSiS->NonDefaultPAL = -1;
-						pSiS->NonDefaultNTSC = -1;
-						xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, tvstdstr,
-							pSiS->OptTVStand ? "PAL" : "NTSC");
-					}
-					else {
-						xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, tvstdstr,
-							(pSiS->OptTVStand ?
-							((pSiS->NonDefaultPAL == -1) ? "PAL" :
-								((pSiS->NonDefaultPAL) ? "PALM" : "PALN")) :
-								(pSiS->NonDefaultNTSC == -1) ? "NTSC" : "NTSCJ"));
-					}
-				}
-			}
-		}
-
-		/* CHTVType (315/330/later series + Chrontel only)
+	/* CHTVType (315/330/later series + Chrontel only)
 	 * Used for telling the driver if the TV output shall
 	 * be 525i YPbPr or SCART.
 	 */
@@ -1802,45 +1702,7 @@ SiSOptions(ScrnInfoPtr pScrn)
 				"Illegal TV x or y scaling parameter. Range is from -16 to 16 (X), -4 to 3 (Y)\n");
 		}
 
-		if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-			int tmp = 0;
-			strptr = (char*)xf86GetOptValString(pSiS->Options, OPTION_SIS6326FORCETVPPLUG);
-			if (strptr) {
-				if (!xf86NameCmp(strptr, "COMPOSITE"))
-					pSiS->sis6326tvplug = 1;
-				else if (!xf86NameCmp(strptr, "SVIDEO"))
-					pSiS->sis6326tvplug = 0;
-				else {
-					SiS_PrintBadOpt(pScrn, strptr, OPTION_SIS6326FORCETVPPLUG);
-					xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-						"%s \"COMPOSITE\" or \"SVIDEO\"\n", validparm);
-				}
-			}
-			xf86GetOptValBool(pSiS->Options, OPTION_SIS6326ENABLEYFILTER,
-				&pSiS->sis6326enableyfilter);
-			xf86GetOptValBool(pSiS->Options, OPTION_SIS6326YFILTERSTRONG,
-				&pSiS->sis6326yfilterstrong);
-			xf86GetOptValInteger(pSiS->Options, OPTION_TVXPOSOFFSET,
-				&pSiS->tvxpos);
-			xf86GetOptValInteger(pSiS->Options, OPTION_TVYPOSOFFSET,
-				&pSiS->tvypos);
-			if (pSiS->tvxpos > 16) { pSiS->tvxpos = 16;  tmp = 1; }
-			if (pSiS->tvxpos < -16) { pSiS->tvxpos = -16; tmp = 1; }
-			if (pSiS->tvypos > 16) { pSiS->tvypos = 16;  tmp = 1; }
-			if (pSiS->tvypos < -16) { pSiS->tvypos = -16;  tmp = 1; }
-			if (tmp) xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-				"Illegal TV x or y offset. Range is from -16 to 16\n");
-			xf86GetOptValInteger(pSiS->Options, OPTION_SIS6326FSCADJUST,
-				&pSiS->sis6326fscadjust);
-			if (pSiS->sis6326fscadjust) {
-				xf86DrvMsg(pScrn->scrnIndex, X_CONFIG,
-					"Adjusting the default FSC by %d\n",
-					pSiS->sis6326fscadjust);
-			}
-		}
-
-		if ((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA) ||
-			((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV))) {
+		if ((pSiS->VGAEngine == SIS_300_VGA) || (pSiS->VGAEngine == SIS_315_VGA)) {
 			Bool Is6326 = FALSE;
 			strptr = (char*)xf86GetOptValString(pSiS->Options, OPTION_SISTVANTIFLICKER);
 			if (!strptr) {

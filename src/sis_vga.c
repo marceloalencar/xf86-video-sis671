@@ -210,27 +210,6 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 	 */
 	sis6326tvmode = FALSE;
 	sis6326himode = FALSE;
-	if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-		if (pSiS->SiS6326Flags & SIS6326_HASTV) {
-			if ((pSiS->SiS6326Flags & SIS6326_TVDETECTED) &&
-				((strcmp(mode->name, "PAL800x600") == 0) ||	/* Special TV modes */
-				(strcmp(mode->name, "PAL800x600U") == 0) ||
-					(strcmp(mode->name, "PAL720x540") == 0) ||
-					(strcmp(mode->name, "PAL640x480") == 0) ||
-					(strcmp(mode->name, "NTSC640x480") == 0) ||
-					(strcmp(mode->name, "NTSC640x480U") == 0) ||
-					(strcmp(mode->name, "NTSC640x400") == 0))) {
-				sis6326tvmode = TRUE;
-			}
-			else {
-				pReg->sis6326tv[0x00] &= 0xfb;
-			}
-		}
-		if ((strcmp(mode->name, "SIS1280x1024-75") == 0) ||	/* Special high-res modes */
-			(strcmp(mode->name, "SIS1600x1200-60") == 0)) {
-			sis6326himode = TRUE;
-		}
-	}
 
 #ifdef UNLOCK_ALWAYS
 	outSISIDXREG(SISSR, 0x05, 0x86);
@@ -271,29 +250,7 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 			pReg->sisRegs3C4[0x0C] |= 0x20;
 		}
 
-		/* Some speed-up stuff */
-		switch (pSiS->Chipset) {
-		case PCI_CHIP_SIS5597:
-			/* enable host bus */
-			if (!pSiS->HostBus) {
-				pReg->sisRegs3C4[0x34] &= ~0x08;
-			}
-			else {
-				pReg->sisRegs3C4[0x34] |= 0x08;
-			}
-			/* fall through */
-		case PCI_CHIP_SIS6326:
-		case PCI_CHIP_SIS530:
-			/* Enable "dual segment register mode" (D2) and "i/o gating while
-			 * write buffer is not empty" (D3)
-			 */
-			pReg->sisRegs3C4[0x0B] |= 0x0C;
-		}
-
 		/* set colordepth */
-		if (pSiS->Chipset == PCI_CHIP_SIS530) {
-			pReg->sisRegs3C4[0x09] &= 0x7F;
-		}
 		switch (pSiS->CurrentLayout.bitsPerPixel) {
 		case 8:
 			break;
@@ -310,15 +267,7 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 			pReg->sisRegs3C4[0x0B] |= 0x90;
 			break;
 		case 32:
-			if (pSiS->Chipset == PCI_CHIP_SIS530) {
-				offset <<= 2;
-				if (pSiS->oldChipset != OC_SIS620) {
-					pReg->sisRegs3C4[0x06] |= 0x10;
-				}
-				pReg->sisRegs3C4[0x0B] |= 0x90;
-				pReg->sisRegs3C4[0x09] |= 0x80;
-			}
-			else return FALSE;
+			return FALSE;
 			break;
 		}
 	}
@@ -441,20 +390,6 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 			pReg->sisRegs3C4[0x38] |= 0x04;
 		else
 			pReg->sisRegs3C4[0x38] &= 0xFB;
-
-		/* Enable (or disable) high speed DCLK (some 6326 and 530/620 only) */
-		if (((pSiS->Chipset == PCI_CHIP_SIS6326) &&
-			((pSiS->ChipRev == 0xd0) || (pSiS->ChipRev == 0xd1) ||
-			(pSiS->ChipRev == 0xd2) || (pSiS->ChipRev == 0x92) ||
-				(pSiS->Flags & A6326REVAB))) ||
-				(pSiS->oldChipset > OC_SIS6326)) {
-			if ((pSiS->CurrentLayout.bitsPerPixel == 24) ||
-				(pSiS->CurrentLayout.bitsPerPixel == 32) ||
-				(mode->CrtcHDisplay >= 1280))
-				pReg->sisRegs3C4[0x3E] |= 0x01;
-			else
-				pReg->sisRegs3C4[0x3E] &= 0xFE;
-		}
 
 		/* We use the internal VCLK */
 		pReg->sisRegs3C4[0x38] &= 0xFC;
@@ -622,92 +557,11 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 	/* Acceleration stuff */
 	if (!pSiS->NoAccel) {
 		pReg->sisRegs3C4[0x27] |= 0x40;   /* Enable engine programming registers */
-		if ((pSiS->TurboQueue) &&	 /* Handle TurboQueue */
-			(pSiS->oldChipset > OC_SIS6225) &&
-			((pSiS->Chipset != PCI_CHIP_SIS530) ||
-			(pSiS->CurrentLayout.bitsPerPixel != 24))) {
-			pReg->sisRegs3C4[0x27] |= 0x80;		/* Enable TQ */
-			if ((pSiS->Chipset == PCI_CHIP_SIS530) ||
-				((pSiS->Chipset == PCI_CHIP_SIS6326 &&
-				(pSiS->ChipRev == 0xd0 || pSiS->ChipRev == 0xd1 ||
-					pSiS->ChipRev == 0xd2 || pSiS->ChipRev == 0x92 ||
-					pSiS->ChipRev == 0x0a || pSiS->ChipRev == 0x1a ||
-					pSiS->ChipRev == 0x2a || pSiS->ChipRev == 0x0b ||
-					pSiS->ChipRev == 0x1b || pSiS->ChipRev == 0x2b)))) {
-				/* pReg->sisRegs3C4[0x3D] |= 0x80;  */	/* Queue is 62K (530/620 specs) */
-				pReg->sisRegs3C4[0x3D] &= 0x7F;		/* Queue is 30K (530/620 specs) */
-			}
-			/* Locate the TQ at the beginning of the last 64K block of
-			 * video RAM. The address is to be specified in 32K steps.
-			 */
-			pReg->sisRegs3C4[0x2C] = (pScrn->videoRam - 64) / 32;
-			if (pSiS->Chipset != PCI_CHIP_SIS530) {	/* 530/620: Reserved (don't touch) */
-				pReg->sisRegs3C4[0x3C] &= 0xFC; 		/* 6326: Queue is all for 2D */
-			}						/* 5597: Must be 0           */
-#if 0	  /* if(DRI) */
-			if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-				pReg->sisRegs3C4[0x3C] |= 0x10;		/* TQ: 8K for 2D, 24K for 3D */
-				pReg->sisRegs3C4[0x39] |= 0x04;		/* Enable 3D engine */
-			}
-#endif
-		}
-		else {
-			pReg->sisRegs3C4[0x27] &= 0x7F;
-		}
+		pReg->sisRegs3C4[0x27] &= 0x7F;
 	}
 
 
 	if (!pSiS->UseVESA) {
-
-		/* No idea what this does. The Windows driver does it, so we do it as well */
-		if (pSiS->Chipset == PCI_CHIP_SIS6326) {
-			if ((pSiS->ChipRev == 0xd0) || (pSiS->ChipRev == 0xd1) ||
-				(pSiS->ChipRev == 0xd2) || (pSiS->ChipRev == 0x92) ||
-				(pSiS->Flags & A6326REVAB)) {
-				if ((pSiS->Flags & (SYNCDRAM | RAMFLAG)) == (SYNCDRAM | RAMFLAG)) {
-					if (!(pReg->sisRegs3C4[0x0E] & 0x03)) {
-						pReg->sisRegs3C4[0x3E] |= 0x02;
-					}
-				}
-			}
-		}
-
-		/* Set memclock */
-#if 0
-	   /* We don't need to do this; the SetMClk option was not used since 4.0. */
-		if ((pSiS->Chipset == PCI_CHIP_SIS5597) || (pSiS->Chipset == PCI_CHIP_SIS6326)) {
-			if (pSiS->MemClock > 66000) {
-				SiSCalcClock(pScrn, pSiS->MemClock, 1, vclk);
-
-				pReg->sisRegs3C4[0x28] = (vclk[SIS_VCLK_Midx] - 1) & 0x7f;
-				pReg->sisRegs3C4[0x28] |= ((vclk[SIS_VCLK_VLDidx] == 2) ? 1 : 0) << 7;
-				pReg->sisRegs3C4[0x29] = (vclk[SIS_VCLK_Nidx] - 1) & 0x1f;   /* bits [4:0] contain denumerator -MC */
-				if (vclk[SIS_VCLK_Pidx] <= 4) {
-					pReg->sisRegs3C4[0x29] |= (vclk[SIS_VCLK_Pidx] - 1) << 5; /* postscale 1,2,3,4 */
-					pReg->sisRegs3C4[0x13] &= 0x7F;
-				}
-				else {
-					pReg->sisRegs3C4[0x29] |= ((vclk[SIS_VCLK_Pidx] / 2) - 1) << 5;  /* postscale 6,8 */
-					pReg->sisRegs3C4[0x13] |= 0x80;
-				}
-				/* Check programmed memory clock. Enable only to check the above code */
-   /*
-				mclk = 14318 * ((pReg->sisRegs3C4[0x28] & 0x7f) + 1);
-				mclk /= ((pReg->sisRegs3C4[0x29] & 0x0f) + 1);
-				if(!(pReg->sisRegs3C4[0x13] & 0x80)) {
-				   mclk /= (((pReg->sisRegs3C4[0x29] & 0x60) >> 5) + 1);
-				} else {
-				   if((pReg->sisRegs3C4[0x29] & 0x60) == 0x40) mclk /= 6;
-				   if((pReg->sisRegs3C4[0x29] & 0x60) == 0x60) mclk /= 8;
-				}
-				xf86DrvMsgVerb(pScrn->scrnIndex, X_INFO,2,
-					"Setting memory clock to %.3f MHz\n",
-					mclk/1000.0);
-   */
-			}
-		}
-#endif
-
 		/* Set threshold values */
 		/*
 		 * CPU/CRT Threshold:                     FIFO
@@ -732,12 +586,7 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 		 * decreases performance.
 		 *
 		 */
-		switch (pSiS->Chipset) {
-		case PCI_CHIP_SIS5597:  factor = 65; break;
-		case PCI_CHIP_SIS6326:  factor = 30; break;
-		case PCI_CHIP_SIS530:   factor = (pSiS->Flags & UMA) ? 60 : 30; break;
-		default:                factor = (pScrn->videoRam > 1024) ? 24 : 12;
-		}
+		factor = (pScrn->videoRam > 1024) ? 24 : 12;
 		a = width * height * rate * 1.40 * factor * ((pSiS->CurrentLayout.bitsPerPixel + 1) / 8);
 		b = (mclk / 1000) * 999488.0 * (buswidth / 8);
 		c = ((a / b) + 1.0) / 2;
@@ -751,30 +600,8 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 
 		CRT_ENGthreshold = 0x0F;
 
-#if 0  /* See comment in sis_dac.c on why this is commented */
-		if (pSiS->Chipset == PCI_CHIP_SIS530) {
-			if ((pSiS->oldChipset == OC_SIS530A) &&
-				(pSiS->Flags & UMA) &&
-				(mclk == 100000) &&
-				(pSiS->Flags & ESS137xPRESENT)) {
-				if (!(pSiS->Flags & SECRETFLAG)) index = 0;
-				if ((temp = SiS_CalcSpecial530Threshold(pSiS, mode, index)) {
-					CRT_CPUthresholdLow = temp;
-						break;
-				}
-			}
-		}
-#endif
-
-		switch (pSiS->Chipset) {
-		case PCI_CHIP_SIS530:
-			if (CRT_CPUthresholdLow > 0x1f)  CRT_CPUthresholdLow = 0x1f;
-			CRT_CPUthresholdHigh = 0x1f;
-			break;
-		default:
-			if (CRT_CPUthresholdLow > 0x0f)  CRT_CPUthresholdLow = 0x0f;
-			if (CRT_CPUthresholdHigh > 0x0f) CRT_CPUthresholdHigh = 0x0f;
-		}
+		if (CRT_CPUthresholdLow > 0x0f)  CRT_CPUthresholdLow = 0x0f;
+		if (CRT_CPUthresholdHigh > 0x0f) CRT_CPUthresholdHigh = 0x0f;
 
 		pReg->sisRegs3C4[0x08] = ((CRT_CPUthresholdLow & 0x0F) << 4) |
 			(CRT_ENGthreshold & 0x0F);
@@ -789,82 +616,6 @@ SISOldInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 		if (pSiS->oldChipset >= OC_SIS530A) {
 			pReg->sisRegs3C4[0x3F] &= 0xDF;
 			pReg->sisRegs3C4[0x3F] |= 0x58;
-		}
-
-		/* Set SiS6326 TV registers */
-		if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (sis6326tvmode)) {
-			UChar tmp;
-			int index = 0, i, j, k;
-			int fsc;
-
-			if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-				pReg->sisRegs3C4[0x0D] |= 0x04;
-				switch (width) {
-				case 800:
-					if ((strcmp(mode->name, "PAL800x600U") == 0)) index = 4;
-					else	        			     index = 3;
-					break;
-				case 720:
-					index = 5;
-					break;
-				case 640:
-				default:
-					index = 2;
-				}
-				for (i = 0; i < 14; i++) {
-					pReg->sis6326tv[SiS6326TVRegs1[i]] = SiS6326TVRegs1_PAL[index][i];
-				}
-				fsc = (SiS6326TVRegs1_PAL[index][2] << 16) |
-					(SiS6326TVRegs1_PAL[index][3] << 8) |
-					(SiS6326TVRegs1_PAL[index][4]);
-			}
-			else {
-				pReg->sisRegs3C4[0x0D] &= ~0x04;
-				if ((strcmp(mode->name, "NTSC640x480U") == 0)) index = 5;
-				else 					   index = 4;
-				for (i = 0; i < 14; i++) {
-					pReg->sis6326tv[SiS6326TVRegs1[i]] = SiS6326TVRegs1_NTSC[index][i];
-				}
-				fsc = (SiS6326TVRegs1_NTSC[index][2] << 16) |
-					(SiS6326TVRegs1_NTSC[index][3] << 8) |
-					(SiS6326TVRegs1_NTSC[index][4]);
-			}
-			if (pSiS->sis6326fscadjust) {
-				fsc += pSiS->sis6326fscadjust;
-				pReg->sis6326tv[2] = (fsc >> 16) & 0xff;
-				pReg->sis6326tv[3] = (fsc >> 8) & 0xff;
-				pReg->sis6326tv[4] = fsc & 0xff;
-			}
-			tmp = pReg->sis6326tv[0x43];
-			if (pSiS->SiS6326Flags & SIS6326_TVCVBS) tmp |= 0x10;
-			tmp |= 0x08;
-			pReg->sis6326tv[0x43] = tmp;
-			j = 0; k = 0;
-			for (i = 0; i <= 0x44; i++) {
-				if (SiS6326TVRegs1[j] == i) {
-					j++;
-					continue;
-				}
-				if (pSiS->SiS6326Flags & SIS6326_TVPAL) {
-					tmp = SiS6326TVRegs2_PAL[index][k];
-				}
-				else {
-					tmp = SiS6326TVRegs2_NTSC[index][k];
-				}
-				pReg->sis6326tv[i] = tmp;
-				k++;
-			}
-			pReg->sis6326tv[0x43] |= 0x08;
-			if ((pSiS->ChipRev == 0xc1) || (pSiS->ChipRev == 0xc2)) {
-				pReg->sis6326tv[0x43] &= ~0x08;
-			}
-
-			tmp = pReg->sis6326tv[0];
-			tmp |= 0x18;
-			if (pSiS->SiS6326Flags & SIS6326_TVCVBS)   tmp &= ~0x10;
-			if (pSiS->SiS6326Flags & SIS6326_TVSVIDEO) tmp &= ~0x08;
-			tmp |= 0x04;
-			pReg->sis6326tv[0] = tmp;
 		}
 
 	} /* VESA */
@@ -1089,15 +840,6 @@ void SISVGAPreInit(ScrnInfoPtr pScrn)
 		break;
 	default:
 		pSiS->ModeInit = SISOldInit;
-	}
-
-	if ((pSiS->Chipset == PCI_CHIP_SIS6326) && (pSiS->SiS6326Flags & SIS6326_HASTV)) {
-		UChar sr0d;
-		inSISIDXREG(SISSR, 0x0d, sr0d);
-		if (sr0d & 0x04) {
-			pSiS->SiS6326Flags |= SIS6326_TVPAL;
-		}
-		SISSense6326(pScrn);
 	}
 
 	pSiS->VBFlags = pSiS->VBFlags2 = pSiS->VBFlags3 = pSiS->VBFlags4 = 0;
