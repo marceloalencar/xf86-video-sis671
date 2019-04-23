@@ -274,20 +274,7 @@ sis550Setup(ScrnInfoPtr pScrn)
 	 * - no DDR * 2 for bandwidth calculation,
 	 * - overlay magic (bandwidth dependent one/two overlay stuff)
 	 */
-	switch (pSiS->ChipType) {
-	case SIS_760:
-#ifdef SIS761MEMFIX
-	case SIS_761:
-#endif
-#ifdef SIS770MEMFIX
-	case SIS_770:
-#endif
-		if (!(pSiS->ChipFlags & SiSCF_760LFB)) {
-			ddrtimes2 = FALSE;
-			pSiS->SiS_SD2_Flags |= SiS_SD2_SUPPORT760OO;
-		}
-	}
-
+	
 	/* DDR -> Mclk * 2 - needed for bandwidth calculation */
 	if (ddrtimes2) {
 		if (ramtype == 8) pSiS->MemClock *= 2;

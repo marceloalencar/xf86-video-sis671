@@ -992,7 +992,7 @@ SiS301BRestore(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 	if (pSiS->VGAEngine == SIS_315_VGA) {
 		SetBlock(SISPART1, 0x2C, 0x2D, &(sisReg->VBPart1[0x2C]));
 		SetBlock(SISPART1, 0x35, 0x37, &(sisReg->VBPart1[0x35]));
-		if ((pSiS->ChipFlags & SiSCF_Is65x) || (pSiS->ChipType >= SIS_661)) {
+		if (pSiS->ChipFlags & SiSCF_Is65x){
 			outSISIDXREG(SISPART1, 0x4c, sisReg->VBPart1[0x4c]);
 		}
 		outSISIDXREG(SISPART1, 0x2e, sisReg->VBPart1[0x2e] & 0x7f);
@@ -1145,9 +1145,6 @@ SiSRestoreBridge(ScrnInfoPtr pScrn, SISRegPtr sisReg)
 
 	if (pSiS->VGAEngine == SIS_315_VGA) {
 		outSISIDXREG(SISCR, pSiS->myCR63, sisReg->sisRegs3D4[pSiS->myCR63]);
-		if (pSiS->ChipType < SIS_661) {
-			outSISIDXREG(SISCR, 0x79, sisReg->sisRegs3D4[0x79]);
-		}
 	}
 }
 

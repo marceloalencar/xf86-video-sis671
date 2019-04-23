@@ -320,8 +320,7 @@ SISInitVideo(ScreenPtr pScreen)
 	pSiS->HaveBlitAdaptor = FALSE;
 
 #ifdef INCL_YUV_BLIT_ADAPTOR
-	if (((pSiS->ChipFlags & SiSCF_Is65x) ||
-		(pSiS->ChipType >= SIS_330)) &&
+	if ((pSiS->ChipFlags & SiSCF_Is65x) &&
 		(pScrn->bitsPerPixel != 8)) {
 		if ((newBlitAdaptor = SISSetupBlitVideo(pScreen))) {
 			pSiS->HaveBlitAdaptor = TRUE;
@@ -950,12 +949,7 @@ SISSetupImageVideo(ScreenPtr pScreen)
 
 
 	adapt->pPortPrivates[0].ptr = (pointer)(pPriv);
-	if (pSiS->ChipType >= SIS_330) {
-		adapt->nImages = NUM_IMAGES_330;
-	}
-	else {
-		adapt->nImages = NUM_IMAGES_315;
-	}
+	adapt->nImages = NUM_IMAGES_330;
 	adapt->pAttributes = SISAttributes_315;
 	adapt->nAttributes = SiSCountAttributes(&SISAttributes_315[0]);
 	if ((pSiS->hasTwoOverlays) && (!(pSiS->SiS_SD2_Flags & SiS_SD2_SUPPORT760OO))) {
@@ -1464,10 +1458,6 @@ calc_scale_factor(SISOverlayPtr pOverlay, ScrnInfoPtr pScrn,
 	if ((modeflags & V_DBLSCAN) && !flag2) {
 		dstH = origdstH << 1;
 		flag = 0;
-		if ((pSiS->ChipType >= SIS_315H) &&
-			(pSiS->ChipType <= SIS_550)) {
-			dstW <<= 1;
-		}
 	}
 	else if ((pSiS->MiscFlags & MISC_INTERLACE) && !iscrt2) {
 		dstH = origdstH >> 1;
@@ -1633,10 +1623,6 @@ calc_scale_factor_2(SISOverlayPtr pOverlay, ScrnInfoPtr pScrn,
 	if ((modeflags & V_DBLSCAN) && !flag2) {
 		dstH = origdstH << 1;
 		flag = 0;
-		if ((pSiS->ChipType >= SIS_315H) &&
-			(pSiS->ChipType <= SIS_550)) {
-			dstW <<= 1;
-		}
 	}
 	/* CRT2 is never interlace */
 
@@ -2079,7 +2065,7 @@ set_dda_regs(SISPtr pSiS, float scale)
 		}
 	}
 
-	if ((pSiS->ChipType >= SIS_670) && (pSiS->ChipType <= SIS_671)) {
+	if ((pSiS->ChipType <= SIS_671)) {
 
 		for (i = 0; i < 16; i++) {
 			for (j = 0; j < 4; j++) {
@@ -2489,33 +2475,27 @@ set_contrast(SISPtr pSiS, CARD8 contrast)
 {
 
 	/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_val_entry]:chip==%d,con_val=%d \n",pSiS->ChipType,contrast);*/
-	if ((pSiS->ChipType == SIS_662) || (pSiS->ChipType == SIS_671))
-	{
-		CARD8  tmp;
-		CARD8 reg_vrB7 = 0x02;
-		CARD8 reg_vr2E = 0;
-		tmp = contrast;
-		reg_vr2E = tmp & 0x07;
-		reg_vrB7 |= (tmp >> 1) & 0x7c;
-		/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_is_662]:con_val=%d,vr2E=%x, vrB7=%x \n",contrast,reg_vr2E,reg_vrB7);*/
+	CARD8  tmp;
+	CARD8 reg_vrB7 = 0x02;
+	CARD8 reg_vr2E = 0;
+	tmp = contrast;
+	reg_vr2E = tmp & 0x07;
+	reg_vrB7 |= (tmp >> 1) & 0x7c;
+	/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_is_662]:con_val=%d,vr2E=%x, vrB7=%x \n",contrast,reg_vr2E,reg_vrB7);*/
 
-		setvideoregmask(pSiS, Index_VI_Contrast_Enh_Ctrl, reg_vr2E, 0x07);
-		/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_LOW_3BITS]:set_con=%d \n",contrast);*/
-		  /*data = contrast >> 1;*/
+	setvideoregmask(pSiS, Index_VI_Contrast_Enh_Ctrl, reg_vr2E, 0x07);
+	/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_LOW_3BITS]:set_con=%d \n",contrast);*/
+		/*data = contrast >> 1;*/
 
-		setvideoregmask(pSiS, 0xB7, reg_vrB7, 0x7E);
-		/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_HI_5BITS]:set_con=%d, reg=%x \n",contrast,Index_VI_Line_Buffer_Size_High);*/
+	setvideoregmask(pSiS, 0xB7, reg_vrB7, 0x7E);
+	/* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_HI_5BITS]:set_con=%d, reg=%x \n",contrast,Index_VI_Line_Buffer_Size_High);*/
 
 
-	   /* var = getvideoreg(pSiS,0x2E);
-		xf86DrvMsg(0,X_INFO,"[I_XvImage_con_get_LOW_3BITS]:reg2E=%x \n",var);
+	/* var = getvideoreg(pSiS,0x2E);
+	xf86DrvMsg(0,X_INFO,"[I_XvImage_con_get_LOW_3BITS]:reg2E=%x \n",var);
 
-		var1 = getvideoreg(pSiS,0xB7);
-		xf86DrvMsg(0,X_INFO,"[I_XvImage_con_get_HI_5BITS]:regB7=%x \n",var1);*/
-	}
-	else
-	{ /* xf86DrvMsg(0,X_INFO,"[I_XvImage_con_NOT_662]:con_val=%d \n",contrast);*/	              setvideoregmask(pSiS, Index_VI_Contrast_Enh_Ctrl, contrast, 0x07);
-	}
+	var1 = getvideoreg(pSiS,0xB7);
+	xf86DrvMsg(0,X_INFO,"[I_XvImage_con_get_HI_5BITS]:regB7=%x \n",var1);*/
 }
 
 /* 315 series and later only */
@@ -2619,12 +2599,6 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 
 	h_over = (((left >> 8) & 0x0f) | ((right >> 4) & 0xf0));
 	v_over = (((top >> 8) & 0x0f) | ((bottom >> 4) & 0xf0));
-
-	/* set line number ---- we only examined 662*/
-	if (pSiS->ChipType == SIS_662) {
-		setvideoreg(pSiS, Source_VertLine_Number_Low, (CARD8)pOverlay->srcH);
-		setvideoreg(pSiS, Source_VertLine_Number_High, pOverlay->srcH >> 8);
-	}
 
 	/* set line buffer size */
 #ifdef SISMERGED
@@ -2791,7 +2765,7 @@ set_overlay(SISPtr pSiS, SISOverlayPtr pOverlay, SISPortPrivPtr pPriv, int index
 
 		/*  if vertically downscale, remember to set VR31[6] 1
 			 Howerver so far, we only exam 662 & 671 */
-		if (pSiS->ChipType >= SIS_662 && pSiS->ChipType <= SIS_671) {
+		if (pSiS->ChipType <= SIS_671) {
 			if (pOverlay->IntBit & 0x2)		setvideoregmask(pSiS, Index_VI_Control_Misc1, 0x40, 0x40);
 			else		setvideoregmask(pSiS, Index_VI_Control_Misc1, 0x00, 0x40);
 		}
@@ -4332,12 +4306,7 @@ SISSetupBlitVideo(ScreenPtr pScreen)
 	/* Scanline trigger not implemented by hardware! */
 	pPriv->VBlankTriggerCRT1 = 0; /* SCANLINE_TRIGGER_ENABLE | SCANLINE_TR_CRT1; */
 	pPriv->VBlankTriggerCRT2 = 0; /* SCANLINE_TRIGGER_ENABLE | SCANLINE_TR_CRT2; */
-	if (pSiS->ChipType >= SIS_330) {
-		pPriv->AccelCmd = YUVRGB_BLIT_330;
-	}
-	else {
-		pPriv->AccelCmd = YUVRGB_BLIT_325;
-	}
+	pPriv->AccelCmd = YUVRGB_BLIT_330;
 
 	adapt->PutVideo = NULL;
 	adapt->PutStill = NULL;
@@ -4348,8 +4317,7 @@ SISSetupBlitVideo(ScreenPtr pScreen)
 	adapt->GetPortAttribute = (GetPortAttributeFuncPtr)SISGetPortAttributeBlit;
 	adapt->QueryBestSize = (QueryBestSizeFuncPtr)SISQueryBestSizeBlit;
 	/* because SIS671 has no sctretch engine, we use old bliter function */
-	adapt->PutImage = (pSiS->ChipType == SIS_671) ? (PutImageFuncPtr)SISPutImageBlit_671 :
-		(PutImageFuncPtr)SISPutImageBlit;
+	adapt->PutImage = (PutImageFuncPtr)SISPutImageBlit_671;
 	adapt->QueryImageAttributes = SISQueryImageAttributesBlit;
 
 	pSiS->blitadaptor = adapt;
@@ -4681,296 +4649,6 @@ SISPutImageBlit_671(
 
 	return Success;
 }
-
-
-static int
-SISPutImageBlit(
-	ScrnInfoPtr pScrn,
-	short src_x, short src_y,
-	short drw_x, short drw_y,
-	short src_w, short src_h,
-	short drw_w, short drw_h,
-	int id, UChar * buf,
-	short width, short height,
-	Bool sync,
-	RegionPtr clipBoxes, ULong index
-) {
-	SISPtr pSiS = SISPTR(pScrn);
-	SISBPortPrivPtr pPriv = (SISBPortPrivPtr)(pSiS->blitPriv);
-	BoxPtr pbox = REGION_RECTS(clipBoxes);
-	int    nbox = REGION_NUM_RECTS(clipBoxes);
-	CARD32 bufInFbOffs, dstbase = 0, offsety, offsetuv, temp;
-	int    totalSize, yuvSize, bytesize = 0, h, w, wb, srcPitch;
-	int 	  left, right, top, bottom;
-	UChar* ybases, * ubases = NULL, * vbases = NULL, * myubases, * myvbases;
-	UChar* ybased, * uvbased, packed;
-	CARD16* myuvbased;
-	SiS_Packet12_YUV MyPacket;
-	int	  xoffset = 0, yoffset = 0;
-	Bool   first;
-
-	/* for scaling */
-	int ScaleBufSize;
-	SiS_Packet12_Stretch ScalePacket;
-	short MM_x, mm_x, stretch_x;
-	short MM_y, mm_y, stretch_y;
-	short diff_x, diff_y;
-
-#ifdef XVDEBUG
-	xf86DrvMsg(0, X_INFO, "[Xv] PutImageBlit is called: id = %d\n", id);
-	xf86DrvMsg(0, X_INFO, "[Xv] src_x = %d, src_y = %d, src_w = %d, src_h = %d,\
-		drw_x = %d, drw_y = %d, drw_w = %d, drw_h = %d, width = %d, height = %d\n",
-		src_x, src_y, src_w, src_h, drw_x, drw_y, drw_w, drw_h, width, height);
-#endif
-
-	if (index > NUM_BLIT_PORTS)
-		return BadMatch;
-
-	if (!height || !width)
-		return Success;
-
-	if (width > IMAGE_MAX_WIDTH_BLIT || height > IMAGE_MAX_HEIGHT_BLIT)
-		return BadMatch;
-
-	switch (id) {
-	case PIXEL_FMT_YV12:
-	case PIXEL_FMT_I420:
-	case PIXEL_FMT_NV12:
-	case PIXEL_FMT_NV21:
-		srcPitch = (width + 7) & ~7;		/* Should come this way anyway */
-		bytesize = srcPitch * height;
-		yuvSize = (bytesize * 3) >> 1;
-		break;
-	case PIXEL_FMT_YUY2:
-	case PIXEL_FMT_UYVY:
-	case PIXEL_FMT_YVYU:
-		srcPitch = ((width << 1) + 3) & ~3;
-		yuvSize = srcPitch * height;		/* Size = width * 2 * height */
-		bytesize = 0;
-		break;
-	default:
-		return BadMatch;
-	}
-
-	totalSize = yuvSize;
-	ScaleBufSize = srcPitch * height * 4;
-
-	/* allocate memory (we do doublebuffering) */
-	if (!(pPriv->bufAddr[index][0] = SISAllocateFBMemory(pScrn, &pPriv->handle[index], totalSize << 1)))
-		return BadAlloc;
-
-	if (!(pPriv->ScaleBufAddr[index][0] = SISAllocateFBMemory(pScrn, &pPriv->ScaleBufHandle[index], ScaleBufSize << 1)))
-		return BadAlloc;
-
-	pPriv->bufAddr[index][1] = pPriv->bufAddr[index][0] + totalSize;
-	pPriv->ScaleBufAddr[index][1] = pPriv->ScaleBufAddr[index][0] + ScaleBufSize;
-
-
-	bufInFbOffs = pPriv->bufAddr[index][pPriv->currentBuf[index]];
-
-	memset(&MyPacket, 0, sizeof(MyPacket));
-
-	ybased = pSiS->FbBase + bufInFbOffs;
-	uvbased = ybased + bytesize;
-
-
-	ybases = buf;
-	packed = 0;
-
-	switch (id) {
-	case PIXEL_FMT_YV12:
-		vbases = buf + bytesize;
-		ubases = buf + bytesize * 5 / 4;
-		break;
-	case PIXEL_FMT_I420:
-		ubases = buf + bytesize;
-		vbases = buf + bytesize * 5 / 4;
-		break;
-	case PIXEL_FMT_NV12:
-		MyPacket.P12_Command = YUV_FORMAT_NV12;
-		break;
-	case PIXEL_FMT_NV21:
-		MyPacket.P12_Command = YUV_FORMAT_NV21;
-		break;
-	case PIXEL_FMT_YUY2:
-		MyPacket.P12_Command = YUV_FORMAT_YUY2;
-		packed = 1;
-		break;
-	case PIXEL_FMT_UYVY:
-		MyPacket.P12_Command = YUV_FORMAT_UYVY;
-		packed = 1;
-		break;
-	case PIXEL_FMT_YVYU:
-		MyPacket.P12_Command = YUV_FORMAT_YVYU;
-		packed = 1;
-		break;
-	default:
-		return BadMatch;
-	}
-
-	switch (id) {
-	case PIXEL_FMT_YV12:
-	case PIXEL_FMT_I420:
-		MyPacket.P12_Command = YUV_FORMAT_NV12;
-		/* Copy y plane */
-		SiSMemCopyToVideoRam(pSiS, ybased, ybases, bytesize);
-		/* Copy u/v planes */
-		wb = srcPitch >> 1;
-		h = height >> 1;
-		while (h--) {
-			myuvbased = (CARD16*)uvbased;
-			myubases = ubases;
-			myvbases = vbases;
-			w = wb;
-			while (w--) {
-#if X_BYTE_ORDER == X_BIG_ENDIAN
-				temp = (*myubases++) << 8;
-				temp |= (*myvbases++);
-#else
-				temp = (*myvbases++) << 8;
-				temp |= (*myubases++);
-#endif
-				* myuvbased++ = temp;
-			}
-			uvbased += srcPitch;
-			ubases += wb;
-			vbases += wb;
-		}
-		break;
-	default:
-		SiSMemCopyToVideoRam(pSiS, ybased, ybases, yuvSize);
-	}
-
-	MyPacket.P12_Header0 = SIS_PACKET12_HEADER0;
-	MyPacket.P12_Header1 = SIS_PACKET12_HEADER1;
-	MyPacket.P12_Null1 = SIS_NIL_CMD;
-	MyPacket.P12_Null2 = SIS_NIL_CMD;
-
-	MyPacket.P12_YPitch = MyPacket.P12_UVPitch = srcPitch;
-	MyPacket.P12_DstHeight = src_h;
-
-	MyPacket.P12_DstAddr = pPriv->ScaleBufAddr[index][pPriv->currentBuf[index]] + FBOFFSET;/*dstbase + FBOFFSET;*/
-	MyPacket.P12_DstPitch = srcPitch * 4;
-
-	MyPacket.P12_Command |= pPriv->AccelCmd |
-		SRCVIDEO |
-		PATFG |
-		pSiS->SiS310_AccelDepth |
-		YUV_CMD_YUV |
-		DSTVIDEO;
-
-	MyPacket.P12_DstX = 0;
-	MyPacket.P12_DstY = 0;
-	MyPacket.P12_RectWidth = src_w;
-	MyPacket.P12_RectHeight = src_h;
-
-	MyPacket.P12_YSrcAddr = pPriv->bufAddr[index][pPriv->currentBuf[index]] + FBOFFSET;
-	MyPacket.P12_UVSrcAddr = pPriv->bufAddr[index][pPriv->currentBuf[index]] + bytesize + FBOFFSET;
-	SISWriteBlitPacket(pSiS, (CARD32*)& MyPacket);
-
-
-	/* setting stretch packet */
-	memset(&ScalePacket, 0, sizeof(SiS_Packet12_Stretch));
-
-	ScalePacket.P12_Header0 = SIS_PACKET12_HEADER0;
-	ScalePacket.P12_Header1 = SIS_PACKET12_HEADER1;
-	ScalePacket.P12_Null1 = SIS_NIL_CMD;
-	ScalePacket.P12_Null2 = SIS_NIL_CMD;
-	ScalePacket.P12_SrcPitch = srcPitch * 4;
-	ScalePacket.P12_SrcX = src_x;  ScalePacket.P12_SrcY = src_y;
-	ScalePacket.P12_SrcWidth = src_w;  ScalePacket.P12_SrcHeight = src_h;
-	ScalePacket.P12_SrcAddr = pPriv->ScaleBufAddr[index][pPriv->currentBuf[index]] + FBOFFSET;
-
-
-	ScalePacket.P12_DstHeight = 0x0fff;
-	ScalePacket.P12_DstAddr = dstbase + FBOFFSET;
-	ScalePacket.P12_DstPitch = pSiS->scrnOffset;
-
-
-	ScalePacket.P12_DstX = drw_x;
-	ScalePacket.P12_DstY = drw_y;
-	ScalePacket.P12_RectWidth = drw_w;
-	ScalePacket.P12_RectHeight = drw_h;
-
-
-	if (drw_w > src_w) {
-		MM_x = drw_w;  mm_x = src_w;   stretch_x = 1;
-	}
-	else {
-		MM_x = src_w;  mm_x = drw_w;    stretch_x = 0;
-	}
-	diff_x = 2 * (mm_x - MM_x);
-
-	if (drw_h > src_h) {
-		MM_y = drw_h;  mm_y = src_h;   stretch_y = 1;
-	}
-	else {
-		MM_y = src_h;  mm_y = drw_h;    stretch_y = 0;
-	}
-	diff_y = 2 * (mm_y - MM_y);
-
-	ScalePacket.P12_InitErrorX = (stretch_x == 1) ? (src_w + diff_x) : src_w;
-	ScalePacket.P12_X_K1 = 2 * mm_x;
-	ScalePacket.P12_X_K2 = diff_x;
-
-	ScalePacket.P12_InitErrorY = (stretch_y == 1) ? (src_h + diff_y) : src_h;
-	ScalePacket.P12_Y_K1 = 2 * mm_y;
-	ScalePacket.P12_Y_K2 = diff_y;
-
-	ScalePacket.P12_Command |= STRETCH_BITBLT |
-		SRCVIDEO |
-		0xcc00 |/* ROP: Src only */
-		STRETCH_SRC_X_INC |
-		STRETCH_SRC_Y_INC |
-		STRETCH_DST_X_INC |
-		STRETCH_DST_Y_INC |
-		CLIPENABLE |
-		pSiS->SiS310_AccelDepth;
-
-
-	first = TRUE;
-	while (nbox--) {
-		left = pbox->x1;
-		if (left >= drw_x + drw_w) goto mycont;
-
-		right = pbox->x2;
-		if (right <= drw_x) goto mycont;
-
-		top = pbox->y1;
-		if (top >= drw_y + drw_h) goto mycont;
-
-		bottom = pbox->y2;
-		if (bottom <= drw_y) goto mycont;
-
-		if (left < drw_x) left = drw_x;
-		if (right > (drw_x + drw_w)) right = drw_x + drw_w;
-		if (top < drw_y) top = drw_y;
-		if (bottom > (drw_y + drw_h)) bottom = drw_y + drw_h;
-
-		ScalePacket.P12_ClipLeft = left;
-		ScalePacket.P12_ClipTop = top;
-		ScalePacket.P12_ClipRight = right;
-		ScalePacket.P12_ClipBottom = bottom;
-
-		SISWriteBlitPacket(pSiS, (CARD32*)& ScalePacket);
-
-		first = FALSE;
-	mycont:
-		pbox++;
-	}
-
-	pPriv->currentBuf[index] ^= 1;
-
-	UpdateCurrentTime();
-	pPriv->freeTime[index] = currentTime.milliseconds + FREE_DELAY;
-	pPriv->videoStatus[index] = FREE_TIMER;
-
-	pSiS->VideoTimerCallback = SISVideoTimerCallback;
-
-	return Success;
-}
-
-
 
 static int
 SISQueryImageAttributesBlit(

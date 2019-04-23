@@ -611,13 +611,6 @@ SiSOptions(ScrnInfoPtr pScrn)
 	pSiS->IgnoreHotkeyFlag = FALSE;
 
 	/* Chipset dependent defaults */
-
-	if (pSiS->ChipType == SIS_315H ||
-		pSiS->ChipType == SIS_315) {
-		/* Cursor engine seriously broken */
-		pSiS->HWCursor = FALSE;
-	}
-
 	/* DRI only supported on 300 series,
 	 * so don't load DRI by default on
 	 * others.
@@ -2018,15 +2011,8 @@ SiSOptions(ScrnInfoPtr pScrn)
 
 			/* Some Xv properties' defaults can be set by options */
 			if (xf86GetOptValInteger(pSiS->Options, OPTION_XVDEFCONTRAST, &ival)) {
-				if ((pSiS->ChipType == SIS_662) || (pSiS->ChipType == SIS_671))
-				{
-					if ((ival >= 0) && (ival <= 255)) pSiS->XvDefCon = ival;
-					else SiS_PrintIlRange(pScrn, OPTION_XVDEFCONTRAST, 0, 255, 0);
-				}
-				else {
-					if ((ival >= 0) && (ival <= 7)) pSiS->XvDefCon = ival;
-					else SiS_PrintIlRange(pScrn, OPTION_XVDEFCONTRAST, 0, 7, 0);
-				}
+				if ((ival >= 0) && (ival <= 255)) pSiS->XvDefCon = ival;
+				else SiS_PrintIlRange(pScrn, OPTION_XVDEFCONTRAST, 0, 255, 0);
 			}
 			if (xf86GetOptValInteger(pSiS->Options, OPTION_XVDEFBRIGHTNESS, &ival)) {
 				if ((ival >= -128) && (ival <= 127)) pSiS->XvDefBri = ival;

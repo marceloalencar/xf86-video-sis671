@@ -134,9 +134,6 @@ static void 	SISQueryBestSizeBlit(ScrnInfoPtr, Bool, short, short, short,
 static int 	SISPutImageBlit_671(ScrnInfoPtr,
 	short, short, short, short, short, short, short, short,
 	int, UChar*, short, short, Bool, RegionPtr, ULong);
-static int 	SISPutImageBlit(ScrnInfoPtr,
-	short, short, short, short, short, short, short, short,
-	int, UChar*, short, short, Bool, RegionPtr, ULong);
 static int 	SISQueryImageAttributesBlit(ScrnInfoPtr,
 	int, UShort*, UShort*, int*, int*);
 extern void     SISWriteBlitPacket(SISPtr pSiS, CARD32* packet);

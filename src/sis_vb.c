@@ -100,39 +100,32 @@ SiS_SISDetectCRT1(ScrnInfoPtr pScrn, unsigned char* buffer)
 		for (i = 0; i < 10; i++) SISWaitRetraceCRT1(pScrn);
 	}
 
-	if (pSiS->ChipType >= SIS_330) {
-		int watchdog, sr7;
-		inSISIDXREG(SISSR, 0x07, sr7);
-		orSISIDXREG(SISSR, 0x07, 0x10);
-		if (pSiS->ChipType >= SIS_340) {
-			outSISIDXREG(SISCR, 0x57, 0x4a);
-		}
-		else {
-			outSISIDXREG(SISCR, 0x57, 0x5f);
-		}
-		orSISIDXREG(SISCR, 0x53, 0x02);
-		watchdog = 655360;
-		while ((!((inSISREG(SISINPSTAT)) & 0x01)) && --watchdog);
-		watchdog = 655360;
-		while (((inSISREG(SISINPSTAT)) & 0x01) && --watchdog);
+	int watchdog, sr7;
+	inSISIDXREG(SISSR, 0x07, sr7);
+	orSISIDXREG(SISSR, 0x07, 0x10);
+	outSISIDXREG(SISCR, 0x57, 0x4a);
+	orSISIDXREG(SISCR, 0x53, 0x02);
+	watchdog = 655360;
+	while ((!((inSISREG(SISINPSTAT)) & 0x01)) && --watchdog);
+	watchdog = 655360;
+	while (((inSISREG(SISINPSTAT)) & 0x01) && --watchdog);
 
 #ifdef TWDEBUG
-		unsigned char uc = 0;
-		uc = inSISREG(SISMISCR);
-		xf86DrvMsg(0, X_INFO, "[SiS_SISDetectCRT1()]:MISC REG Read Port context=%x\n.", uc);
+	unsigned char uc = 0;
+	uc = inSISREG(SISMISCR);
+	xf86DrvMsg(0, X_INFO, "[SiS_SISDetectCRT1()]:MISC REG Read Port context=%x\n.", uc);
 
-		uc = inSISREG(SISMISCW);
-		xf86DrvMsg(0, X_INFO, "[SiS_SISDetectCRT1()]:MISC REG Write Port context=%x\n.", uc);
+	uc = inSISREG(SISMISCW);
+	xf86DrvMsg(0, X_INFO, "[SiS_SISDetectCRT1()]:MISC REG Write Port context=%x\n.", uc);
 #endif
-		if (pSiS->trace_VGA_MISCW)
-		{
-			if ((inSISREG(SISMISCW)) & 0x10) { temp = 1; }
-		}  /*blocked CRT DDC detect refer from VBIOS.*/
+	if (pSiS->trace_VGA_MISCW)
+	{
+		if ((inSISREG(SISMISCW)) & 0x10) { temp = 1; }
+	}  /*blocked CRT DDC detect refer from VBIOS.*/
 
-		andSISIDXREG(SISCR, 0x53, 0xfd);
-		outSISIDXREG(SISCR, 0x57, 0x00);
-		outSISIDXREG(SISSR, 0x07, sr7);
-	}
+	andSISIDXREG(SISCR, 0x53, 0xfd);
+	outSISIDXREG(SISCR, 0x57, 0x00);
+	outSISIDXREG(SISSR, 0x07, sr7);
 
 	if ((temp == 0xffff) && (!pSiS->SiS_Pr->DDCPortMixup)) {
 		i = 4;
@@ -171,7 +164,7 @@ SiS_SISDetectCRT1(ScrnInfoPtr pScrn, unsigned char* buffer)
 			}
 		}
 	}
-	else if (pSiS->ChipType >= SIS_330) {
+	else {
 		andSISIDXREG(SISCR, 0x32, ~0x20);
 		ret = 0;
 	}
@@ -230,30 +223,10 @@ void SISCRT1PreInit(ScrnInfoPtr pScrn)
 
 	inSISIDXREG(SISCR, 0x32, CR32);
 
-	if (pSiS->ChipType >= SIS_330) {
-		pSiS->CRT1Detected = SiS_SISDetectCRT1(pScrn, NULL);
+	pSiS->CRT1Detected = SiS_SISDetectCRT1(pScrn, NULL);
 #ifdef TWDEBUG
-		xf86DrvMsg(0, X_INFO, "[ SISCRT1PreInit() -> >= SIS_330 ]:CRT1=%d.\n", pSiS->CRT1Detected);
+	xf86DrvMsg(0, X_INFO, "[ SISCRT1PreInit() -> >= SIS_330 ]:CRT1=%d.\n", pSiS->CRT1Detected);
 #endif
-
-	}
-	else {
-
-		if (CR32 & 0x20)
-		{
-			pSiS->CRT1Detected = TRUE;
-#ifdef TWDEBUG
-			xf86DrvMsg(0, X_INFO, "[ SISCRT1PreInit() -> < SIS_330 ]:CRT1=%d.\n", pSiS->CRT1Detected);
-#endif 
-		}
-
-		else {
-			pSiS->CRT1Detected = SiS_SISDetectCRT1(pScrn, NULL);
-#ifdef TWDEBUG
-			xf86DrvMsg(0, X_INFO, "[ SISCRT1PreInit() -> CR32 & 0X20 = 0 ]:CRT1=%d.\n", pSiS->CRT1Detected);
-#endif
-		}
-	}
 
 	if (CR32 & 0x5F) OtherDevices = 1;
 
@@ -396,12 +369,6 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 		inSISIDXREG(SISCR, 0x36, CR36);
 		if (pSiS->PRGB != -1) {
 			tmp = 0x37;
-			if ((pSiS->VGAEngine == SIS_315_VGA) &&
-				(pSiS->ChipType < SIS_661) &&
-				(pSiS->ROM661New) &&
-				(!(pSiS->SiS_Pr->PanelSelfDetected))) {
-				tmp = 0x35;
-			}
 			if (pSiS->PRGB == 18)      orSISIDXREG(SISCR, tmp, 0x01);
 			else if (pSiS->PRGB == 24) andSISIDXREG(SISCR, tmp, 0xfe);
 		}
@@ -415,12 +382,6 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 				pSiS->PRGB = 24;
 			}
 			tmp = 0x37;
-			if ((pSiS->VGAEngine == SIS_315_VGA) &&
-				(pSiS->ChipType < SIS_661) &&
-				(pSiS->ROM661New) &&
-				(!(pSiS->SiS_Pr->PanelSelfDetected))) {
-				tmp = 0x35;
-			}
 			if (pSiS->PRGB == 18)      orSISIDXREG(SISCR, tmp, 0x01);
 			else if (pSiS->PRGB == 24) andSISIDXREG(SISCR, tmp, 0xfe);
 #ifdef TWDEBUG
@@ -428,12 +389,7 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 #endif
 		}
 		inSISIDXREG(SISCR, 0x37, CR37);
-		if (pSiS->ChipType < SIS_661) {
-			inSISIDXREG(SISCR, 0x3C, CR7D);
-		}
-		else {
-			inSISIDXREG(SISCR, 0x7D, CR7D);
-		}
+		inSISIDXREG(SISCR, 0x7D, CR7D);
 		if (pSiS->SiS_Pr->SiS_CustomT == CUT_BARCO1366) {
 			pSiS->VBLCDFlags |= VB_LCD_BARCO1366;
 			pSiS->LCDwidth = 1360;
@@ -474,21 +430,10 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 			if (CR36 == 0) {
 				/* Old 650/301LV and ECS A907 BIOS versions "forget" to set CR36, CR37 */
 				if (pSiS->VGAEngine == SIS_315_VGA) {
-					if (pSiS->ChipType < SIS_661) {
-						xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-							"BIOS provided invalid panel size, probing...\n");
-						if (pSiS->VBFlags2 & VB2_LVDS) pSiS->SiS_Pr->SiS_IF_DEF_LVDS = 1;
-						else pSiS->SiS_Pr->SiS_IF_DEF_LVDS = 0;
-						SiS_GetPanelID(pSiS->SiS_Pr);
-						inSISIDXREG(SISCR, 0x36, CR36);
-						inSISIDXREG(SISCR, 0x37, CR37);
-					}
-					else {
-						xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
-							"Broken BIOS, unable to determine panel size, disabling LCD\n");
-						pSiS->VBFlags &= ~CRT2_LCD;
-						return;
-					}
+					xf86DrvMsg(pScrn->scrnIndex, X_WARNING,
+						"Broken BIOS, unable to determine panel size, disabling LCD\n");
+					pSiS->VBFlags &= ~CRT2_LCD;
+					return;
 				}
 			}
 			/*1366x768x60Hz,jump out VB_LCD_CUSTOM, we must clean current CR36. Ivans@090109*/
@@ -508,7 +453,7 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 					(CR37 & 0x01) ? 18 : 24);
 			}
 			else {
-				if ((pSiS->ChipType >= SIS_661) || (pSiS->ROM661New)) {
+				if ((pSiS->ROM661New)) {
 					/*1366x768x60hz. can't refer from CR36. Ivans@090109*/
 					if (pSiS->EnablePanel_1366x768) {
 						pSiS->VBLCDFlags |= SiS661_LCD_Type[(0x10)].VBLCD_lcdflag;
@@ -522,13 +467,6 @@ void SISLCDPreInit(ScrnInfoPtr pScrn, Bool quiet)
 						pSiS->LCDwidth = SiS661_LCD_Type[(CR36 & 0x0f)].LCDwidth;
 					}
 					if (CR37 & 0x10) pSiS->VBLCDFlags |= VB_LCD_EXPANDING;
-					if (pSiS->ChipType < SIS_661) {
-						if (!(pSiS->SiS_Pr->PanelSelfDetected)) {
-							inSISIDXREG(SISCR, 0x35, tmp);
-							CR37 &= 0xfc;
-							CR37 |= (tmp & 0x01);
-						}
-					}
 				}
 				else {
 					pSiS->VBLCDFlags |= SiS315_LCD_Type[(CR36 & 0x0f)].VBLCD_lcdflag;
@@ -609,12 +547,7 @@ void SISTVPreInit(ScrnInfoPtr pScrn, Bool quiet)
 		CR32, SR16, SR38, pSiS->VBFlags);
 #endif
 
-	if (pSiS->ChipType >= SIS_761) {
-		if (CR32 & 0x07) pSiS->VBFlags |= CRT2_TV;
-	}
-	else {
-		if (CR32 & 0x47) pSiS->VBFlags |= CRT2_TV;
-	}
+	if (CR32 & 0x07) pSiS->VBFlags |= CRT2_TV;
 
 	if (pSiS->SiS_SD_Flags & SiS_SD_SUPPORTYPBPR) {
 		if (CR32 & 0x80) pSiS->VBFlags |= CRT2_TV;
@@ -676,21 +609,11 @@ void SISTVPreInit(ScrnInfoPtr pScrn, Bool quiet)
 
 	if (pSiS->VBFlags & (TV_SCART | TV_SVIDEO | TV_AVIDEO)) {
 		if (pSiS->NewCRLayout) {
-			if (pSiS->ChipType < SIS_661) {
-				if (SR38 & 0x01) {
-					pSiS->VBFlags |= TV_PAL;
-				}
-				else {
-					pSiS->VBFlags |= TV_NTSC;
-				}
+			if (CR35 & 0x01) {
+				pSiS->VBFlags |= TV_PAL;
 			}
 			else {
-				if (CR35 & 0x01) {
-					pSiS->VBFlags |= TV_PAL;
-				}
-				else {
-					pSiS->VBFlags |= TV_NTSC;
-				}
+				pSiS->VBFlags |= TV_NTSC;
 			}
 			if (pSiS->VBFlags & TV_PAL) {
 				if (CR35 & 0x04)      pSiS->VBFlags |= TV_PALM;
@@ -895,22 +818,12 @@ SISSense30x(ScrnInfoPtr pScrn, Bool quiet)
 		if (pSiS->Chipset == PCI_CHIP_SIS671) {
 			if (pSiS->ROM661New) {
 				biosflag = 2;
-				if (pSiS->ChipType >= SIS_761) {
-					offset = GETROMWORD(0x92);
-					vga2 = GETROMWORD(offset);
-				}
-				else {
-					vga2 = GETROMWORD(0x63);
-				}
+				offset = GETROMWORD(0x92);
+				vga2 = GETROMWORD(offset);
 				if (pSiS->BIOS[0x6f] & 0x01) {
 					if (pSiS->VBFlags2 & VB2_SISUMC) vga2 = GETROMWORD(0x4d);
 				}
-				if (pSiS->ChipType >= SIS_761) {
-					svhs = cvbs = GETROMWORD(offset);
-				}
-				else {
-					svhs = cvbs = GETROMWORD(0x65);
-				}
+				svhs = cvbs = GETROMWORD(offset);
 				if (pSiS->BIOS[0x5d] & 0x04) biosflag |= 0x01;
 			}
 		}
@@ -3091,16 +3004,8 @@ void SiS_SetTVyscale(ScrnInfoPtr pScrn, int val)
 				if (pSiS->VGAEngine == SIS_315_VGA) temp1--;
 				outSISIDXREG(SISPART1, 0x0e, (temp1 & 0xff));
 				setSISIDXREG(SISPART1, 0x12, 0xf8, ((temp1 >> 8) & 0x07));
-				if ((pSiS->ChipType >= SIS_661)) {
-					temp1 = (vgavt + SiSTVVScale[srindex].RealVDE) >> 1;
-					temp2 = ((vgavt - SiSTVVScale[srindex].RealVDE) >> 4) + temp1 + 1;
-				}
-				else {
-					temp1 = (vgavt - SiSTVVScale[srindex].RealVDE) >> 2;
-					temp2 = (temp1 < 4) ? 4 : temp1;
-					temp1 += SiSTVVScale[srindex].RealVDE;
-					temp2 = (temp2 >> 2) + temp1 + 1;
-				}
+				temp1 = (vgavt + SiSTVVScale[srindex].RealVDE) >> 1;
+				temp2 = ((vgavt - SiSTVVScale[srindex].RealVDE) >> 4) + temp1 + 1;
 				outSISIDXREG(SISPART1, 0x10, (temp1 & 0xff));
 				setSISIDXREG(SISPART1, 0x11, 0x8f, ((temp1 >> 4) & 0x70));
 				setSISIDXREG(SISPART1, 0x11, 0xf0, (temp2 & 0x0f));

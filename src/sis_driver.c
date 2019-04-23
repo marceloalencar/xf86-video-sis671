@@ -6886,20 +6886,6 @@ static void
 #endif
 	}
 
-	/* Determine if STN is active */
-	if (pSiS->ChipType == SIS_550) {
-		if ((pSiS->VBFlags & CRT2_LCD) && (pSiS->FSTN || pSiS->DSTN)) {
-			inSISIDXREG(SISCR, 0x34, tmpreg);
-			tmpreg &= 0x7f;
-			if (tmpreg == 0x5a || tmpreg == 0x5b) {
-				pSiS->MiscFlags |= MISC_STNMODE;
-#ifdef SISDUALHEAD
-				SiS_SetDHFlags(pSiS, MISC_STNMODE, 0);
-#endif
-			}
-		}
-	}
-
 	if (pSiS->VGAEngine == SIS_315_VGA) {
 		int i;
 #ifdef SISVRAMQ
